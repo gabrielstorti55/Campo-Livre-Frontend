@@ -35,7 +35,6 @@ test('associa os rótulos aos controles do formulário de login', async ({
 
   await page.getByLabel('E-mail').fill('atleta@campolivre.test');
   await page.getByLabel('Senha').fill('segredo');
-  await expect(page.getByLabel('Perfil')).toHaveRole('combobox');
 });
 
 test('seleciona o perfil como um grupo de opções exclusivo pelo teclado', async ({

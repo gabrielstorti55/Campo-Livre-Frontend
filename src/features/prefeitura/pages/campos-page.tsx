@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 
@@ -22,11 +22,11 @@ export function Campos() {
         title="Campos cadastrados"
         subtitle={`${campos.length} campos municipais`}
         actions={
-          <Link to="/prefeitura/campos/novo">
-            <Button variant="campoOutline" tone="navy" className="py-2.5">
+          <Button variant="campoOutline" tone="navy" className="py-2.5" asChild>
+            <Link to="/prefeitura/campos/novo">
               <Plus className="h-4 w-4" /> Novo campo
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         }
       />
       <SearchBar placeholder="Buscar campo" value={busca} onChange={setBusca} />
@@ -42,7 +42,6 @@ export function Campos() {
                 {c.endereco}
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Card>
         ))}
       </div>

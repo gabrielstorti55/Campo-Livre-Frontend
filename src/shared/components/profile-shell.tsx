@@ -7,6 +7,12 @@ import { cn } from '@/shared/lib/utils';
 
 export type NavItem = { label: string; to: string; icon: LucideIcon };
 
+type ShellTone = 'green' | 'navy';
+
+function isItemActive(pathname: string, to: string) {
+  return pathname === to || (to !== '/' && pathname.startsWith(`${to}/`));
+}
+
 export function ProfileShell({
   items,
   tone,
@@ -15,73 +21,120 @@ export function ProfileShell({
   children,
 }: {
   items: NavItem[];
-  tone: 'green' | 'navy';
+  tone: ShellTone;
   userName: string;
   userRole: string;
   children: ReactNode;
 }) {
   const { pathname } = useLocation();
+  const shellColor = tone === 'navy' ? 'bg-navy-dark' : 'bg-green-dark';
 
   return (
-    <div className="flex min-h-screen w-full bg-surface">
+    <div className="min-h-screen w-full bg-surface lg:flex">
+      <a
+        href="#conteudo-principal"
+        className="fixed top-3 left-3 z-50 -translate-y-20 bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-transform focus:translate-y-0"
+      >
+        Ir para o conteúdo principal
+      </a>
+
       <aside
         className={cn(
-          'sticky top-0 flex h-screen w-16 shrink-0 flex-col md:w-60',
-          tone === 'navy' ? 'bg-navy-dark' : 'bg-green-dark',
+          'sticky top-0 hidden h-screen w-64 shrink-0 flex-col lg:flex',
+          shellColor,
         )}
       >
-        <div className="flex h-16 items-center justify-center gap-2 px-3 md:justify-start">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/15 font-display text-sm font-bold text-white">
-            CL
+        <div className="border-b border-white/10 px-7 py-7">
+          <span className="block font-display text-xl font-bold tracking-[-0.04em] text-white">
+            CampoLivre
           </span>
-          <span className="hidden min-w-0 md:block">
-            <span className="block truncate font-display text-sm font-bold text-white">
-              CampoLivre
-            </span>
-            <span className="block text-[11px] text-white/60">LigaPro</span>
+          <span className="mt-1 block text-xs text-white/90">
+            LigaPro · Franca, SP
           </span>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-2">
-          {items.map((item) => {
-            const active =
-              pathname === item.to ||
-              (item.to !== '/' && pathname.startsWith(item.to + '/'));
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                title={item.label}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 font-display text-sm font-medium text-white/80 transition-colors hover:bg-white/10',
-                  active && 'bg-white/15 text-white',
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span className="hidden truncate md:block">{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav aria-label="Navegação principal" className="flex-1 px-4 py-6">
+          <p className="mb-3 px-3 text-[10px] font-bold tracking-[0.16em] text-white/90 uppercase">
+            Área de trabalho
+          </p>
+          <div className="space-y-1">
+            {items.map((item) => {
+              const active = isItemActive(pathname, item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-3 border-l-2 border-transparent px-3 py-2.5 text-sm font-medium text-white/90 transition-colors hover:bg-white/5 hover:text-white',
+                    active && 'border-white bg-white/10 text-white',
+                  )}
+                >
+                  <item.icon className="h-[18px] w-[18px] shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
-        <div className="flex items-center gap-3 border-t border-white/10 p-3">
-          <Initials
-            name={userName}
-            tone={tone === 'navy' ? 'navy' : 'light'}
-            className="h-9 w-9 text-xs"
-          />
-          <div className="hidden min-w-0 md:block">
-            <p className="truncate font-display text-sm font-semibold text-white">
-              {userName}
-            </p>
-            <p className="truncate text-[11px] text-white/60">{userRole}</p>
+        <div className="border-t border-white/10 px-5 py-5">
+          <div className="flex items-center gap-3">
+            <Initials
+              name={userName}
+              tone={tone === 'navy' ? 'navy' : 'light'}
+              className="h-9 w-9 text-xs"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white">
+                {userName}
+              </p>
+              <p className="truncate text-xs text-white/90">{userRole}</p>
+            </div>
           </div>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">{children}</div>
+      <main
+        id="conteudo-principal"
+        tabIndex={-1}
+        className="min-w-0 flex-1 pb-24 outline-none lg:pb-0"
+      >
+        <div className="mx-auto max-w-7xl space-y-10 px-5 py-7 sm:px-7 md:py-9 lg:px-10 lg:py-10">
+          {children}
+        </div>
       </main>
+
+      <nav
+        aria-label="Navegação principal"
+        className={cn(
+          'fixed inset-x-0 bottom-0 z-40 grid border-t border-white/10 px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-white shadow-[0_-2px_12px_rgba(15,23,42,0.12)] lg:hidden',
+          shellColor,
+        )}
+        style={{
+          gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {items.map((item) => {
+          const active = isItemActive(pathname, item.to);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'flex min-w-0 flex-col items-center gap-1 border-t-2 border-transparent px-1 py-1 text-white/90',
+                active && 'border-white text-white',
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="w-full whitespace-nowrap text-center text-[9px] font-medium sm:text-[10px]">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
@@ -95,25 +148,30 @@ export function ProfileHeroHeader({
   name: string;
   subtitle: string;
   meta: string;
-  tone?: 'green' | 'navy';
+  tone?: ShellTone;
 }) {
   return (
-    <div
-      className={cn(
-        'flex items-center gap-4 rounded-2xl p-5 text-white',
-        tone === 'navy' ? 'bg-navy-dark' : 'bg-green-dark',
-      )}
-    >
+    <header className="flex items-end justify-between gap-5 border-b border-border pb-6">
+      <div className="min-w-0">
+        <p
+          className={cn(
+            'mb-2 text-[11px] font-bold tracking-[0.15em] uppercase',
+            tone === 'navy' ? 'text-navy-mid' : 'text-green-dark',
+          )}
+        >
+          Visão geral
+        </p>
+        <h1 className="text-balance font-display text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-3xl">
+          {name}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{meta}</p>
+      </div>
       <Initials
         name={name}
-        tone={tone === 'navy' ? 'navy' : 'light'}
-        className="h-14 w-14 text-lg"
+        tone={tone === 'navy' ? 'navy' : 'green'}
+        className="hidden h-12 w-12 text-sm sm:flex"
       />
-      <div className="min-w-0">
-        <h2 className="truncate font-display text-lg font-bold">{name}</h2>
-        <p className="truncate text-sm text-white/70">{subtitle}</p>
-        <p className="mt-1 text-xs text-white/60">{meta}</p>
-      </div>
-    </div>
+    </header>
   );
 }

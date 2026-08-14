@@ -13,7 +13,6 @@ import {
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
-  Card,
   FilterPills,
   GroupLabel,
   SearchBar,
@@ -134,9 +133,9 @@ export function AtletaInicio() {
               <GroupLabel className="mb-2">{g.titulo}</GroupLabel>
               <div className="space-y-3">
                 {g.itens.map((c) => (
-                  <Card
+                  <div
                     key={c.id}
-                    className="flex flex-wrap items-center gap-3"
+                    className="flex flex-wrap items-center gap-3 border-b border-border py-4"
                   >
                     <RowAvatar name={c.nome} />
                     <Link
@@ -170,7 +169,7 @@ export function AtletaInicio() {
                         <Chevron />
                       </Link>
                     )}
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>

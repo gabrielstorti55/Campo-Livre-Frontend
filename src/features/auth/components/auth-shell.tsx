@@ -26,17 +26,17 @@ export function AuthShell({ children }: { children: ReactNode }) {
             <p className="font-display text-xl font-bold tracking-[-0.02em]">
               CampoLivre
             </p>
-            <p className="mt-0.5 text-xs text-white/70">LigaPro · Franca, SP</p>
+            <p className="mt-0.5 text-xs text-white/90">LigaPro · Franca, SP</p>
           </div>
 
           <div className="max-w-sm lg:pb-4">
-            <p className="text-xs font-semibold tracking-[0.14em] text-white/65 uppercase">
+            <p className="text-xs font-semibold tracking-[0.14em] text-white/90 uppercase">
               Gestão de campeonatos municipais
             </p>
             <p className="mt-3 hidden font-display text-3xl leading-tight font-semibold tracking-[-0.025em] text-pretty sm:block lg:text-4xl">
               Do primeiro jogo à final, tudo no mesmo campo.
             </p>
-            <p className="mt-4 hidden max-w-xs text-sm leading-6 text-white/70 lg:block">
+            <p className="mt-4 hidden max-w-xs text-sm leading-6 text-white/90 lg:block">
               Atletas, organizadores e Prefeitura conectados à rotina do esporte
               amador de Franca.
             </p>

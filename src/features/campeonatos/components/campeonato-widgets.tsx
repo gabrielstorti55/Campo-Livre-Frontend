@@ -28,7 +28,7 @@ function ScoreChip({
     <Badge
       variant="secondary"
       className={cn(
-        'shrink-0 rounded-lg bg-green-pale font-display text-sm font-bold text-green-dark hover:bg-green-pale',
+        'shrink-0 rounded-md bg-green-pale text-sm font-bold text-green-dark hover:bg-green-pale',
         className,
       )}
     >
@@ -41,13 +41,13 @@ function ScoreChip({
 export function ProximoJogoCard() {
   return (
     <Card className="bg-green-dark text-white">
-      <p className="font-display text-xs text-white/70">Próximo jogo</p>
+      <p className="font-display text-xs text-white/90">Próximo jogo</p>
       <div className="mt-2 flex items-center justify-center gap-4">
         <span className="font-display font-semibold">{proximoJogo.casa}</span>
-        <span className="text-white/60">vs</span>
+        <span className="text-white/90">vs</span>
         <span className="font-display font-semibold">{proximoJogo.fora}</span>
       </div>
-      <div className="mt-3 flex flex-wrap justify-center gap-4 text-xs text-white/70">
+      <div className="mt-3 flex flex-wrap justify-center gap-4 text-xs text-white/90">
         <span className="flex items-center gap-1">
           <CalendarDays className="h-3 w-3" /> {proximoJogo.data}
         </span>
@@ -109,7 +109,7 @@ export function ResultadoRow({
   subtitle?: ReactNode;
 }) {
   return (
-    <Card className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3 border-b border-border/80 px-1 py-3">
       <div className="min-w-0">
         <span className="block truncate font-display text-sm font-semibold">
           {casa} vs {fora}
@@ -121,13 +121,13 @@ export function ResultadoRow({
         ) : null}
       </div>
       <ScoreChip>{placar}</ScoreChip>
-    </Card>
+    </div>
   );
 }
 
 export function TabelaClassificacao({ destaque }: { destaque?: string }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-white">
+    <div className="overflow-x-auto rounded-md border border-border/80 bg-white">
       <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow className="bg-surface hover:bg-surface">
@@ -177,7 +177,10 @@ export function ListaJogos() {
             {partidas
               .filter((p) => p.rodada === r)
               .map((p) => (
-                <Card key={p.id} className="flex flex-wrap items-center gap-3">
+                <div
+                  key={p.id}
+                  className="flex flex-wrap items-center gap-3 border-b border-border/80 px-1 py-3 last:border-b-0"
+                >
                   <div className="min-w-0 flex-1 font-display text-sm font-semibold text-foreground">
                     {p.casa} <span className="text-muted-foreground">vs</span>{' '}
                     {p.fora}
@@ -190,7 +193,7 @@ export function ListaJogos() {
                   <p className="text-xs text-muted-foreground">
                     {p.data} · {p.hora} · {p.campo}
                   </p>
-                </Card>
+                </div>
               ))}
           </div>
         </div>
@@ -201,9 +204,12 @@ export function ListaJogos() {
 
 export function ListaTimes() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-x-8 md:grid-cols-2 lg:grid-cols-3">
       {times.map((t) => (
-        <Card key={t.id} className="flex items-center gap-3">
+        <div
+          key={t.id}
+          className="flex items-center gap-3 border-b border-border/80 py-4"
+        >
           <Initials name={t.nome} className="h-11 w-11" />
           <div className="min-w-0 flex-1">
             <p className="truncate font-display font-semibold text-foreground">
@@ -214,7 +220,7 @@ export function ListaTimes() {
             </p>
           </div>
           <StatusBadge status={t.status} />
-        </Card>
+        </div>
       ))}
     </div>
   );

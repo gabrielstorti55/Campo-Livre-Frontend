@@ -1,4 +1,3 @@
-import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -39,7 +38,6 @@ export function Organizadores() {
                 {o.eventos} eventos organizados
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Card>
         ))}
       </div>

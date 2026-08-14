@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import { ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Card, Initials } from '@/shared/components/campo-livre-ui';
+import { Initials } from '@/shared/components/campo-livre-ui';
 import { cn } from '@/shared/lib/utils';
 
 /** Ícone dentro de um círculo tonal — usado como "avatar" alternativo. */
@@ -18,7 +18,7 @@ export function IconBubble({
   return (
     <span
       className={cn(
-        'grid h-11 w-11 shrink-0 place-items-center rounded-xl',
+        'grid h-11 w-11 shrink-0 place-items-center rounded-md',
         tone === 'navy' ? 'bg-navy-dark/10' : 'bg-green-pale',
         className,
       )}
@@ -127,15 +127,17 @@ export function ListRow({
   );
 
   return (
-    <Card
+    <div
       className={cn(
-        interactive && 'transition-shadow hover:shadow-md',
+        'border-b border-border/80 px-1 py-4',
+        interactive &&
+          'transition-colors hover:bg-muted/50 focus-within:bg-muted/50',
         children ? 'space-y-3' : undefined,
         className,
       )}
     >
       {body}
       {children}
-    </Card>
+    </div>
   );
 }

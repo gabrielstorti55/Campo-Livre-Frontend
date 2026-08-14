@@ -7,7 +7,6 @@ import { Chevron, ListRow, MetaRow } from '@/shared/components/list-row';
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
-  Card,
   FilterPills,
   SearchBar,
   Section,
@@ -33,6 +32,14 @@ export function OrganizadorInicio() {
         subtitle={organizadorLogado.cidade}
         meta={`Score ${organizadorLogado.score} · ${organizadorLogado.eventos} eventos realizados`}
       />
+
+      <div className="flex justify-end">
+        <Button variant="campo" asChild>
+          <Link to="/organizador/novo">
+            <Plus className="h-4 w-4" /> Novo campeonato
+          </Link>
+        </Button>
+      </div>
 
       <Section title="Meus campeonatos">
         <div className="space-y-3">
@@ -61,10 +68,14 @@ export function OrganizadorInicio() {
           onChange={setBusca}
         />
         <FilterPills options={filtros} value={filtro} onChange={setFiltro} />
-        <div className="grid gap-4 pt-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-x-8 pt-1 md:grid-cols-2">
           {regiao.map((c) => (
-            <Link key={c.id} to={`/organizador/campeonato/${c.id}`}>
-              <Card className="h-full space-y-2 transition-shadow hover:shadow-md">
+            <Link
+              key={c.id}
+              to={`/organizador/campeonato/${c.id}`}
+              className="border-b border-border py-4"
+            >
+              <div className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <p className="min-w-0 truncate font-display font-semibold text-foreground">
                     {c.nome}
@@ -76,21 +87,11 @@ export function OrganizadorInicio() {
                     { icon: MapPin, label: `${c.cidade} · ${c.times} times` },
                   ]}
                 />
-              </Card>
+              </div>
             </Link>
           ))}
         </div>
       </Section>
-
-      <Button
-        variant="campo"
-        asChild
-        className="fixed right-6 bottom-6 shadow-lg"
-      >
-        <Link to="/organizador/novo">
-          <Plus className="h-4 w-4" /> Novo Campeonato
-        </Link>
-      </Button>
     </>
   );
 }

@@ -20,11 +20,11 @@ export function OrganizadorCampeonatos() {
         title="Meus Campeonatos"
         subtitle="Todos os eventos que você organiza"
         actions={
-          <Link to="/organizador/novo">
-            <Button variant="campo" className="py-2.5">
+          <Button variant="campo" className="py-2.5" asChild>
+            <Link to="/organizador/novo">
               <Plus className="h-4 w-4" /> Novo
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         }
       />
       <SearchBar

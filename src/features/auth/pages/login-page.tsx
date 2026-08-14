@@ -1,21 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import { Field } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [perfil, setPerfil] = useState('atleta');
 
   return (
     <AuthShell>
@@ -28,7 +19,8 @@ export function LoginPage() {
             Acesse sua conta
           </h1>
           <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
-            Entre com seus dados para acompanhar times, partidas e campeonatos da sua região.
+            Entre com seus dados para acompanhar times, partidas e campeonatos
+            da sua região.
           </p>
         </div>
 
@@ -36,13 +28,7 @@ export function LoginPage() {
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            navigate(
-              perfil === 'organizador'
-                ? '/organizador/inicio'
-                : perfil === 'prefeitura'
-                  ? '/prefeitura/painel'
-                  : '/atleta/inicio',
-            );
+            navigate('/atleta/inicio');
           }}
         >
           <Field label="E-mail" htmlFor="e-mail-field">
@@ -76,19 +62,6 @@ export function LoginPage() {
               </Link>
             </div>
           </div>
-
-          {/* <Field label="Perfil" htmlFor="perfil-field">
-            <Select value={perfil} onValueChange={setPerfil}>
-              <SelectTrigger id="perfil-field" className="h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="atleta">Atleta / Capitão</SelectItem>
-                <SelectItem value="organizador">Organizador</SelectItem>
-                <SelectItem value="prefeitura">Prefeitura</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field> */}
 
           <Button variant="campo" type="submit" className="mt-2 h-10 w-full">
             Entrar

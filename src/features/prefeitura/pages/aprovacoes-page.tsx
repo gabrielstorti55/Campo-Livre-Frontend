@@ -3,7 +3,6 @@ import { Button } from '@/shared/components/ui/button';
 
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
-  Card,
   PageHeader,
   Section,
   StatCard,
@@ -16,16 +15,16 @@ import {
 
 export function Aprovacoes() {
   const [decididos, setDecididos] = useState<Record<number, string>>({});
-  const pendentes = aprovacoesPendentes.filter((a) => !decididos[a.id]);
+  const pendentes = aprovacoesPendentes.filter((item) => !decididos[item.id]);
 
   return (
     <>
       <PageHeader
         title="Painel de aprovação"
-        subtitle="Solicitações de uso de campos"
+        subtitle="Solicitações de uso dos campos municipais"
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-x-4 sm:gap-x-6">
         <StatCard label="Pendentes" value={pendentes.length} tone="navy" />
         <StatCard
           label="Aguardando análise"
@@ -39,63 +38,78 @@ export function Aprovacoes() {
         />
       </div>
 
-      <Section title="Aguardando análise">
-        {pendentes.map((a) => (
-          <Card key={a.id} className="space-y-3">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate font-display font-semibold text-foreground">
-                  {a.campeonato}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {a.organizador} · {a.campo} · {a.horario} · {a.vagas} vagas
-                </p>
-              </div>
-              <StatusBadge status="Pendente" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="campo"
-                className="py-2.5"
-                onClick={() =>
-                  setDecididos({ ...decididos, [a.id]: 'Aprovado' })
-                }
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
+        <Section title="Aguardando análise">
+          <div className="border-t border-border">
+            {pendentes.map((item) => (
+              <article
+                key={item.id}
+                className="space-y-4 border-b border-border py-5"
               >
-                Aprovar
-              </Button>
-              <Button
-                variant="campoOutline"
-                tone="danger"
-                className="py-2.5"
-                onClick={() =>
-                  setDecididos({ ...decididos, [a.id]: 'Reprovado' })
-                }
-              >
-                Reprovar
-              </Button>
-            </div>
-          </Card>
-        ))}
-        {pendentes.length === 0 ? (
-          <Card className="text-center text-sm text-muted-foreground">
-            Nenhuma solicitação pendente.
-          </Card>
-        ) : null}
-      </Section>
-
-      <Section title="Aprovados recentemente">
-        {aprovacoesRecentes.map((a) => (
-          <Card key={a.id} className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate font-display font-semibold text-foreground">
-                {a.campeonato}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-foreground">
+                      {item.campeonato}
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {item.organizador} · {item.campo} · {item.horario} ·{' '}
+                      {item.vagas} vagas
+                    </p>
+                  </div>
+                  <StatusBadge status="Pendente" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="campo"
+                    aria-label={`Aprovar solicitação de ${item.campeonato}`}
+                    onClick={() =>
+                      setDecididos({ ...decididos, [item.id]: 'Aprovado' })
+                    }
+                  >
+                    Aprovar
+                  </Button>
+                  <Button
+                    variant="campoOutline"
+                    tone="danger"
+                    aria-label={`Reprovar solicitação de ${item.campeonato}`}
+                    onClick={() =>
+                      setDecididos({ ...decididos, [item.id]: 'Reprovado' })
+                    }
+                  >
+                    Reprovar
+                  </Button>
+                </div>
+              </article>
+            ))}
+            {pendentes.length === 0 ? (
+              <p className="py-6 text-sm text-muted-foreground">
+                Nenhuma solicitação pendente.
               </p>
-              <p className="text-xs text-muted-foreground">{a.organizador}</p>
-            </div>
-            <StatusBadge status="Aprovado" />
-          </Card>
-        ))}
-      </Section>
+            ) : null}
+          </div>
+        </Section>
+
+        <Section title="Aprovados recentemente">
+          <div className="border-t border-border">
+            {aprovacoesRecentes.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-3 border-b border-border py-4"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {item.campeonato}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {item.organizador}
+                  </p>
+                </div>
+                <StatusBadge status="Aprovado" />
+              </div>
+            ))}
+          </div>
+        </Section>
+      </div>
     </>
   );
 }

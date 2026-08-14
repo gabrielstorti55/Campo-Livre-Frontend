@@ -25,9 +25,9 @@ export function BuscarTimes() {
         title="Não encontrou seu time ainda?"
         subtitle="Busque um time existente ou crie o seu"
         actions={
-          <Link to="/atleta/time/criar">
-            <Button variant="campoOutline">Criar time</Button>
-          </Link>
+          <Button variant="campoOutline" asChild>
+            <Link to="/atleta/time/criar">Criar time</Link>
+          </Button>
         }
       />
       <SearchBar

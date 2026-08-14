@@ -7,15 +7,11 @@ import {
   ListaJogos,
   ListaTimes,
   ProximoJogoCard,
+  ResultadoRow,
   TabelaClassificacao,
 } from '@/features/campeonatos/components/campeonato-widgets';
 import { StatusBadge } from '@/shared/components/status-badge';
-import {
-  Card,
-  PageHeader,
-  StatCard,
-  Tabs,
-} from '@/shared/components/campo-livre-ui';
+import { PageHeader, StatCard, Tabs } from '@/shared/components/campo-livre-ui';
 import { getCampeonato, partidas } from '@/mocks/data';
 
 export function VisaoGeral() {
@@ -39,21 +35,21 @@ export function VisaoGeral() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link to={`${basePath}/times`}>
-          <Button variant="campoOutline" className="py-2.5">
+        <Button variant="campoOutline" className="py-2.5" asChild>
+          <Link to={`${basePath}/times`}>
             <Users className="h-4 w-4" /> Gerenciar times
-          </Button>
-        </Link>
-        <Link to={`${basePath}/partidas`}>
-          <Button variant="campoOutline" className="py-2.5">
+          </Link>
+        </Button>
+        <Button variant="campoOutline" className="py-2.5" asChild>
+          <Link to={`${basePath}/partidas`}>
             <CalendarPlus className="h-4 w-4" /> Agendar partidas
-          </Button>
-        </Link>
-        <Link to={`${basePath}/chaveamento`}>
-          <Button variant="campoOutline" className="py-2.5">
+          </Link>
+        </Button>
+        <Button variant="campoOutline" className="py-2.5" asChild>
+          <Link to={`${basePath}/chaveamento`}>
             <GitBranch className="h-4 w-4" /> Chaveamento
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <Tabs
@@ -73,17 +69,12 @@ export function VisaoGeral() {
             {partidas
               .filter((p) => p.concluida)
               .map((p) => (
-                <Card
+                <ResultadoRow
                   key={p.id}
-                  className="flex items-center justify-between gap-3"
-                >
-                  <span className="min-w-0 truncate font-display text-sm font-semibold">
-                    {p.casa} vs {p.fora}
-                  </span>
-                  <span className="rounded-lg bg-green-pale px-3 py-1 font-display text-sm font-bold text-green-dark">
-                    {p.golsCasa} x {p.golsFora}
-                  </span>
-                </Card>
+                  casa={p.casa}
+                  fora={p.fora}
+                  placar={`${p.golsCasa} x ${p.golsFora}`}
+                />
               ))}
           </div>
         </div>
@@ -94,16 +85,12 @@ export function VisaoGeral() {
       {tab === 'Jogos' ? (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <Link to={`${basePath}/partidas`}>
-              <Button variant="campoOutline" className="py-2.5">
-                Agendar
-              </Button>
-            </Link>
-            <Link to={`${basePath}/sumula`}>
-              <Button variant="campoOutline" className="py-2.5">
-                Lançar resultado
-              </Button>
-            </Link>
+            <Button variant="campoOutline" className="py-2.5" asChild>
+              <Link to={`${basePath}/partidas`}>Agendar</Link>
+            </Button>
+            <Button variant="campoOutline" className="py-2.5" asChild>
+              <Link to={`${basePath}/sumula`}>Lançar resultado</Link>
+            </Button>
           </div>
           <ListaJogos />
         </div>
@@ -111,11 +98,9 @@ export function VisaoGeral() {
 
       {tab === 'Times' ? (
         <div className="space-y-4">
-          <Link to={`${basePath}/times`}>
-            <Button variant="campoOutline" className="py-2.5">
-              Gerenciar elencos
-            </Button>
-          </Link>
+          <Button variant="campoOutline" className="py-2.5" asChild>
+            <Link to={`${basePath}/times`}>Gerenciar elencos</Link>
+          </Button>
           <ListaTimes />
         </div>
       ) : null}

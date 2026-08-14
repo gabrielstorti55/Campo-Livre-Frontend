@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
-import { Card as UICard, CardContent } from '@/shared/components/ui/card';
+import { Card as UICard } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Separator } from '@/shared/components/ui/separator';
@@ -58,9 +58,12 @@ export function Card({
 }) {
   return (
     <UICard
-      className={cn('rounded-lg border-border bg-white shadow-none', className)}
+      className={cn(
+        'rounded-md border-border/80 bg-white p-4 shadow-none',
+        className,
+      )}
     >
-      <CardContent className="p-4">{children}</CardContent>
+      {children}
     </UICard>
   );
 }
@@ -77,7 +80,12 @@ export function StatCard({
   tone?: 'green' | 'navy';
 }) {
   return (
-    <Card>
+    <div
+      className={cn(
+        'border-t-2 bg-transparent pt-4',
+        tone === 'navy' ? 'border-navy-mid/35' : 'border-green-mid/35',
+      )}
+    >
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p
         className={cn(
@@ -90,7 +98,7 @@ export function StatCard({
       {hint ? (
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       ) : null}
-    </Card>
+    </div>
   );
 }
 
@@ -104,10 +112,10 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="pb-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:flex-wrap sm:justify-between">
+    <header className="pb-2">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate font-display text-xl font-bold text-foreground sm:text-2xl">
+          <h1 className="text-balance font-display text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-3xl">
             {title}
           </h1>
           {subtitle ? (
@@ -115,10 +123,10 @@ export function PageHeader({
           ) : null}
         </div>
         {actions ? (
-          <div className="flex shrink-0 items-center gap-2">{actions}</div>
+          <div className="flex items-center gap-2">{actions}</div>
         ) : null}
       </div>
-      <Separator className="mt-4" />
+      <Separator className="mt-5" />
     </header>
   );
 }
@@ -141,7 +149,7 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-auto rounded-md border-border bg-white py-2.5 pr-4 pl-10 text-sm focus-visible:border-green-mid"
+        className="h-11 rounded-md border-border/80 bg-white pr-4 pl-10 text-sm shadow-none focus-visible:border-green-mid"
       />
     </div>
   );
@@ -180,12 +188,12 @@ export function Tabs({
 }) {
   return (
     <UITabs value={active} onValueChange={onChange}>
-      <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-none border-b border-border bg-transparent p-0">
+      <TabsList className="h-auto w-full justify-start gap-0 overflow-x-auto rounded-none border-b border-border bg-transparent p-0">
         {tabs.map((t) => (
           <TabsTrigger
             key={t}
             value={t}
-            className="shrink-0 rounded-none border-b-2 border-transparent px-4 py-2.5 font-display text-sm font-semibold text-muted-foreground shadow-none data-[state=active]:border-green-mid data-[state=active]:bg-transparent data-[state=active]:text-green-dark data-[state=active]:shadow-none"
+            className="shrink-0 rounded-none border-b-2 border-transparent px-2.5 py-2.5 text-xs font-semibold text-muted-foreground shadow-none data-[state=active]:border-green-mid data-[state=active]:bg-transparent data-[state=active]:text-green-dark data-[state=active]:shadow-none sm:px-4 sm:text-sm"
           >
             {t}
           </TabsTrigger>
@@ -220,7 +228,7 @@ export function FilterPills({
           key={option}
           value={option}
           className={cn(
-            'h-auto rounded-full px-4 py-1.5 font-display text-xs font-semibold',
+            'h-auto rounded-md px-3 py-1.5 text-xs font-semibold shadow-none',
             value === option
               ? variant === 'solid'
                 ? 'border-green-dark bg-green-dark text-white hover:bg-green-dark hover:text-white'
@@ -245,8 +253,8 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section className={cn('space-y-3', className)}>
-      <h2 className="font-display text-lg font-bold text-foreground">
+    <section className={cn('space-y-4', className)}>
+      <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground sm:text-xl">
         {title}
       </h2>
       {children}
