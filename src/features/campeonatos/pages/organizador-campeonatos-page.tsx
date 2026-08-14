@@ -1,14 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { ListRow } from '@/shared/components/list-row';
 import { StatusBadge } from '@/shared/components/status-badge';
-import {
-  PageHeader,
-  PrimaryButton,
-  SearchBar,
-} from '@/shared/components/campo-livre-ui';
+import { PageHeader, SearchBar } from '@/shared/components/campo-livre-ui';
 import { campeonatos } from '@/mocks/data';
 
 export function OrganizadorCampeonatos() {
@@ -24,9 +21,9 @@ export function OrganizadorCampeonatos() {
         subtitle="Todos os eventos que você organiza"
         actions={
           <Link to="/organizador/novo">
-            <PrimaryButton className="py-2.5">
+            <Button variant="campo" className="py-2.5">
               <Plus className="h-4 w-4" /> Novo
-            </PrimaryButton>
+            </Button>
           </Link>
         }
       />

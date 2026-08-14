@@ -17,7 +17,7 @@ import { classificacao, partidas, proximoJogo, times } from '@/mocks/data';
 import { cn } from '@/shared/lib/utils';
 
 /** Chip verde de placar / número em destaque. */
-export function ScoreChip({
+function ScoreChip({
   children,
   className,
 }: {

@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { ListRow, RowAvatar } from '@/shared/components/list-row';
 import {
   Field,
   FormCard,
-  OutlineButton,
   PageHeader,
-  PrimaryButton,
   SearchBar,
   Section,
 } from '@/shared/components/campo-livre-ui';
@@ -27,7 +26,7 @@ export function BuscarTimes() {
         subtitle="Busque um time existente ou crie o seu"
         actions={
           <Link to="/atleta/time/criar">
-            <OutlineButton>Criar time</OutlineButton>
+            <Button variant="campoOutline">Criar time</Button>
           </Link>
         }
       />
@@ -44,17 +43,23 @@ export function BuscarTimes() {
             avatar={<RowAvatar name={t.nome} />}
             title={t.nome}
             subtitle={`${t.cidade} · ${t.jogadores} jogadores`}
-            right={<PrimaryButton className="py-2.5">Solicitar</PrimaryButton>}
+            right={
+              <Button variant="campo" className="py-2.5">
+                Solicitar
+              </Button>
+            }
           />
         ))}
       </div>
 
       <Section title="Tenho um código de convite">
         <FormCard className="space-y-3">
-          <Field label="Código do time">
-            <Input placeholder="Ex.: LIGA-4821" />
+          <Field label="Código do time" htmlFor="codigo-do-time-field">
+            <Input id="codigo-do-time-field" placeholder="Ex.: LIGA-4821" />
           </Field>
-          <PrimaryButton className="w-full">Enviar Solicitação</PrimaryButton>
+          <Button variant="campo" className="w-full">
+            Enviar Solicitação
+          </Button>
         </FormCard>
       </Section>
     </>

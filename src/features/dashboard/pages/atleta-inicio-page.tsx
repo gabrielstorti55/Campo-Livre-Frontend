@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Users } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { ProximaPartidaCard } from '@/features/campeonatos/components/campeonato-widgets';
 import {
@@ -15,7 +16,6 @@ import {
   Card,
   FilterPills,
   GroupLabel,
-  PrimaryButton,
   SearchBar,
   Section,
 } from '@/shared/components/campo-livre-ui';
@@ -159,9 +159,9 @@ export function AtletaInicio() {
                     </Link>
                     <StatusBadge status={c.status} />
                     {c.status === 'Inscrições abertas' ? (
-                      <PrimaryButton className="py-2.5">
+                      <Button variant="campo" className="py-2.5">
                         Solicitar inscrição
-                      </PrimaryButton>
+                      </Button>
                     ) : (
                       <Link
                         to={`/atleta/campeonato/${c.id}`}

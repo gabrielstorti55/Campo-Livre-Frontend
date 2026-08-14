@@ -1,65 +1,60 @@
 import { Clock, MapPin } from 'lucide-react';
 import { useState } from 'react';
+import { ptBR } from 'date-fns/locale';
 
 import { Card, PageHeader, Section } from '@/shared/components/campo-livre-ui';
-import { Button } from '@/shared/components/ui/button';
+import { Calendar } from '@/shared/components/ui/calendar';
 import { reservas } from '@/mocks/data';
-import { cn } from '@/shared/lib/utils';
 
-const dias = Array.from({ length: 31 }, (_, i) => i + 1);
-const comEventos = [3, 7, 10, 14, 17, 21, 24, 28];
+const agosto2026 = new Date(2026, 7, 1);
+const comEventos = [3, 7, 10, 14, 17, 21, 24, 28].map(
+  (dia) => new Date(2026, 7, dia),
+);
 
 export function Calendario() {
-  const [dia, setDia] = useState(7);
+  const [data, setData] = useState(new Date(2026, 7, 7));
+  const dia = data.getDate();
 
   return (
     <>
       <PageHeader title="Calendário de reservas" subtitle="Agosto de 2026" />
 
       <Card>
-        <div className="grid grid-cols-7 gap-1.5">
-          {dias.map((d) => (
-            <Button
-              key={d}
-              type="button"
-              variant={dia === d ? 'default' : 'ghost'}
-              onClick={() => setDia(d)}
-              aria-label={`Selecionar dia ${d}`}
-              className={cn(
-                'relative aspect-square h-auto rounded-lg p-0 text-sm',
-                dia === d
-                  ? 'bg-navy-mid hover:bg-navy-mid'
-                  : 'hover:bg-surface',
-              )}
-            >
-              {d}
-              {comEventos.includes(d) ? (
-                <span
-                  className={cn(
-                    'absolute bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full',
-                    dia === d ? 'bg-white' : 'bg-navy-mid',
-                  )}
-                />
-              ) : null}
-            </Button>
-          ))}
-        </div>
+        <Calendar
+          mode="single"
+          locale={ptBR}
+          month={agosto2026}
+          hideNavigation
+          showOutsideDays={false}
+          selected={data}
+          onSelect={(nextDate) => nextDate && setData(nextDate)}
+          modifiers={{ comEvento: comEventos }}
+          modifiersClassNames={{
+            comEvento:
+              'after:absolute after:bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-navy-mid',
+          }}
+          className="p-0"
+          classNames={{
+            selected:
+              'bg-navy-mid text-white hover:bg-navy-mid hover:text-white rounded-md',
+          }}
+        />
       </Card>
 
       <Section
         title={`Eventos de hoje: ${String(dia).padStart(2, '0')}/08/2026`}
       >
-        {reservas.map((r) => (
-          <Card key={r.id} className="space-y-1">
+        {reservas.map((reserva) => (
+          <Card key={reserva.id} className="space-y-1">
             <p className="flex items-center gap-1 font-display font-semibold text-foreground">
-              <MapPin className="h-4 w-4 text-navy-mid" /> {r.campo}
+              <MapPin className="h-4 w-4 text-navy-mid" /> {reserva.campo}
             </p>
             <p className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {r.horario}
+                <Clock className="h-3 w-3" /> {reserva.horario}
               </span>
               <span>{String(dia).padStart(2, '0')}/08/2026</span>
-              <span>{r.campeonato}</span>
+              <span>{reserva.campeonato}</span>
             </p>
           </Card>
         ))}

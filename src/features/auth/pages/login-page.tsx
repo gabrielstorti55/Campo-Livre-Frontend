@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
-import { Field, PrimaryButton } from '@/shared/components/campo-livre-ui';
+import { Field } from '@/shared/components/campo-livre-ui';
 import { Input } from '@/shared/components/ui/input';
 import {
   Select,
@@ -38,15 +39,25 @@ export function LoginPage() {
           );
         }}
       >
-        <Field label="E-mail">
-          <Input type="email" required placeholder="voce@email.com" />
+        <Field label="E-mail" htmlFor="e-mail-field">
+          <Input
+            id="e-mail-field"
+            type="email"
+            required
+            placeholder="voce@email.com"
+          />
         </Field>
-        <Field label="Senha">
-          <Input type="password" required placeholder="••••••••" />
+        <Field label="Senha" htmlFor="senha-field">
+          <Input
+            id="senha-field"
+            type="password"
+            required
+            placeholder="••••••••"
+          />
         </Field>
-        <Field label="Entrar como">
+        <Field label="Entrar como" htmlFor="entrar-como-field">
           <Select value={perfil} onValueChange={setPerfil}>
-            <SelectTrigger>
+            <SelectTrigger id="entrar-como-field">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -56,9 +67,9 @@ export function LoginPage() {
             </SelectContent>
           </Select>
         </Field>
-        <PrimaryButton type="submit" className="w-full">
+        <Button variant="campo" type="submit" className="w-full">
           Entrar
-        </PrimaryButton>
+        </Button>
       </form>
 
       <div className="mt-5 flex items-center justify-between text-sm">

@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { CampeonatoMeta } from '@/features/campeonatos/components/campeonato-meta';
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
   Card,
   PageHeader,
-  PrimaryButton,
   SearchBar,
 } from '@/shared/components/campo-livre-ui';
 import { campeonatos } from '@/mocks/data';
@@ -50,9 +50,9 @@ export function AtletaCampeonatos() {
               modalidade={c.modalidade}
               formato={c.formato}
             />
-            <PrimaryButton className="w-full py-2.5">
+            <Button variant="campo" className="w-full py-2.5">
               Solicitar inscrição
-            </PrimaryButton>
+            </Button>
           </Card>
         ))}
       </div>

@@ -19,6 +19,15 @@ const buttonVariants = cva(
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
+        campo:
+          'h-auto rounded-md px-5 py-2.5 font-display text-sm font-semibold text-white',
+        campoOutline:
+          'h-auto rounded-md border bg-background px-5 py-2.5 font-display text-sm font-semibold shadow-sm',
+      },
+      tone: {
+        green: '',
+        navy: '',
+        danger: '',
       },
       size: {
         default: 'h-9 px-4 py-2',
@@ -27,8 +36,54 @@ const buttonVariants = cva(
         icon: 'h-9 w-9',
       },
     },
+    compoundVariants: [
+      {
+        variant: 'campo',
+        size: 'default',
+        className: 'h-auto px-5 py-2.5',
+      },
+      {
+        variant: 'campoOutline',
+        size: 'default',
+        className: 'h-auto px-5 py-2.5',
+      },
+      {
+        variant: 'campo',
+        tone: 'green',
+        className: 'bg-green-mid hover:bg-green-dark',
+      },
+      {
+        variant: 'campo',
+        tone: 'navy',
+        className: 'bg-navy-mid hover:bg-navy-dark',
+      },
+      {
+        variant: 'campo',
+        tone: 'danger',
+        className: 'bg-danger hover:bg-danger/90',
+      },
+      {
+        variant: 'campoOutline',
+        tone: 'green',
+        className:
+          'border-green-mid text-green-mid hover:bg-green-pale hover:text-green-dark',
+      },
+      {
+        variant: 'campoOutline',
+        tone: 'navy',
+        className:
+          'border-navy-mid text-navy-mid hover:bg-navy-mid/10 hover:text-navy-dark',
+      },
+      {
+        variant: 'campoOutline',
+        tone: 'danger',
+        className:
+          'border-danger text-danger hover:bg-danger/10 hover:text-danger',
+      },
+    ],
     defaultVariants: {
       variant: 'default',
+      tone: 'green',
       size: 'default',
     },
   },
@@ -42,11 +97,11 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, tone, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, tone, size, className }))}
         ref={ref}
         {...props}
       />
@@ -55,4 +110,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = 'Button';
 
-export { Button };
+// Exported for components that reuse the same CVA contract.
+// eslint-disable-next-line react-refresh/only-export-components
+export { Button, buttonVariants };

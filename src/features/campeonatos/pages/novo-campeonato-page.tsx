@@ -7,9 +7,7 @@ import {
   Field,
   FilterPills,
   Initials,
-  OutlineButton,
   PageHeader,
-  PrimaryButton,
 } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -51,12 +49,15 @@ export function NovoCampeonato() {
 
       {passo === 0 ? (
         <Card className="max-w-2xl space-y-4">
-          <Field label="Nome do campeonato">
-            <Input placeholder="Ex.: Copa Franca 2026" />
+          <Field label="Nome do campeonato" htmlFor="nome-do-campeonato-field">
+            <Input
+              id="nome-do-campeonato-field"
+              placeholder="Ex.: Copa Franca 2026"
+            />
           </Field>
-          <Field label="Modalidade">
+          <Field label="Modalidade" htmlFor="modalidade-field">
             <Select defaultValue="Society">
-              <SelectTrigger>
+              <SelectTrigger id="modalidade-field">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -67,9 +68,9 @@ export function NovoCampeonato() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Formato">
+          <Field label="Formato" htmlFor="formato-field">
             <Select defaultValue="Pts Corridos">
-              <SelectTrigger>
+              <SelectTrigger id="formato-field">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -81,19 +82,23 @@ export function NovoCampeonato() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Nº de times">
-            <Input type="number" defaultValue={8} />
+          <Field label="Nº de times" htmlFor="no-de-times-field">
+            <Input id="no-de-times-field" type="number" defaultValue={8} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Data início">
-              <Input type="date" />
+            <Field label="Data início" htmlFor="data-inicio-field">
+              <Input id="data-inicio-field" type="date" />
             </Field>
-            <Field label="Data fim">
-              <Input type="date" />
+            <Field label="Data fim" htmlFor="data-fim-field">
+              <Input id="data-fim-field" type="date" />
             </Field>
           </div>
-          <Field label="Observações">
-            <Textarea rows={3} placeholder="Regras, taxas, avisos..." />
+          <Field label="Observações" htmlFor="observacoes-field">
+            <Textarea
+              id="observacoes-field"
+              rows={3}
+              placeholder="Regras, taxas, avisos..."
+            />
           </Field>
           <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
             <div>
@@ -110,9 +115,13 @@ export function NovoCampeonato() {
               aria-label="Visível ao público"
             />
           </div>
-          <PrimaryButton className="w-full" onClick={() => setPasso(1)}>
+          <Button
+            variant="campo"
+            className="w-full"
+            onClick={() => setPasso(1)}
+          >
             Continuar
-          </PrimaryButton>
+          </Button>
         </Card>
       ) : null}
 
@@ -124,8 +133,9 @@ export function NovoCampeonato() {
             onChange={setModoTime}
             variant="solid"
           />
-          <Field label="Nome do time">
+          <Field label="Nome do time" htmlFor="nome-do-time-field">
             <Input
+              id="nome-do-time-field"
               value={novoTime}
               onChange={(e) => setNovoTime(e.target.value)}
               placeholder="Ex.: Estrela Azul"
@@ -157,14 +167,16 @@ export function NovoCampeonato() {
                 </Select>
               </div>
             ))}
-            <OutlineButton
+            <Button
+              variant="campoOutline"
               className="w-full py-2.5"
               onClick={() => setJogadores([...jogadores, ''])}
             >
               <Plus className="h-4 w-4" /> Adicionar jogador
-            </OutlineButton>
+            </Button>
           </div>
-          <PrimaryButton
+          <Button
+            variant="campo"
             className="w-full"
             onClick={() => {
               if (novoTime.trim())
@@ -173,7 +185,7 @@ export function NovoCampeonato() {
             }}
           >
             Salvar time
-          </PrimaryButton>
+          </Button>
           <div className="space-y-2 border-t border-border pt-4">
             <p className="font-display text-sm font-semibold">
               Times adicionados
@@ -188,12 +200,20 @@ export function NovoCampeonato() {
             ))}
           </div>
           <div className="flex gap-3">
-            <OutlineButton className="flex-1" onClick={() => setPasso(0)}>
+            <Button
+              variant="campoOutline"
+              className="flex-1"
+              onClick={() => setPasso(0)}
+            >
               Voltar
-            </OutlineButton>
-            <PrimaryButton className="flex-1" onClick={() => setPasso(2)}>
+            </Button>
+            <Button
+              variant="campo"
+              className="flex-1"
+              onClick={() => setPasso(2)}
+            >
               Continuar
-            </PrimaryButton>
+            </Button>
           </div>
         </Card>
       ) : null}
@@ -220,13 +240,19 @@ export function NovoCampeonato() {
               <Copy className="h-4 w-4" />
             </Button>
           </div>
-          <PrimaryButton className="w-full">
+          <Button variant="campo" className="w-full">
             Gerar link de inscrição
-          </PrimaryButton>
-          <OutlineButton className="w-full" onClick={() => setPasso(1)}>
+          </Button>
+          <Button
+            variant="campoOutline"
+            className="w-full"
+            onClick={() => setPasso(1)}
+          >
             Voltar
-          </OutlineButton>
-          <PrimaryButton className="w-full">Salvar e concluir</PrimaryButton>
+          </Button>
+          <Button variant="campo" className="w-full">
+            Salvar e concluir
+          </Button>
         </Card>
       ) : null}
     </>

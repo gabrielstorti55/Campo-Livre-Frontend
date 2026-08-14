@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { Chevron, ListRow, MetaRow } from '@/shared/components/list-row';
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
@@ -8,7 +9,6 @@ import { StatusBadge } from '@/shared/components/status-badge';
 import {
   Card,
   FilterPills,
-  PrimaryButton,
   SearchBar,
   Section,
 } from '@/shared/components/campo-livre-ui';
@@ -82,11 +82,15 @@ export function OrganizadorInicio() {
         </div>
       </Section>
 
-      <PrimaryButton asChild className="fixed right-6 bottom-6 shadow-lg">
+      <Button
+        variant="campo"
+        asChild
+        className="fixed right-6 bottom-6 shadow-lg"
+      >
         <Link to="/organizador/novo">
           <Plus className="h-4 w-4" /> Novo Campeonato
         </Link>
-      </PrimaryButton>
+      </Button>
     </>
   );
 }

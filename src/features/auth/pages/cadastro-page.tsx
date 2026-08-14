@@ -2,14 +2,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Shirt, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
-import {
-  Field,
-  OutlineButton,
-  PrimaryButton,
-} from '@/shared/components/campo-livre-ui';
+import { Field } from '@/shared/components/campo-livre-ui';
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import { cn } from '@/shared/lib/utils';
 
 export function CadastroPage() {
@@ -28,7 +25,12 @@ export function CadastroPage() {
 
       {step === 1 ? (
         <div className="mt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <RadioGroup
+            value={perfil}
+            onValueChange={(value) => setPerfil(value as typeof perfil)}
+            aria-label="Escolha seu perfil"
+            className="grid grid-cols-2 gap-3"
+          >
             {(
               [
                 { key: 'atleta', label: 'Atleta', icon: Shirt },
@@ -36,32 +38,28 @@ export function CadastroPage() {
               ] as const
             ).map((opt) => {
               const Icon = opt.icon;
-              const selected = perfil === opt.key;
               return (
-                <Button
+                <RadioGroupItem
                   key={opt.key}
-                  type="button"
-                  variant="outline"
-                  aria-pressed={selected}
-                  onClick={() => setPerfil(opt.key)}
+                  value={opt.key}
+                  aria-label={opt.label}
                   className={cn(
-                    'h-auto min-h-28 flex-col gap-2 rounded-2xl p-5 text-center',
-                    selected
-                      ? 'border-green-mid bg-green-pale hover:bg-green-pale'
-                      : 'bg-white hover:border-green-light',
+                    'h-auto min-h-28 w-auto flex-col gap-2 rounded-2xl border p-5 text-center shadow-none',
+                    'data-[state=checked]:border-green-mid data-[state=checked]:bg-green-pale',
+                    'data-[state=unchecked]:bg-white data-[state=unchecked]:hover:border-green-light',
                   )}
                 >
                   <Icon className="h-7 w-7 text-green-dark" />
                   <span className="font-display text-sm font-semibold text-foreground">
                     {opt.label}
                   </span>
-                </Button>
+                </RadioGroupItem>
               );
             })}
-          </div>
-          <PrimaryButton className="w-full" onClick={() => setStep(2)}>
+          </RadioGroup>
+          <Button variant="campo" className="w-full" onClick={() => setStep(2)}>
             Continuar
-          </PrimaryButton>
+          </Button>
         </div>
       ) : (
         <form
@@ -75,32 +73,48 @@ export function CadastroPage() {
             );
           }}
         >
-          <Field label="Nome completo">
-            <Input required placeholder="Seu nome" />
+          <Field label="Nome completo" htmlFor="nome-completo-field">
+            <Input id="nome-completo-field" required placeholder="Seu nome" />
           </Field>
-          <Field label="E-mail">
-            <Input type="email" required placeholder="voce@email.com" />
+          <Field label="E-mail" htmlFor="e-mail-field">
+            <Input
+              id="e-mail-field"
+              type="email"
+              required
+              placeholder="voce@email.com"
+            />
           </Field>
-          <Field label="Senha">
-            <Input type="password" required placeholder="••••••••" />
+          <Field label="Senha" htmlFor="senha-field">
+            <Input
+              id="senha-field"
+              type="password"
+              required
+              placeholder="••••••••"
+            />
           </Field>
-          <Field label="Confirmar senha">
-            <Input type="password" required placeholder="••••••••" />
+          <Field label="Confirmar senha" htmlFor="confirmar-senha-field">
+            <Input
+              id="confirmar-senha-field"
+              type="password"
+              required
+              placeholder="••••••••"
+            />
           </Field>
-          <Field label="Cidade">
-            <Input required placeholder="Franca, SP" />
+          <Field label="Cidade" htmlFor="cidade-field">
+            <Input id="cidade-field" required placeholder="Franca, SP" />
           </Field>
           <div className="flex gap-3">
-            <OutlineButton
+            <Button
+              variant="campoOutline"
               type="button"
               className="flex-1"
               onClick={() => setStep(1)}
             >
               Voltar
-            </OutlineButton>
-            <PrimaryButton type="submit" className="flex-1">
+            </Button>
+            <Button variant="campo" type="submit" className="flex-1">
               Criar conta
-            </PrimaryButton>
+            </Button>
           </div>
         </form>
       )}

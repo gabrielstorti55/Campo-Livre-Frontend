@@ -1,10 +1,10 @@
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import {
   Card,
   Field,
   PageHeader,
-  PrimaryButton,
   Section,
 } from '@/shared/components/campo-livre-ui';
 import { Input } from '@/shared/components/ui/input';
@@ -78,9 +78,9 @@ export function Sumula() {
 
       <Section title="Cartões">
         <Card className="grid gap-4 sm:grid-cols-2">
-          <Field label="Jogador">
+          <Field label="Jogador" htmlFor="jogador-field">
             <Select value={jogadorCartao} onValueChange={setJogadorCartao}>
-              <SelectTrigger>
+              <SelectTrigger id="jogador-field">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -92,9 +92,9 @@ export function Sumula() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Tipo de cartão">
+          <Field label="Tipo de cartão" htmlFor="tipo-de-cartao-field">
             <Select value={tipoCartao} onValueChange={setTipoCartao}>
-              <SelectTrigger>
+              <SelectTrigger id="tipo-de-cartao-field">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -106,9 +106,9 @@ export function Sumula() {
         </Card>
       </Section>
 
-      <PrimaryButton className="w-full">
+      <Button variant="campo" className="w-full">
         Confirmar resultado e súmula
-      </PrimaryButton>
+      </Button>
     </>
   );
 }

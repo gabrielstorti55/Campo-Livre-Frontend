@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
-import { Field, PrimaryButton } from '@/shared/components/campo-livre-ui';
+import { Field } from '@/shared/components/campo-livre-ui';
 import { Input } from '@/shared/components/ui/input';
 import { AuthShell } from '@/features/auth/components/auth-shell';
 
@@ -43,12 +44,17 @@ export function RecuperarSenhaPage() {
               setEnviado(true);
             }}
           >
-            <Field label="E-mail">
-              <Input type="email" required placeholder="voce@email.com" />
+            <Field label="E-mail" htmlFor="e-mail-field">
+              <Input
+                id="e-mail-field"
+                type="email"
+                required
+                placeholder="voce@email.com"
+              />
             </Field>
-            <PrimaryButton type="submit" className="w-full">
+            <Button variant="campo" type="submit" className="w-full">
               Enviar link
-            </PrimaryButton>
+            </Button>
           </form>
           <p className="mt-5 text-center text-sm">
             <Link

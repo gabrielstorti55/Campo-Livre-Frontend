@@ -1,12 +1,8 @@
 import { Plus } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
 
 import { StatusBadge } from '@/shared/components/status-badge';
-import {
-  Card,
-  Initials,
-  OutlineButton,
-  PageHeader,
-} from '@/shared/components/campo-livre-ui';
+import { Card, Initials, PageHeader } from '@/shared/components/campo-livre-ui';
 import { Badge } from '@/shared/components/ui/badge';
 import { elenco, times } from '@/mocks/data';
 
@@ -17,9 +13,9 @@ export function GerenciarTimes() {
         title="Gerenciar times"
         subtitle="Times inscritos no campeonato"
         actions={
-          <OutlineButton className="py-2.5">
+          <Button variant="campoOutline" className="py-2.5">
             <Plus className="h-4 w-4" /> Adicionar time
-          </OutlineButton>
+          </Button>
         }
       />
 
@@ -37,7 +33,9 @@ export function GerenciarTimes() {
                 </p>
               </div>
               <StatusBadge status={t.status} />
-              <OutlineButton className="py-2">Gerenciar</OutlineButton>
+              <Button variant="campoOutline" className="py-2">
+                Gerenciar
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2 border-t border-border pt-3">
               {elenco.slice(0, 5).map((j) => (

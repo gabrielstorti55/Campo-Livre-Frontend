@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { CalendarPlus, GitBranch, Users } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import {
   ListaJogos,
@@ -11,7 +12,6 @@ import {
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
   Card,
-  OutlineButton,
   PageHeader,
   StatCard,
   Tabs,
@@ -40,19 +40,19 @@ export function VisaoGeral() {
 
       <div className="flex flex-wrap gap-2">
         <Link to={`${basePath}/times`}>
-          <OutlineButton className="py-2.5">
+          <Button variant="campoOutline" className="py-2.5">
             <Users className="h-4 w-4" /> Gerenciar times
-          </OutlineButton>
+          </Button>
         </Link>
         <Link to={`${basePath}/partidas`}>
-          <OutlineButton className="py-2.5">
+          <Button variant="campoOutline" className="py-2.5">
             <CalendarPlus className="h-4 w-4" /> Agendar partidas
-          </OutlineButton>
+          </Button>
         </Link>
         <Link to={`${basePath}/chaveamento`}>
-          <OutlineButton className="py-2.5">
+          <Button variant="campoOutline" className="py-2.5">
             <GitBranch className="h-4 w-4" /> Chaveamento
-          </OutlineButton>
+          </Button>
         </Link>
       </div>
 
@@ -95,10 +95,14 @@ export function VisaoGeral() {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <Link to={`${basePath}/partidas`}>
-              <OutlineButton className="py-2.5">Agendar</OutlineButton>
+              <Button variant="campoOutline" className="py-2.5">
+                Agendar
+              </Button>
             </Link>
             <Link to={`${basePath}/sumula`}>
-              <OutlineButton className="py-2.5">Lançar resultado</OutlineButton>
+              <Button variant="campoOutline" className="py-2.5">
+                Lançar resultado
+              </Button>
             </Link>
           </div>
           <ListaJogos />
@@ -108,7 +112,9 @@ export function VisaoGeral() {
       {tab === 'Times' ? (
         <div className="space-y-4">
           <Link to={`${basePath}/times`}>
-            <OutlineButton className="py-2.5">Gerenciar elencos</OutlineButton>
+            <Button variant="campoOutline" className="py-2.5">
+              Gerenciar elencos
+            </Button>
           </Link>
           <ListaTimes />
         </div>

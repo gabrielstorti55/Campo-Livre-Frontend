@@ -1,16 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 import { StatusBadge } from '@/shared/components/status-badge';
 import { ListRow } from '@/shared/components/list-row';
-import {
-  OutlineButton,
-  PrimaryButton,
-  Section,
-  StatGrid,
-} from '@/shared/components/campo-livre-ui';
+import { Section, StatGrid } from '@/shared/components/campo-livre-ui';
 import {
   Dialog,
   DialogContent,
@@ -52,9 +48,9 @@ export function OrganizadorPerfil() {
         ))}
       </Section>
 
-      <OutlineButton onClick={() => setAberto(true)}>
+      <Button variant="campoOutline" onClick={() => setAberto(true)}>
         <Settings className="h-4 w-4" /> Configurações
-      </OutlineButton>
+      </Button>
 
       <Dialog open={aberto} onOpenChange={setAberto}>
         <DialogContent className="sm:max-w-sm">
@@ -65,15 +61,20 @@ export function OrganizadorPerfil() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <PrimaryButton
+            <Button
+              variant="campo"
               className="w-full"
               onClick={() => navigate('/atleta/inicio')}
             >
               Trocar para perfil Atleta
-            </PrimaryButton>
-            <OutlineButton className="w-full" onClick={() => setAberto(false)}>
+            </Button>
+            <Button
+              variant="campoOutline"
+              className="w-full"
+              onClick={() => setAberto(false)}
+            >
               Fechar
-            </OutlineButton>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -5,7 +5,6 @@ import {
   Field,
   FormCard,
   PageHeader,
-  PrimaryButton,
   Tabs,
 } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
@@ -38,11 +37,11 @@ export function CriarTime() {
           </span>
         </div>
 
-        <Field label="Nome do time">
-          <Input placeholder="Ex.: Leões FC" />
+        <Field label="Nome do time" htmlFor="nome-do-time-field">
+          <Input id="nome-do-time-field" placeholder="Ex.: Leões FC" />
         </Field>
-        <Field label="Cidade">
-          <Input placeholder="Franca, SP" />
+        <Field label="Cidade" htmlFor="cidade-field">
+          <Input id="cidade-field" placeholder="Franca, SP" />
         </Field>
 
         <div>
@@ -56,13 +55,17 @@ export function CriarTime() {
           />
         </div>
 
-        <Field label="Descrição">
-          <Textarea rows={4} placeholder="Conte um pouco sobre o time" />
+        <Field label="Descrição" htmlFor="descricao-field">
+          <Textarea
+            id="descricao-field"
+            rows={4}
+            placeholder="Conte um pouco sobre o time"
+          />
         </Field>
 
-        <PrimaryButton className="w-full">
+        <Button variant="campo" className="w-full">
           Salvar e adicionar jogadores
-        </PrimaryButton>
+        </Button>
       </FormCard>
     </>
   );

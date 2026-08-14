@@ -2,10 +2,10 @@ import {
   Card,
   Initials,
   PageHeader,
-  PrimaryButton,
   Section,
 } from '@/shared/components/campo-livre-ui';
 import { bracket, times } from '@/mocks/data';
+import { Button } from '@/shared/components/ui/button';
 
 function Confronto({ a, b, placar }: { a: string; b: string; placar: string }) {
   return (
@@ -68,7 +68,9 @@ export function Chaveamento() {
         </div>
       </div>
 
-      <PrimaryButton className="w-full">Confirmar chaveamento</PrimaryButton>
+      <Button variant="campo" className="w-full">
+        Confirmar chaveamento
+      </Button>
     </>
   );
 }

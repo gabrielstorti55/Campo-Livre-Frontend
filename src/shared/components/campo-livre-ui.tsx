@@ -1,8 +1,8 @@
 import { Search } from 'lucide-react';
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
-import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/badge';
 import { Card as UICard, CardContent } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -12,6 +12,10 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/shared/components/ui/toggle-group';
 import { cn } from '@/shared/lib/utils';
 
 export function Initials({
@@ -119,56 +123,6 @@ export function PageHeader({
   );
 }
 
-export function PrimaryButton({
-  className,
-  tone = 'green',
-  ...props
-}: ComponentPropsWithoutRef<typeof Button> & {
-  tone?: 'green' | 'navy' | 'danger';
-}) {
-  const tones = {
-    green: 'bg-green-mid hover:bg-green-dark',
-    navy: 'bg-navy-mid hover:bg-navy-dark',
-    danger: 'bg-danger hover:bg-danger/90',
-  };
-  return (
-    <Button
-      {...props}
-      className={cn(
-        'h-auto rounded-md px-5 py-2.5 font-display text-sm font-semibold text-white',
-        tones[tone],
-        className,
-      )}
-    />
-  );
-}
-
-export function OutlineButton({
-  className,
-  tone = 'green',
-  ...props
-}: ComponentPropsWithoutRef<typeof Button> & {
-  tone?: 'green' | 'navy' | 'danger';
-}) {
-  const tones = {
-    green:
-      'border-green-mid text-green-mid hover:bg-green-pale hover:text-green-dark',
-    navy: 'border-navy-mid text-navy-mid hover:bg-navy-mid/10 hover:text-navy-dark',
-    danger: 'border-danger text-danger hover:bg-danger/10 hover:text-danger',
-  };
-  return (
-    <Button
-      variant="outline"
-      {...props}
-      className={cn(
-        'h-auto rounded-md px-5 py-2.5 font-display text-sm font-semibold',
-        tones[tone],
-        className,
-      )}
-    />
-  );
-}
-
 export function SearchBar({
   placeholder,
   value,
@@ -182,6 +136,8 @@ export function SearchBar({
     <div className="relative">
       <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
+        type="search"
+        aria-label={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -193,23 +149,25 @@ export function SearchBar({
 
 export function Field({
   label,
+  htmlFor,
   children,
 }: {
   label: string;
+  htmlFor: string;
   children: ReactNode;
 }) {
   return (
     <div className="block space-y-1.5">
-      <Label className="font-display text-sm font-medium text-foreground">
+      <Label
+        htmlFor={htmlFor}
+        className="font-display text-sm font-medium text-foreground"
+      >
         {label}
       </Label>
       {children}
     </div>
   );
 }
-
-export const inputClass =
-  'flex w-full rounded-md border border-input bg-white px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-green-mid focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 export function Tabs({
   tabs,
@@ -249,15 +207,18 @@ export function FilterPills({
   variant?: 'outline' | 'solid';
 }) {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filtros">
+    <ToggleGroup
+      type="single"
+      value={value}
+      onValueChange={(nextValue) => nextValue && onChange(nextValue)}
+      aria-label="Filtros"
+      variant="outline"
+      className="flex-wrap justify-start gap-2"
+    >
       {options.map((option) => (
-        <Button
+        <ToggleGroupItem
           key={option}
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onChange(option)}
-          aria-pressed={value === option}
+          value={option}
           className={cn(
             'h-auto rounded-full px-4 py-1.5 font-display text-xs font-semibold',
             value === option
@@ -268,9 +229,9 @@ export function FilterPills({
           )}
         >
           {option}
-        </Button>
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   );
 }
 
@@ -290,14 +251,6 @@ export function Section({
       </h2>
       {children}
     </section>
-  );
-}
-
-export function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-lg border border-dashed border-border bg-white p-10 text-center text-sm text-muted-foreground">
-      {message}
-    </div>
   );
 }
 
@@ -376,9 +329,9 @@ export function Pill({
   className?: string;
 }) {
   return (
-    <span
+    <Badge
       className={cn(
-        'shrink-0 bg-green-pale px-3 py-1 font-display font-semibold text-green-dark',
+        'shrink-0 border-0 bg-green-pale px-3 py-1 font-display font-semibold text-green-dark hover:bg-green-pale',
         shape === 'full'
           ? 'rounded-full text-xs'
           : 'rounded-lg text-sm font-bold',
@@ -386,6 +339,6 @@ export function Pill({
       )}
     >
       {children}
-    </span>
+    </Badge>
   );
 }

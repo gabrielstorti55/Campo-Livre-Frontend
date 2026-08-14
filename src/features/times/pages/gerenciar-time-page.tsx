@@ -1,12 +1,12 @@
 import { useParams } from 'react-router-dom';
 import { CalendarDays, ChevronRight, MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
   Card,
   Initials,
-  OutlineButton,
   PageHeader,
   StatCard,
   Tabs,
@@ -80,9 +80,9 @@ export function GerenciarTime() {
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
             </Card>
           ))}
-          <OutlineButton className="w-full">
+          <Button variant="campoOutline" className="w-full">
             <Plus className="h-4 w-4" /> Adicionar jogador
-          </OutlineButton>
+          </Button>
         </div>
       ) : null}
 

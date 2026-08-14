@@ -1,11 +1,10 @@
 import { useState } from 'react';
+import { Button } from '@/shared/components/ui/button';
 
 import { StatusBadge } from '@/shared/components/status-badge';
 import {
   Card,
-  OutlineButton,
   PageHeader,
-  PrimaryButton,
   Section,
   StatCard,
 } from '@/shared/components/campo-livre-ui';
@@ -55,15 +54,17 @@ export function Aprovacoes() {
               <StatusBadge status="Pendente" />
             </div>
             <div className="flex flex-wrap gap-2">
-              <PrimaryButton
+              <Button
+                variant="campo"
                 className="py-2.5"
                 onClick={() =>
                   setDecididos({ ...decididos, [a.id]: 'Aprovado' })
                 }
               >
                 Aprovar
-              </PrimaryButton>
-              <OutlineButton
+              </Button>
+              <Button
+                variant="campoOutline"
                 tone="danger"
                 className="py-2.5"
                 onClick={() =>
@@ -71,7 +72,7 @@ export function Aprovacoes() {
                 }
               >
                 Reprovar
-              </OutlineButton>
+              </Button>
             </div>
           </Card>
         ))}
