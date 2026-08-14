@@ -1,5 +1,33 @@
 import { expect, test } from '@playwright/test';
 
+test('apresenta a identidade CampoLivre sem aparência de card genérico', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/login');
+
+  await expect(page.getByTestId('auth-brand-panel')).toBeVisible();
+  await expect(page.getByText('LigaPro · Franca, SP')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Acesse sua conta' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Gestão de campeonatos municipais'),
+  ).toBeVisible();
+});
+
+test('mantém a autenticação utilizável em uma tela móvel', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/login');
+
+  await expect(
+    page.getByRole('heading', { name: 'Acesse sua conta' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('E-mail')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Criar conta' })).toBeVisible();
+});
+
 test('associa os rótulos aos controles do formulário de login', async ({
   page,
 }) => {
@@ -7,7 +35,7 @@ test('associa os rótulos aos controles do formulário de login', async ({
 
   await page.getByLabel('E-mail').fill('atleta@campolivre.test');
   await page.getByLabel('Senha').fill('segredo');
-  await expect(page.getByLabel('Entrar como')).toHaveRole('combobox');
+  await expect(page.getByLabel('Perfil')).toHaveRole('combobox');
 });
 
 test('seleciona o perfil como um grupo de opções exclusivo pelo teclado', async ({

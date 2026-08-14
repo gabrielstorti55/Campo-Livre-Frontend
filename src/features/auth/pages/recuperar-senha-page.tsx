@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
 
-import { Field } from '@/shared/components/campo-livre-ui';
-import { Input } from '@/shared/components/ui/input';
 import { AuthShell } from '@/features/auth/components/auth-shell';
+import { Field } from '@/shared/components/campo-livre-ui';
+import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
 
 export function RecuperarSenhaPage() {
   const [enviado, setEnviado] = useState(false);
@@ -13,34 +13,41 @@ export function RecuperarSenhaPage() {
   return (
     <AuthShell>
       {enviado ? (
-        <div className="py-4 text-center">
-          <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
-          <h1 className="mt-3 font-display text-xl font-bold text-foreground">
-            Link enviado!
+        <div aria-live="polite">
+          <CheckCircle2 className="h-9 w-9 text-success" />
+          <p className="mt-6 mb-3 text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
+            Solicitação recebida
+          </p>
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.025em] text-foreground">
+            Confira seu e-mail
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enviamos um link de recuperação para o seu e-mail. Verifique também
-            a caixa de spam.
+          <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+            Enviamos as instruções de recuperação. Se a mensagem não aparecer,
+            verifique também a caixa de spam.
           </p>
           <Link
             to="/login"
-            className="mt-5 inline-block font-display text-sm font-semibold text-green-mid"
+            className="mt-8 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
           >
-            Voltar para o login
+            Voltar para o acesso
           </Link>
         </div>
       ) : (
         <>
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            Recuperar senha
+          <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
+            Recuperação de acesso
+          </p>
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.025em] text-foreground">
+            Esqueceu sua senha?
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Informe seu e-mail e enviaremos um link de redefinição.
+          <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+            Informe o e-mail usado no cadastro para receber as instruções de
+            redefinição.
           </p>
           <form
-            className="mt-6 space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
+            className="mt-8 space-y-5"
+            onSubmit={(event) => {
+              event.preventDefault();
               setEnviado(true);
             }}
           >
@@ -48,20 +55,22 @@ export function RecuperarSenhaPage() {
               <Input
                 id="e-mail-field"
                 type="email"
+                autoComplete="email"
                 required
                 placeholder="voce@email.com"
+                className="h-11"
               />
             </Field>
-            <Button variant="campo" type="submit" className="w-full">
-              Enviar link
+            <Button variant="campo" type="submit" className="h-11 w-full">
+              Enviar instruções
             </Button>
           </form>
-          <p className="mt-5 text-center text-sm">
+          <p className="mt-8 border-t border-border pt-6 text-sm">
             <Link
               to="/login"
-              className="font-display font-semibold text-green-mid"
+              className="font-semibold text-green-dark underline-offset-4 hover:underline"
             >
-              Voltar para o login
+              Voltar para o acesso
             </Link>
           </p>
         </>

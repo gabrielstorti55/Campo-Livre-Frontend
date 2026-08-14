@@ -10,7 +10,9 @@ test('abre a aplicação na tela de login sem erro de página', async ({
 
   await expect(page).toHaveURL(/\/login$/);
   await expect(page).toHaveTitle(/CampoLivre LigaPro/);
-  await expect(page.getByRole('heading', { name: 'Bem-vindo!' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Acesse sua conta' }),
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
