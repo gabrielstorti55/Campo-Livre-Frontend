@@ -1,25 +1,42 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import { Field } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select';
+
+type Perfil = 'atleta' | 'organizador' | 'prefeitura';
+
+const rotasPorPerfil: Record<Perfil, string> = {
+  atleta: '/atleta/inicio',
+  organizador: '/organizador/inicio',
+  prefeitura: '/prefeitura/painel',
+};
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [perfil, setPerfil] = useState<Perfil>('atleta');
 
   return (
     <AuthShell>
       <div className="flex h-full flex-col justify-center py-2">
         <div className="mb-6">
           <p className="mb-2 text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
-            Área do participante
+            Acesso ao CampoLivre
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-[-0.025em] text-foreground">
             Acesse sua conta
           </h1>
           <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
-            Entre com seus dados para acompanhar times, partidas e campeonatos
+            Entre com seus dados para acompanhar ou gerenciar o esporte amador
             da sua região.
           </p>
         </div>
@@ -28,7 +45,7 @@ export function LoginPage() {
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            navigate('/atleta/inicio');
+            navigate(rotasPorPerfil[perfil]);
           }}
         >
           <Field label="E-mail" htmlFor="e-mail-field">
@@ -62,6 +79,22 @@ export function LoginPage() {
               </Link>
             </div>
           </div>
+
+          <Field label="Perfil" htmlFor="perfil-field">
+            <Select
+              value={perfil}
+              onValueChange={(value) => setPerfil(value as Perfil)}
+            >
+              <SelectTrigger id="perfil-field" className="h-10 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="atleta">Atleta</SelectItem>
+                <SelectItem value="organizador">Organizador</SelectItem>
+                <SelectItem value="prefeitura">Prefeitura</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
 
           <Button variant="campo" type="submit" className="mt-2 h-10 w-full">
             Entrar

@@ -37,6 +37,25 @@ test('associa os rótulos aos controles do formulário de login', async ({
   await page.getByLabel('Senha').fill('segredo');
 });
 
+for (const scenario of [
+  { perfil: 'Atleta', rota: '/atleta/inicio' },
+  { perfil: 'Organizador', rota: '/organizador/inicio' },
+  { perfil: 'Prefeitura', rota: '/prefeitura/painel' },
+]) {
+  test(`direciona o perfil ${scenario.perfil} para sua área demonstrativa`, async ({
+    page,
+  }) => {
+    await page.goto('/login');
+    await page.getByLabel('E-mail').fill('demo@campolivre.test');
+    await page.getByLabel('Senha').fill('segredo');
+    await page.getByLabel('Perfil').click();
+    await page.getByRole('option', { name: scenario.perfil }).click();
+    await page.getByRole('button', { name: 'Entrar' }).click();
+
+    await expect(page).toHaveURL(new RegExp(`${scenario.rota}$`));
+  });
+}
+
 test('seleciona o perfil como um grupo de opções exclusivo pelo teclado', async ({
   page,
 }) => {
