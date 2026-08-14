@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   CalendarDays,
   CheckSquare,
@@ -13,14 +12,8 @@ import { Outlet } from 'react-router-dom';
 import { atletaLogado, organizadorLogado } from '@/mocks/data';
 import { ProfileShell } from '@/shared/components/profile-shell';
 
-const queryClient = new QueryClient();
-
 export function RootLayout() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-    </QueryClientProvider>
-  );
+  return <Outlet />;
 }
 
 export function AtletaLayout() {

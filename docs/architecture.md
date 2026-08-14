@@ -30,7 +30,6 @@ Recebe somente código utilizado por mais de uma feature:
 
 - `components/ui`: primitivas visuais;
 - `components`: padrões visuais compartilhados do CampoLivre;
-- `hooks`: hooks independentes de domínio;
 - `lib`: utilitários técnicos pequenos.
 
 `shared` não deve depender de páginas de `features`.
