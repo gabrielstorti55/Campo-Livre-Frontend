@@ -1,11 +1,12 @@
-import { MapPin, Trophy } from 'lucide-react';
+import { ArrowRight, MapPin, ShieldCheck, Trophy } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { ResultadoRow } from '@/features/campeonatos/components/campeonato-widgets';
+import { PublicPageHeader } from '@/features/public/components/public-page-header';
 import { PublicState } from '@/features/public/components/public-state';
 import { partidas, times } from '@/mocks/data';
-import { Card, PageHeader, SearchBar, Section } from '@/shared/components/campo-livre-ui';
+import { SearchBar, Section } from '@/shared/components/campo-livre-ui';
 import { StatusBadge } from '@/shared/components/status-badge';
 
 export function PublicTimesPage() {
@@ -15,54 +16,55 @@ export function PublicTimesPage() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
-      <PageHeader
+    <div className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
+      <PublicPageHeader
+        eyebrow="Clubes"
         title="Times"
-        subtitle="Times e informações liberadas para consulta pública"
+        description="Consulte os times participantes e somente as informações liberadas para visualização pública."
       />
 
-      <SearchBar placeholder="Buscar times..." value={busca} onChange={setBusca} />
+      <div className="mb-7 max-w-lg">
+        <SearchBar placeholder="Buscar times..." value={busca} onChange={setBusca} />
+      </div>
 
       {lista.length === 0 ? (
         <PublicState
           kind="empty"
           title="Nenhum time encontrado"
-          description="Tente outro nome. Dados de atletas e elenco não são exibidos enquanto a regra de privacidade não estiver definida."
+          description="Tente outro nome. Dados de atletas e elenco continuam protegidos enquanto a regra de privacidade não estiver definida."
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {lista.map((time) => (
-            <Card key={time.id} className="flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Link
-                    to={`/times/${time.id}`}
-                    className="font-display font-semibold hover:text-green-mid"
-                  >
+            <Link
+              key={time.id}
+              to={`/times/${time.id}`}
+              className="group flex min-h-48 flex-col rounded-2xl border border-border/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all hover:-translate-y-0.5 hover:border-green-light hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-display text-xl font-semibold tracking-[-0.02em] group-hover:text-green-dark">
                     {time.nome}
-                  </Link>
-                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                    {time.cidade}
+                  </h2>
+                  <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" /> {time.cidade}
                   </p>
                 </div>
                 <StatusBadge status={time.status} />
               </div>
 
               {time.campeonato ? (
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Trophy className="h-4 w-4" aria-hidden="true" />
-                  {time.campeonato}
-                </p>
+                <div className="mt-6 flex items-center gap-2 border-t border-border/70 pt-4 text-sm text-muted-foreground">
+                  <Trophy className="h-4 w-4 text-green-dark" />
+                  <span>{time.campeonato}</span>
+                </div>
               ) : null}
 
-              <Link
-                to={`/times/${time.id}`}
-                className="mt-auto rounded-md border border-green-dark px-4 py-2.5 text-center text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale"
-              >
+              <div className="mt-auto flex items-center justify-between pt-5 text-sm font-semibold text-green-dark">
                 Ver time
-              </Link>
-            </Card>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </div>
+            </Link>
           ))}
         </div>
       )}
@@ -76,7 +78,7 @@ export function PublicTimeDetailPage() {
 
   if (!time) {
     return (
-      <div className="mx-auto w-full max-w-6xl px-5 py-12 sm:px-8">
+      <div className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 lg:px-10">
         <PublicState
           kind="error"
           title="Time não encontrado"
@@ -93,81 +95,85 @@ export function PublicTimeDetailPage() {
   const proximos = jogos.filter((partida) => !partida.concluida);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
-      <PageHeader
+    <div className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
+      <PublicPageHeader
+        eyebrow="Time"
         title={time.nome}
-        subtitle={time.cidade}
-        actions={<StatusBadge status={time.status} />}
+        description={time.cidade}
+        action={<StatusBadge status={time.status} />}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Campeonato
-          </p>
-          <p className="mt-2 font-display text-lg font-semibold">
-            {time.campeonato ?? 'Sem campeonato público informado'}
-          </p>
-        </Card>
-        <Card>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            Privacidade
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Elenco e dados pessoais de atletas não são exibidos nesta área pública.
-          </p>
-        </Card>
+      <div className="mb-10 grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl border border-border/80 bg-white p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-pale text-green-dark">
+              <Trophy className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">Campeonato</p>
+              <p className="mt-1 font-display text-lg font-semibold">
+                {time.campeonato ?? 'Sem campeonato público informado'}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-border/80 bg-white p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-pale text-green-dark">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">Privacidade</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Elenco e dados pessoais de atletas não são exibidos nesta área pública.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Section title="Próximas partidas">
-        {proximos.length === 0 ? (
-          <PublicState
-            kind="empty"
-            title="Nenhuma partida futura"
-            description="Ainda não há uma próxima partida pública para este time."
-          />
-        ) : (
-          <div className="space-y-3">
-            {proximos.map((partida) => (
-              <Link
-                key={partida.id}
-                to={`/partidas/${partida.id}`}
-                className="block rounded-xl border border-border bg-white p-4 transition-colors hover:border-green-light"
-              >
-                <p className="font-display font-semibold">
-                  {partida.casa} vs {partida.fora}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {partida.data} · {partida.hora} · {partida.campo}
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </Section>
+      <div className="grid gap-10 xl:grid-cols-2">
+        <Section title="Próximas partidas">
+          {proximos.length === 0 ? (
+            <PublicState kind="empty" title="Nenhuma partida futura" description="Ainda não há uma próxima partida pública para este time." />
+          ) : (
+            <div className="space-y-3">
+              {proximos.map((partida) => (
+                <Link
+                  key={partida.id}
+                  to={`/partidas/${partida.id}`}
+                  className="group flex items-center justify-between gap-4 rounded-2xl border border-border/80 bg-white p-5 transition-colors hover:border-green-light"
+                >
+                  <div>
+                    <p className="font-display font-semibold">{partida.casa} vs {partida.fora}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{partida.data} · {partida.hora} · {partida.campo}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-green-dark" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </Section>
 
-      <Section title="Resultados">
-        {resultados.length === 0 ? (
-          <PublicState
-            kind="empty"
-            title="Nenhum resultado publicado"
-            description="Os resultados públicos deste time aparecerão aqui."
-          />
-        ) : (
-          <div className="rounded-xl border border-border bg-white px-4">
-            {resultados.map((partida) => (
-              <Link key={partida.id} to={`/partidas/${partida.id}`}>
-                <ResultadoRow
-                  casa={partida.casa}
-                  fora={partida.fora}
-                  placar={`${partida.golsCasa} x ${partida.golsFora}`}
-                  subtitle={`${partida.data} · ${partida.campo}`}
-                />
-              </Link>
-            ))}
-          </div>
-        )}
-      </Section>
+        <Section title="Resultados">
+          {resultados.length === 0 ? (
+            <PublicState kind="empty" title="Nenhum resultado publicado" description="Os resultados públicos deste time aparecerão aqui." />
+          ) : (
+            <div className="rounded-2xl border border-border/80 bg-white px-4">
+              {resultados.map((partida) => (
+                <Link key={partida.id} to={`/partidas/${partida.id}`}>
+                  <ResultadoRow
+                    casa={partida.casa}
+                    fora={partida.fora}
+                    placar={`${partida.golsCasa} x ${partida.golsFora}`}
+                    subtitle={`${partida.data} · ${partida.campo}`}
+                  />
+                </Link>
+              ))}
+            </div>
+          )}
+        </Section>
+      </div>
     </div>
   );
 }
