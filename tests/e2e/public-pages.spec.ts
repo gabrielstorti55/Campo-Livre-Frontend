@@ -15,9 +15,7 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
   for (const route of routes) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(new RegExp(`${route.replace('/', '\\/')}$`));
-    await expect(
-      page.getByRole('navigation', { name: 'Navegação pública' }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Abrir menu público' })).toBeVisible();
   }
 
   const session = await page.evaluate(() =>
@@ -26,35 +24,14 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
   expect(session).toBeNull();
 });
 
-test('sidebar pública pode ser recolhida e expandida no desktop', async ({
-  page,
-}) => {
+test('menu público é opcional e pode ser aberto e fechado', async ({ page }) => {
   await page.goto('/campeonatos');
 
-  const sidebar = page.locator('aside').filter({ hasText: 'CampoLivre' }).first();
-  await expect(sidebar).toBeVisible();
-
-  await page.getByRole('button', { name: 'Recolher menu lateral' }).click();
-  await expect(
-    page.getByRole('button', { name: 'Expandir menu lateral' }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: 'Expandir menu lateral' }).click();
-  await expect(
-    page.getByRole('button', { name: 'Recolher menu lateral' }),
-  ).toBeVisible();
-});
-
-test('menu público abre como drawer no mobile', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/times');
-
-  await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await expect(
-    page.getByRole('navigation', { name: 'Navegação pública móvel' }),
-  ).toBeVisible();
-  await page.getByRole('link', { name: 'Partidas' }).last().click();
-  await expect(page).toHaveURL(/\/partidas$/);
+  await expect(page.getByRole('navigation', { name: 'Navegação pública' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Abrir menu público' }).click();
+  await expect(page.getByRole('navigation', { name: 'Navegação pública' })).toBeVisible();
+  await page.getByRole('button', { name: 'Fechar menu lateral' }).click();
+  await expect(page.getByRole('navigation', { name: 'Navegação pública' })).toHaveCount(0);
 });
 
 test('campeonato público mostra classificação e resultados sem dados pessoais', async ({
@@ -62,9 +39,7 @@ test('campeonato público mostra classificação e resultados sem dados pessoais
 }) => {
   await page.goto('/campeonatos/1');
 
-  await expect(
-    page.getByRole('heading', { name: 'Copa Franca 2026' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Copa Franca 2026' })).toBeVisible();
   await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
   await expect(page.getByText('João Silva')).toHaveCount(0);
 

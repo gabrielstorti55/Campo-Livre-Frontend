@@ -1,4 +1,4 @@
-import { ArrowRight, MapPin } from 'lucide-react';
+import { ArrowUpRight, MapPin, Trophy, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -21,15 +21,25 @@ export function PublicCampeonatosPage() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
+    <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <PublicPageHeader
-        eyebrow="Competições"
+        eyebrow="Competições públicas"
         title="Campeonatos"
-        description="Acompanhe o andamento das competições, consulte formatos, cidades, classificação e resultados."
+        description="Acompanhe competições, classificação e resultados sem precisar entrar na sua conta."
       />
 
-      <div className="mb-7 max-w-lg">
-        <SearchBar placeholder="Buscar campeonatos..." value={busca} onChange={setBusca} />
+      <div className="mb-7 grid gap-4 rounded-2xl bg-white p-4 shadow-[0_12px_36px_rgba(30,54,43,0.06)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5">
+        <div className="max-w-xl">
+          <SearchBar
+            placeholder="Buscar campeonatos..."
+            value={busca}
+            onChange={setBusca}
+          />
+        </div>
+        <p className="text-sm text-muted-foreground sm:text-right">
+          <span className="font-semibold text-foreground">{lista.length}</span>{' '}
+          competições visíveis
+        </p>
       </div>
 
       {lista.length === 0 ? (
@@ -40,18 +50,22 @@ export function PublicCampeonatosPage() {
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {lista.map((campeonato) => (
+          {lista.map((campeonato, index) => (
             <Link
               key={campeonato.id}
               to={`/campeonatos/${campeonato.id}`}
-              className="group flex min-h-56 flex-col rounded-2xl border border-border/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all hover:-translate-y-0.5 hover:border-green-light hover:shadow-md"
+              className="group relative overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_12px_35px_rgba(30,54,43,0.07)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(30,54,43,0.12)] sm:p-6"
             >
+              <div className="absolute inset-x-0 top-0 h-1 bg-green-mid/70" />
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                    {campeonato.modalidade}
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
+                    <Trophy className="h-4 w-4" />
+                  </div>
+                  <p className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
+                    {index === 0 ? 'Em destaque' : campeonato.modalidade}
                   </p>
-                  <h2 className="mt-2 font-display text-xl font-semibold tracking-[-0.02em] group-hover:text-green-dark">
+                  <h2 className="mt-1.5 font-display text-xl font-semibold tracking-[-0.03em] transition-colors group-hover:text-green-dark sm:text-2xl">
                     {campeonato.nome}
                   </h2>
                   <CampeonatoMeta cidade={campeonato.cidade} icon={MapPin} />
@@ -59,16 +73,20 @@ export function PublicCampeonatosPage() {
                 <StatusBadge status={campeonato.status} />
               </div>
 
-              <div className="mt-6 border-t border-border/70 pt-4">
-                <CampeonatoMeta
-                  times={campeonato.times}
-                  formato={campeonato.formato}
-                />
+              <div className="mt-6 flex flex-wrap gap-2 border-t border-black/6 pt-4 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f5f7f4] px-3 py-1.5">
+                  <Users className="h-3.5 w-3.5" /> {campeonato.times} times
+                </span>
+                <span className="rounded-full bg-[#f5f7f4] px-3 py-1.5">
+                  {campeonato.formato}
+                </span>
               </div>
 
-              <div className="mt-auto flex items-center justify-between pt-5 text-sm font-semibold text-green-dark">
+              <div className="mt-6 flex items-center justify-between text-sm font-semibold text-green-dark">
                 Ver campeonato
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-green-pale transition-transform group-hover:translate-x-1">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
               </div>
             </Link>
           ))}
@@ -85,7 +103,7 @@ export function PublicCampeonatoDetailPage() {
 
   if (!campeonato) {
     return (
-      <div className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 lg:px-10">
+      <div className="mx-auto w-full max-w-[1380px] px-4 py-10 sm:px-6 lg:px-8">
         <PublicState
           kind="error"
           title="Campeonato não encontrado"
@@ -96,7 +114,7 @@ export function PublicCampeonatoDetailPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
+    <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <PublicPageHeader
         eyebrow={`${campeonato.modalidade} · ${campeonato.cidade}`}
         title={campeonato.nome}
@@ -104,7 +122,7 @@ export function PublicCampeonatoDetailPage() {
         action={<StatusBadge status={campeonato.status} />}
       />
 
-      <div className="mb-8 rounded-2xl border border-border/80 bg-white px-3 pt-1 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      <div className="mb-7 overflow-hidden rounded-2xl bg-white px-2 pt-1 shadow-[0_10px_30px_rgba(30,54,43,0.06)] sm:px-4">
         <Tabs
           tabs={['Visão geral', 'Classificação', 'Partidas', 'Times']}
           active={tab}
@@ -113,44 +131,61 @@ export function PublicCampeonatoDetailPage() {
       </div>
 
       {tab === 'Visão geral' ? (
-        <div className="grid gap-8 xl:grid-cols-[1.35fr_0.65fr]">
-          <Section title="Classificação">
-            <TabelaClassificacao />
-          </Section>
-          <Section title="Últimos resultados">
-            <div className="rounded-2xl border border-border/80 bg-white px-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-              {partidas
-                .filter((partida) => partida.concluida)
-                .map((partida) => (
-                  <Link key={partida.id} to={`/partidas/${partida.id}`}>
-                    <ResultadoRow
-                      casa={partida.casa}
-                      fora={partida.fora}
-                      placar={`${partida.golsCasa} x ${partida.golsFora}`}
-                      subtitle={`${partida.data} · ${partida.campo}`}
-                    />
-                  </Link>
-                ))}
-            </div>
-          </Section>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
+          <section className="rounded-[24px] bg-white p-4 shadow-[0_12px_35px_rgba(30,54,43,0.06)] sm:p-6">
+            <Section title="Classificação">
+              <TabelaClassificacao />
+            </Section>
+          </section>
+
+          <section className="rounded-[24px] bg-white p-4 shadow-[0_12px_35px_rgba(30,54,43,0.06)] sm:p-6">
+            <Section title="Últimos resultados">
+              <div>
+                {partidas
+                  .filter((partida) => partida.concluida)
+                  .map((partida) => (
+                    <Link key={partida.id} to={`/partidas/${partida.id}`}>
+                      <ResultadoRow
+                        casa={partida.casa}
+                        fora={partida.fora}
+                        placar={`${partida.golsCasa} x ${partida.golsFora}`}
+                        subtitle={`${partida.data} · ${partida.campo}`}
+                      />
+                    </Link>
+                  ))}
+              </div>
+            </Section>
+          </section>
         </div>
       ) : null}
 
-      {tab === 'Classificação' ? <TabelaClassificacao /> : null}
-      {tab === 'Partidas' ? <ListaJogos /> : null}
+      {tab === 'Classificação' ? (
+        <div className="rounded-[24px] bg-white p-4 shadow-[0_12px_35px_rgba(30,54,43,0.06)] sm:p-6">
+          <TabelaClassificacao />
+        </div>
+      ) : null}
+
+      {tab === 'Partidas' ? (
+        <div className="rounded-[24px] bg-white p-4 shadow-[0_12px_35px_rgba(30,54,43,0.06)] sm:p-6">
+          <ListaJogos />
+        </div>
+      ) : null}
+
       {tab === 'Times' ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {times.map((time) => (
             <Link
               key={time.id}
               to={`/times/${time.id}`}
-              className="group flex items-center justify-between gap-4 rounded-2xl border border-border/80 bg-white p-5 transition-all hover:border-green-light hover:shadow-sm"
+              className="group flex items-center justify-between gap-4 rounded-2xl bg-white p-5 shadow-[0_10px_28px_rgba(30,54,43,0.06)] transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <div>
-                <p className="font-display font-semibold group-hover:text-green-dark">{time.nome}</p>
+                <p className="font-display font-semibold group-hover:text-green-dark">
+                  {time.nome}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">{time.cidade}</p>
               </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-green-dark" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-green-dark" />
             </Link>
           ))}
         </div>

@@ -1,7 +1,5 @@
 import {
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Home,
   LogIn,
   Menu,
@@ -10,7 +8,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigation } from 'react-router-dom';
 
 import { cn } from '@/shared/lib/utils';
@@ -22,17 +20,9 @@ const navigationItems = [
   { label: 'Partidas', to: '/partidas', icon: CalendarDays },
 ] as const;
 
-function PublicNavigation({
-  collapsed = false,
-  onNavigate,
-  label = 'Navegação pública',
-}: {
-  collapsed?: boolean;
-  onNavigate?: () => void;
-  label?: string;
-}) {
+function PublicNavigation({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <nav className="space-y-1" aria-label={label}>
+    <nav className="space-y-1" aria-label="Navegação pública">
       {navigationItems.map((item) => {
         const Icon = item.icon;
 
@@ -42,19 +32,17 @@ function PublicNavigation({
             to={item.to}
             end={item.to === '/'}
             onClick={onNavigate}
-            title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                'group flex h-11 items-center rounded-xl text-sm font-semibold transition-colors',
-                collapsed ? 'justify-center px-0' : 'gap-3 px-3',
+                'flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors',
                 isActive
-                  ? 'bg-white/12 text-white'
-                  : 'text-white/65 hover:bg-white/8 hover:text-white',
+                  ? 'bg-white text-green-dark'
+                  : 'text-white/72 hover:bg-white/10 hover:text-white',
               )
             }
           >
             <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-            {!collapsed ? <span>{item.label}</span> : null}
+            <span>{item.label}</span>
           </NavLink>
         );
       })}
@@ -65,174 +53,142 @@ function PublicNavigation({
 export function PublicLayout() {
   const navigation = useNavigation();
   const loading = navigation.state !== 'idle';
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [menuOpen]);
 
   return (
-    <div className="min-h-screen bg-surface text-foreground lg:flex">
+    <div className="min-h-screen bg-[#f7f8f6] text-foreground">
       <a
         href="#conteudo-publico"
-        className="sr-only z-[70] rounded-md bg-white px-4 py-2 font-semibold text-green-dark focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+        className="sr-only z-[80] rounded-md bg-white px-4 py-2 font-semibold text-green-dark shadow-lg focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
       >
         Ir para o conteúdo público
       </a>
 
-      <aside
-        className={cn(
-          'sticky top-0 hidden h-screen shrink-0 flex-col bg-green-dark text-white transition-[width] duration-200 lg:flex',
-          collapsed ? 'w-20' : 'w-72',
-        )}
-      >
-        <div
-          className={cn(
-            'flex h-20 items-center border-b border-white/10',
-            collapsed ? 'justify-center px-3' : 'justify-between px-5',
-          )}
-        >
-          <Link to="/" className="min-w-0">
-            {collapsed ? (
-              <span className="font-display text-xl font-bold">C</span>
-            ) : (
-              <div>
-                <p className="font-display text-xl font-bold tracking-[-0.025em]">
-                  CampoLivre
-                </p>
-                <p className="mt-0.5 text-[11px] font-medium tracking-[0.12em] text-white/50 uppercase">
-                  LigaPro
-                </p>
-              </div>
-            )}
-          </Link>
-
-          {!collapsed ? (
-            <button
-              type="button"
-              onClick={() => setCollapsed(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white"
-              aria-label="Recolher menu lateral"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-          ) : null}
-        </div>
-
-        <div className="flex-1 px-3 py-5">
-          <PublicNavigation collapsed={collapsed} />
-        </div>
-
-        <div className="border-t border-white/10 p-3">
-          {collapsed ? (
-            <button
-              type="button"
-              onClick={() => setCollapsed(false)}
-              className="mb-2 flex h-10 w-full items-center justify-center rounded-xl text-white/60 hover:bg-white/10 hover:text-white"
-              aria-label="Expandir menu lateral"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          ) : null}
-
-          <Link
-            to="/login"
-            className={cn(
-              'flex h-10 items-center rounded-xl text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white',
-              collapsed ? 'justify-center' : 'gap-3 px-3',
-            )}
-            title={collapsed ? 'Entrar' : undefined}
-          >
-            <LogIn className="h-4 w-4" />
-            {!collapsed ? 'Entrar' : null}
-          </Link>
-          <Link
-            to="/cadastro"
-            className={cn(
-              'mt-1 flex h-10 items-center rounded-xl bg-white text-sm font-semibold text-green-dark transition-opacity hover:opacity-90',
-              collapsed ? 'justify-center' : 'gap-3 px-3',
-            )}
-            title={collapsed ? 'Criar conta' : undefined}
-          >
-            <UserPlus className="h-4 w-4" />
-            {!collapsed ? 'Criar conta' : null}
-          </Link>
-        </div>
-      </aside>
-
-      <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/70 bg-white/90 px-4 backdrop-blur-md lg:hidden">
-          <Link to="/" className="font-display text-lg font-bold text-green-dark">
-            CampoLivre
-          </Link>
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-[#f7f8f6]/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-[1480px] items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button
             type="button"
-            onClick={() => setMobileOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-green-dark"
-            aria-label="Abrir menu"
+            onClick={() => setMenuOpen(true)}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-black/8 bg-white px-3 text-sm font-semibold text-green-dark shadow-sm transition hover:-translate-y-px hover:shadow-md"
+            aria-label="Abrir menu público"
+            aria-expanded={menuOpen}
+            aria-controls="public-sidebar"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Menu</span>
           </button>
-        </header>
 
-        {mobileOpen ? (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <button
-              type="button"
-              className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
-              onClick={() => setMobileOpen(false)}
-              aria-label="Fechar menu"
+          <Link to="/" className="ml-1 min-w-0">
+            <p className="truncate font-display text-lg font-bold tracking-[-0.025em] text-green-dark">
+              CampoLivre
+            </p>
+          </Link>
+
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              to="/login"
+              className="hidden rounded-xl px-3 py-2 text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale sm:inline-flex"
+            >
+              Entrar
+            </Link>
+            <Link
+              to="/cadastro"
+              className="inline-flex rounded-xl bg-green-dark px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-px hover:shadow-md"
+            >
+              Criar conta
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {menuOpen ? (
+        <div className="fixed inset-0 z-[70]">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Fechar menu público"
+          />
+
+          <aside
+            id="public-sidebar"
+            className="relative flex h-full w-[min(88vw,340px)] flex-col overflow-hidden text-white shadow-2xl"
+            aria-label="Menu público"
+          >
+            <img
+              src="./public/soccer-field.jpg"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
             />
-            <aside className="relative flex h-full w-[min(84vw,320px)] flex-col bg-green-dark p-4 text-white shadow-2xl">
-              <div className="mb-6 flex items-center justify-between px-2 pt-1">
-                <div>
-                  <p className="font-display text-xl font-bold">CampoLivre</p>
-                  <p className="text-[11px] tracking-[0.12em] text-white/50 uppercase">
+            <div className="absolute inset-0 bg-green-dark/90" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30" />
+
+            <div className="relative z-10 flex h-full flex-col p-4 sm:p-5">
+              <div className="mb-8 flex items-start justify-between gap-4 px-1 pt-1">
+                <Link to="/" onClick={() => setMenuOpen(false)}>
+                  <p className="font-display text-xl font-bold tracking-[-0.03em]">CampoLivre</p>
+                  <p className="mt-1 text-[11px] font-semibold tracking-[0.16em] text-white/55 uppercase">
                     LigaPro
                   </p>
-                </div>
+                </Link>
+
                 <button
                   type="button"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-white/70 hover:bg-white/10"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/80 transition hover:bg-white/15 hover:text-white"
                   aria-label="Fechar menu lateral"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <PublicNavigation
-                onNavigate={() => setMobileOpen(false)}
-                label="Navegação pública móvel"
-              />
+              <PublicNavigation onNavigate={() => setMenuOpen(false)} />
 
-              <div className="mt-auto space-y-2 border-t border-white/10 pt-4">
+              <div className="mt-auto rounded-2xl border border-white/12 bg-black/15 p-3 backdrop-blur-sm">
+                <p className="px-2 pb-2 text-xs leading-5 text-white/55">
+                  Navegue sem cadastro. Entre apenas quando precisar realizar uma ação pessoal.
+                </p>
                 <Link
                   to="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/75 hover:bg-white/10"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white"
                 >
                   <LogIn className="h-4 w-4" /> Entrar
                 </Link>
                 <Link
                   to="/cadastro"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex h-11 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark"
+                  onClick={() => setMenuOpen(false)}
+                  className="mt-1 flex h-11 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark"
                 >
                   <UserPlus className="h-4 w-4" /> Criar conta
                 </Link>
               </div>
-            </aside>
-          </div>
-        ) : null}
+            </div>
+          </aside>
+        </div>
+      ) : null}
 
-        {loading ? (
-          <div className="fixed top-0 right-0 left-0 z-[60] h-0.5 overflow-hidden bg-green-pale lg:left-auto">
-            <div className="h-full w-1/2 animate-pulse bg-green-mid" />
-          </div>
-        ) : null}
+      {loading ? (
+        <div className="fixed top-16 right-0 left-0 z-50 h-0.5 overflow-hidden bg-green-pale">
+          <div className="h-full w-1/2 animate-pulse bg-green-mid" />
+        </div>
+      ) : null}
 
-        <main id="conteudo-publico" aria-busy={loading} className="min-h-[calc(100vh-4rem)] lg:min-h-screen">
-          <Outlet />
-        </main>
-      </div>
+      <main id="conteudo-publico" aria-busy={loading} className="min-h-[calc(100vh-4rem)]">
+        <Outlet />
+      </main>
     </div>
   );
 }
