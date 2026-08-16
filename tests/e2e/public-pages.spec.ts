@@ -26,6 +26,37 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
   expect(session).toBeNull();
 });
 
+test('sidebar pública pode ser recolhida e expandida no desktop', async ({
+  page,
+}) => {
+  await page.goto('/campeonatos');
+
+  const sidebar = page.locator('aside').filter({ hasText: 'CampoLivre' }).first();
+  await expect(sidebar).toBeVisible();
+
+  await page.getByRole('button', { name: 'Recolher menu lateral' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Expandir menu lateral' }),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Expandir menu lateral' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Recolher menu lateral' }),
+  ).toBeVisible();
+});
+
+test('menu público abre como drawer no mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/times');
+
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await expect(
+    page.getByRole('navigation', { name: 'Navegação pública móvel' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Partidas' }).last().click();
+  await expect(page).toHaveURL(/\/partidas$/);
+});
+
 test('campeonato público mostra classificação e resultados sem dados pessoais', async ({
   page,
 }) => {
