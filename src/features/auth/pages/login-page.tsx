@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import { Field } from '@/shared/components/campo-livre-ui';
@@ -28,16 +29,17 @@ export function LoginPage() {
   return (
     <AuthShell>
       <div className="flex h-full flex-col justify-center py-2">
-        <div className="mb-6">
+        <div className="mb-7">
           <p className="mb-2 text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
-            Acesso ao CampoLivre
+            Bem-vindo de volta
           </p>
-          <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-[-0.025em] text-foreground">
-            Acesse sua conta
+
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em] text-foreground sm:text-4xl">
+            Entre no CampoLivre
           </h1>
-          <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
-            Entre com seus dados para acompanhar ou gerenciar o esporte amador
-            da sua região.
+
+          <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+            Acompanhe seus times, partidas e campeonatos em um só lugar.
           </p>
         </div>
 
@@ -54,40 +56,44 @@ export function LoginPage() {
               type="email"
               autoComplete="email"
               required
-              placeholder="voce@email.com"
-              className="h-10"
+              placeholder="seu@email.com"
+              className="h-11"
             />
           </Field>
 
           <div>
-            <Field label="Senha" htmlFor="senha-field">
-              <Input
-                id="senha-field"
-                type="password"
-                autoComplete="current-password"
-                required
-                placeholder="Digite sua senha"
-                className="h-10"
-              />
-            </Field>
+            <div className="flex items-end justify-between gap-4">
+              <Field label="Senha" htmlFor="senha-field">
+                <Input
+                  id="senha-field"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="Digite sua senha"
+                  className="h-11"
+                />
+              </Field>
+            </div>
+
             <div className="mt-1.5 text-right">
               <Link
                 to="/recuperar-senha"
-                className="text-xs sm:text-sm font-medium text-green-dark underline-offset-4 hover:underline"
+                className="text-xs font-medium text-green-dark underline-offset-4 hover:underline sm:text-sm"
               >
                 Esqueci minha senha
               </Link>
             </div>
           </div>
 
-          <Field label="Perfil" htmlFor="perfil-field">
+          <Field label="Entrar como" htmlFor="perfil-field">
             <Select
               value={perfil}
               onValueChange={(value) => setPerfil(value as Perfil)}
             >
-              <SelectTrigger id="perfil-field" className="h-10 w-full">
+              <SelectTrigger id="perfil-field" className="h-11 w-full">
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="atleta">Atleta</SelectItem>
                 <SelectItem value="organizador">Organizador</SelectItem>
@@ -96,20 +102,31 @@ export function LoginPage() {
             </Select>
           </Field>
 
-          <Button variant="campo" type="submit" className="mt-2 h-10 w-full">
-            Entrar
+          <Button
+            variant="campo"
+            type="submit"
+            className="group mt-2 h-11 w-full"
+          >
+            <span>Entrar</span>
+
+            <ArrowRight
+              className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
           </Button>
         </form>
 
-        <div className="mt-6 border-t border-border pt-4">
+        <div className="mt-7 border-t border-border pt-5">
           <p className="text-sm text-muted-foreground">
-            Ainda não participa do CampoLivre?
+            Ainda não faz parte do CampoLivre?
           </p>
+
           <Link
             to="/cadastro"
-            className="mt-1 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
+            className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
           >
-            Criar conta
+            Criar minha conta
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
       </div>
