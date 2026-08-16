@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 
+import { useSession } from '@/features/auth/session/session-context';
 import { atletaLogado, organizadorLogado } from '@/mocks/data';
 import { ProfileShell } from '@/shared/components/profile-shell';
 
@@ -17,6 +18,7 @@ export function RootLayout() {
 }
 
 export function AtletaLayout() {
+  const { session } = useSession();
   const items = [
     { label: 'Início', to: '/atleta/inicio', icon: Home },
     { label: 'Campeonatos', to: '/atleta/campeonatos', icon: Trophy },
@@ -28,7 +30,7 @@ export function AtletaLayout() {
     <ProfileShell
       items={items}
       tone="green"
-      userName={atletaLogado.nome}
+      userName={session?.account.name ?? atletaLogado.nome}
       userRole="Atleta / Capitão"
     >
       <Outlet />
@@ -37,6 +39,7 @@ export function AtletaLayout() {
 }
 
 export function OrganizadorLayout() {
+  const { session } = useSession();
   const items = [
     { label: 'Início', to: '/organizador/inicio', icon: Home },
     { label: 'Meus Campeonatos', to: '/organizador/campeonatos', icon: Trophy },
@@ -47,7 +50,7 @@ export function OrganizadorLayout() {
     <ProfileShell
       items={items}
       tone="green"
-      userName={organizadorLogado.nome}
+      userName={session?.account.name ?? organizadorLogado.nome}
       userRole="Organizador"
     >
       <Outlet />

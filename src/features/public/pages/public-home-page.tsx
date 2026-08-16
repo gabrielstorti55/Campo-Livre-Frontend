@@ -6,48 +6,27 @@ const publicAreas = [
     title: 'Campeonatos',
     description: 'Consulte competições, classificações e informações públicas.',
     icon: Trophy,
+    to: '/campeonatos',
   },
   {
     title: 'Times',
-    description: 'Acompanhe times e os dados que estiverem disponíveis ao público.',
+    description:
+      'Acompanhe times e os dados que estiverem disponíveis ao público.',
     icon: Users,
+    to: '/times',
   },
   {
     title: 'Partidas',
     description: 'Veja agenda, placares e resultados publicados.',
     icon: CalendarDays,
+    to: '/partidas',
   },
 ] as const;
 
+// TODO(product): esta landing é provisória e será refinada em uma tarefa própria.
 export function PublicHomePage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link
-            to="/"
-            className="font-display text-xl font-semibold tracking-[-0.02em] text-green-dark"
-          >
-            CampoLivre
-          </Link>
-
-          <nav className="flex items-center gap-2" aria-label="Acesso à conta">
-            <Link
-              to="/login"
-              className="rounded-md px-3 py-2 text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale"
-            >
-              Entrar
-            </Link>
-            <Link
-              to="/cadastro"
-              className="rounded-md bg-green-dark px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              Criar conta
-            </Link>
-          </nav>
-        </div>
-      </header>
-
+    <>
       <section className="border-b border-border bg-green-pale/40">
         <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
           <p className="text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
@@ -79,20 +58,21 @@ export function PublicHomePage() {
             const Icon = area.icon;
 
             return (
-              <article
+              <Link
                 key={area.title}
-                className="rounded-xl border border-border bg-white p-6 shadow-sm"
+                to={area.to}
+                className="rounded-xl border border-border bg-white p-6 shadow-sm transition-colors hover:border-green-light"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-pale text-green-dark">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <h3 className="mt-5 font-display text-lg font-semibold">
+                <h2 className="mt-5 font-display text-lg font-semibold">
                   {area.title}
-                </h3>
+                </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   {area.description}
                 </p>
-              </article>
+              </Link>
             );
           })}
         </div>
@@ -124,6 +104,6 @@ export function PublicHomePage() {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }
