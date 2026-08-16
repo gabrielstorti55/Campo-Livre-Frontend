@@ -11,36 +11,63 @@ import { CadastroPage } from '@/features/auth/pages/cadastro-page';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RecuperarSenhaPage } from '@/features/auth/pages/recuperar-senha-page';
 import { AtletaCampeonatos } from '@/features/campeonatos/pages/atleta-campeonatos-page';
-import { AtletaInicio } from '@/features/dashboard/pages/atleta-inicio-page';
-import { AtletaPerfil } from '@/features/perfis/pages/atleta-perfil-page';
-import { BuscarTimes } from '@/features/times/pages/buscar-times-page';
 import { CampeonatoAtleta } from '@/features/campeonatos/pages/campeonato-atleta-page';
-import { CriarTime } from '@/features/times/pages/criar-time-page';
-import { GerenciarTime } from '@/features/times/pages/gerenciar-time-page';
-import { MeusEventos } from '@/features/campeonatos/pages/meus-eventos-page';
 import { AgendarPartidas } from '@/features/partidas/pages/agendar-partidas-page';
 import { Chaveamento } from '@/features/campeonatos/pages/chaveamento-page';
 import { GerenciarTimes } from '@/features/times/pages/gerenciar-times-page';
 import { NovoCampeonato } from '@/features/campeonatos/pages/novo-campeonato-page';
 import { OrganizadorCampeonatos } from '@/features/campeonatos/pages/organizador-campeonatos-page';
-import { OrganizadorInicio } from '@/features/dashboard/pages/organizador-inicio-page';
-import { OrganizadorPerfil } from '@/features/perfis/pages/organizador-perfil-page';
 import { Sumula } from '@/features/partidas/pages/sumula-page';
 import { VisaoGeral } from '@/features/campeonatos/pages/visao-geral-page';
+import { AtletaInicio } from '@/features/dashboard/pages/atleta-inicio-page';
+import { OrganizadorInicio } from '@/features/dashboard/pages/organizador-inicio-page';
+import { AtletaPerfil } from '@/features/perfis/pages/atleta-perfil-page';
+import { OrganizadorPerfil } from '@/features/perfis/pages/organizador-perfil-page';
 import { Aprovacoes } from '@/features/prefeitura/pages/aprovacoes-page';
 import { Calendario } from '@/features/prefeitura/pages/calendario-page';
 import { Campos } from '@/features/prefeitura/pages/campos-page';
 import { NovoCampo } from '@/features/prefeitura/pages/novo-campo-page';
 import { Organizadores } from '@/features/prefeitura/pages/organizadores-page';
 import { Painel } from '@/features/prefeitura/pages/painel-page';
+import { PublicLayout } from '@/features/public/components/public-layout';
+import {
+  PublicCampeonatoDetailPage,
+  PublicCampeonatosPage,
+} from '@/features/public/pages/public-campeonatos-page';
 import { PublicHomePage } from '@/features/public/pages/public-home-page';
+import {
+  PublicPartidaDetailPage,
+  PublicPartidasPage,
+} from '@/features/public/pages/public-partidas-page';
+import {
+  PublicTimeDetailPage,
+  PublicTimesPage,
+} from '@/features/public/pages/public-times-page';
+import { BuscarTimes } from '@/features/times/pages/buscar-times-page';
+import { CriarTime } from '@/features/times/pages/criar-time-page';
+import { GerenciarTime } from '@/features/times/pages/gerenciar-time-page';
+import { MeusEventos } from '@/features/campeonatos/pages/meus-eventos-page';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     Component: RootLayout,
     children: [
-      { index: true, Component: PublicHomePage },
+      {
+        Component: PublicLayout,
+        children: [
+          { index: true, Component: PublicHomePage },
+          { path: 'campeonatos', Component: PublicCampeonatosPage },
+          {
+            path: 'campeonatos/:id',
+            Component: PublicCampeonatoDetailPage,
+          },
+          { path: 'times', Component: PublicTimesPage },
+          { path: 'times/:id', Component: PublicTimeDetailPage },
+          { path: 'partidas', Component: PublicPartidasPage },
+          { path: 'partidas/:id', Component: PublicPartidaDetailPage },
+        ],
+      },
       { path: 'login', Component: LoginPage },
       { path: 'cadastro', Component: CadastroPage },
       { path: 'recuperar-senha', Component: RecuperarSenhaPage },
