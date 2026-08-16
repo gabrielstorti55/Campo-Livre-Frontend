@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
@@ -6,25 +5,9 @@ import { AuthShell } from '@/features/auth/components/auth-shell';
 import { Field } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select';
-
-type Perfil = 'atleta' | 'organizador' | 'prefeitura';
-
-const rotasPorPerfil: Record<Perfil, string> = {
-  atleta: '/atleta/inicio',
-  organizador: '/organizador/inicio',
-  prefeitura: '/prefeitura/painel',
-};
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [perfil, setPerfil] = useState<Perfil>('atleta');
 
   return (
     <AuthShell>
@@ -39,7 +22,7 @@ export function LoginPage() {
           </h1>
 
           <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-            Acompanhe seus times, partidas e campeonatos em um só lugar.
+            Acesse sua conta para realizar ações que dependem da sua identidade.
           </p>
         </div>
 
@@ -47,7 +30,11 @@ export function LoginPage() {
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            navigate(rotasPorPerfil[perfil]);
+
+            // TODO(auth-api): quando o contrato de autenticação estiver disponível,
+            // usar a conta e as permissões retornadas pela API para montar a área autenticada.
+            // O login não deve solicitar nem definir um papel global.
+            navigate('/');
           }}
         >
           <Field label="E-mail" htmlFor="e-mail-field">
@@ -84,23 +71,6 @@ export function LoginPage() {
               </Link>
             </div>
           </div>
-
-          <Field label="Entrar como" htmlFor="perfil-field">
-            <Select
-              value={perfil}
-              onValueChange={(value) => setPerfil(value as Perfil)}
-            >
-              <SelectTrigger id="perfil-field" className="h-11 w-full">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="atleta">Atleta</SelectItem>
-                <SelectItem value="organizador">Organizador</SelectItem>
-                <SelectItem value="prefeitura">Prefeitura</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
 
           <Button
             variant="campo"
