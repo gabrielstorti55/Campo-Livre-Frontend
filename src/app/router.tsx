@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
 import { NotFoundPage } from '@/app/not-found-page';
 import {
@@ -33,13 +33,14 @@ import { Campos } from '@/features/prefeitura/pages/campos-page';
 import { NovoCampo } from '@/features/prefeitura/pages/novo-campo-page';
 import { Organizadores } from '@/features/prefeitura/pages/organizadores-page';
 import { Painel } from '@/features/prefeitura/pages/painel-page';
+import { PublicHomePage } from '@/features/public/pages/public-home-page';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     Component: RootLayout,
     children: [
-      { index: true, element: <Navigate to="/login" replace /> },
+      { index: true, Component: PublicHomePage },
       { path: 'login', Component: LoginPage },
       { path: 'cadastro', Component: CadastroPage },
       { path: 'recuperar-senha', Component: RecuperarSenhaPage },
