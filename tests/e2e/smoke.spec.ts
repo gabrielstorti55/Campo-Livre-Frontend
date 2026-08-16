@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('abre a aplicação na tela de login sem erro de página', async ({
+test('abre a aplicação na área pública sem exigir autenticação', async ({
   page,
 }) => {
   const pageErrors: string[] = [];
@@ -8,12 +8,14 @@ test('abre a aplicação na tela de login sem erro de página', async ({
 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/$/);
   await expect(page).toHaveTitle(/CampoLivre LigaPro/);
   await expect(
-    page.getByRole('heading', { name: 'Acesse sua conta' }),
+    page.getByRole('heading', {
+      name: 'Acompanhe o CampoLivre sem precisar criar uma conta.',
+    }),
   ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Entrar' }).first()).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 

@@ -9,7 +9,8 @@ const publicAreas = [
   },
   {
     title: 'Times',
-    description: 'Acompanhe times e os dados que estiverem disponíveis ao público.',
+    description:
+      'Acompanhe times e os dados que estiverem disponíveis ao público.',
     icon: Users,
   },
   {
@@ -19,6 +20,7 @@ const publicAreas = [
   },
 ] as const;
 
+// TODO(product): esta landing é provisória e será refinada em uma tarefa própria.
 export function PublicHomePage() {
   return (
     <main className="min-h-screen bg-background text-foreground">

@@ -1,12 +1,14 @@
-import { useNavigate } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
 
+import { ContextSwitcher } from '@/features/auth/components/context-switcher';
+import { useSession } from '@/features/auth/session/session-context';
+import { campeonatos, organizadorLogado } from '@/mocks/data';
+import { Section, StatGrid } from '@/shared/components/campo-livre-ui';
+import { ListRow } from '@/shared/components/list-row';
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 import { StatusBadge } from '@/shared/components/status-badge';
-import { ListRow } from '@/shared/components/list-row';
-import { Section, StatGrid } from '@/shared/components/campo-livre-ui';
+import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -14,16 +16,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { campeonatos, organizadorLogado } from '@/mocks/data';
 
 export function OrganizadorPerfil() {
-  const navigate = useNavigate();
+  const { session } = useSession();
   const [aberto, setAberto] = useState(false);
 
   return (
     <>
       <ProfileHeroHeader
-        name={organizadorLogado.nome}
+        name={session?.account.name ?? organizadorLogado.nome}
         subtitle={organizadorLogado.cidade}
         meta={`Score ${organizadorLogado.score}`}
       />
@@ -57,17 +58,11 @@ export function OrganizadorPerfil() {
           <DialogHeader>
             <DialogTitle>Configurações</DialogTitle>
             <DialogDescription>
-              Você pode alternar entre seus perfis a qualquer momento.
+              Alterne o contexto da mesma conta sem fazer um novo login.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Button
-              variant="campo"
-              className="w-full"
-              onClick={() => navigate('/atleta/inicio')}
-            >
-              Trocar para perfil Atleta
-            </Button>
+            <ContextSwitcher />
             <Button
               variant="campoOutline"
               className="w-full"

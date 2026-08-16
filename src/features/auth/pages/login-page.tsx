@@ -1,13 +1,18 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
+import {
+  getContextHome,
+  useSession,
+} from '@/features/auth/session/session-context';
 import { Field } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { signInWithMock } = useSession();
 
   return (
     <AuthShell>
@@ -30,11 +35,8 @@ export function LoginPage() {
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-
-            // TODO(auth-api): quando o contrato de autenticação estiver disponível,
-            // usar a conta e as permissões retornadas pela API para montar a área autenticada.
-            // O login não deve solicitar nem definir um papel global.
-            navigate('/');
+            const session = signInWithMock();
+            navigate(getContextHome(session.activeContext));
           }}
         >
           <Field label="E-mail" htmlFor="e-mail-field">

@@ -1,15 +1,9 @@
-import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Trophy } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
+import { ContextSwitcher } from '@/features/auth/components/context-switcher';
+import { useSession } from '@/features/auth/session/session-context';
 import { ProximaPartidaCard } from '@/features/campeonatos/components/campeonato-widgets';
-import {
-  Chevron,
-  IconBubble,
-  ListRow,
-  RowAvatar,
-} from '@/shared/components/list-row';
-import { ProfileHeroHeader } from '@/shared/components/profile-shell';
-import { Pill, Section, StatGrid } from '@/shared/components/campo-livre-ui';
 import {
   atletaLogado,
   conquistas,
@@ -17,12 +11,22 @@ import {
   partidas,
   times,
 } from '@/mocks/data';
+import { Pill, Section, StatGrid } from '@/shared/components/campo-livre-ui';
+import {
+  Chevron,
+  IconBubble,
+  ListRow,
+  RowAvatar,
+} from '@/shared/components/list-row';
+import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 
 export function AtletaPerfil() {
+  const { session } = useSession();
+
   return (
     <>
       <ProfileHeroHeader
-        name={atletaLogado.nome}
+        name={session?.account.name ?? atletaLogado.nome}
         subtitle={atletaLogado.cidade}
         meta={`Score ${atletaLogado.score} · ${atletaLogado.time}`}
       />
@@ -96,6 +100,13 @@ export function AtletaPerfil() {
             />
           ))}
         </div>
+      </Section>
+
+      <Section title="Conta e contexto">
+        <p className="mb-3 text-sm leading-6 text-muted-foreground">
+          Troque de contexto sem sair da sua conta pessoal.
+        </p>
+        <ContextSwitcher />
       </Section>
     </>
   );
