@@ -22,7 +22,7 @@ export function MeusEventos() {
 
       <div className="space-y-3">
         {lista.map((c) => (
-          <Link key={c.id} to={`/atleta/campeonato/${c.id}`}>
+          <Link key={c.id} to={`/campeonatos/${c.id}`}>
             <ListRow
               interactive
               title={c.nome}

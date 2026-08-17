@@ -12,10 +12,12 @@ test('abre a aplicação na área pública sem exigir autenticação', async ({
   await expect(page).toHaveTitle(/CampoLivre LigaPro/);
   await expect(
     page.getByRole('heading', {
-      name: 'Acompanhe o CampoLivre sem precisar criar uma conta.',
+      name: 'O esporte da cidade, aberto para quem quer acompanhar.',
     }),
   ).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Entrar' }).first()).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Entrar' }).first(),
+  ).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
 

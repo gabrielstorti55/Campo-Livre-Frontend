@@ -134,7 +134,7 @@ export function ProfileShell({
             aria-label="Menu principal"
           >
             <img
-              src="./public/soccer-field.jpg"
+              src="/soccer-field.jpg"
               alt=""
               aria-hidden="true"
               className="absolute inset-0 h-full w-full object-cover"
@@ -256,7 +256,9 @@ export function ProfileHeroHeader({
             <h1 className="text-balance font-display text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
               {name}
             </h1>
-            <p className="mt-2 text-sm text-white/80 sm:text-base">{subtitle}</p>
+            <p className="mt-2 text-sm text-white/80 sm:text-base">
+              {subtitle}
+            </p>
             <p className="mt-2 text-xs text-white/70">{meta}</p>
           </div>
           <Initials

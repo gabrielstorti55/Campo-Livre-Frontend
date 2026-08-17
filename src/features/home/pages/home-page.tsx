@@ -1,6 +1,16 @@
-import { ArrowUpRight, CalendarDays, ShieldCheck, Trophy, Users } from 'lucide-react';
+import {
+  ArrowUpRight,
+  CalendarDays,
+  ShieldCheck,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import {
+  getContextHome,
+  useSession,
+} from '@/features/auth/session/session-context';
 import { cn } from '@/shared/lib/utils';
 
 const publicAreas = [
@@ -24,15 +34,38 @@ const publicAreas = [
   },
 ] as const;
 
+const benefits = [
+  {
+    title: 'Navegação livre',
+    description: 'Sem cadastro para consultar o que é público.',
+    icon: Trophy,
+  },
+  {
+    title: 'Dados protegidos',
+    description: 'Informações pessoais continuam fora da área pública.',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Links diretos',
+    description: 'Compartilhe campeonatos, times e partidas por URL.',
+    icon: ArrowUpRight,
+  },
+] as const;
+
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
-export function PublicHomePage() {
+export function HomePage() {
+  const { session } = useSession();
+  const accountHome = session
+    ? getContextHome(session.activeContext)
+    : '/login';
+
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section className="relative overflow-hidden rounded-[32px] bg-green-dark text-white shadow-[0_20px_60px_rgba(20,63,45,0.16)]">
         <img
-          src="./public/soccer-field.jpg"
+          src="/soccer-field.jpg"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover opacity-25"
@@ -48,7 +81,8 @@ export function PublicHomePage() {
               O esporte da cidade, aberto para quem quer acompanhar.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/80 lg:text-lg">
-              Consulte campeonatos, times e partidas sem criar conta. Entre apenas quando precisar participar ou administrar algo.
+              Consulte campeonatos, times e partidas sem criar conta. Entre
+              apenas quando precisar participar ou administrar algo.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -63,10 +97,10 @@ export function PublicHomePage() {
                 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
-                to="/login"
+                to={accountHome}
                 className="inline-flex min-h-12 items-center rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur-sm transition-colors duration-150 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-green-dark motion-reduce:backdrop-blur-none"
               >
-                Entrar na minha conta
+                {session ? 'Ir para minha área' : 'Entrar na minha conta'}
               </Link>
             </div>
           </div>
@@ -84,10 +118,17 @@ export function PublicHomePage() {
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-base font-semibold">{area.title}</p>
-                    <p className="mt-1 text-sm leading-5 text-white/75">{area.description}</p>
+                    <p className="font-display text-base font-semibold">
+                      {area.title}
+                    </p>
+                    <p className="mt-1 text-sm leading-5 text-white/75">
+                      {area.description}
+                    </p>
                   </div>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-white/70 transition-colors group-hover:text-white" aria-hidden="true" />
+                  <ArrowUpRight
+                    className="h-4 w-4 shrink-0 text-white/70 transition-colors group-hover:text-white"
+                    aria-hidden="true"
+                  />
                 </Link>
               );
             })}
@@ -95,21 +136,24 @@ export function PublicHomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 py-6 sm:grid-cols-3 sm:py-8" aria-label="Benefícios da área pública">
-        {[
-          ['Navegação livre', 'Sem cadastro para consultar o que é público.', Trophy],
-          ['Dados protegidos', 'Informações pessoais continuam fora da área pública.', ShieldCheck],
-          ['Links diretos', 'Compartilhe campeonatos, times e partidas por URL.', ArrowUpRight],
-        ].map(([title, description, Icon]) => (
+      <section
+        className="grid gap-4 py-6 sm:grid-cols-3 sm:py-8"
+        aria-label="Benefícios da área pública"
+      >
+        {benefits.map(({ title, description, icon: Icon }) => (
           <article
-            key={title as string}
+            key={title}
             className="rounded-2xl border border-border/70 bg-card p-5 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6"
           >
             <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-green-pale text-green-dark">
               <Icon className="h-4 w-4" aria-hidden="true" />
             </div>
-            <h2 className="font-display text-base font-semibold tracking-[-0.02em]">{title as string}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{description as string}</p>
+            <h2 className="font-display text-base font-semibold tracking-[-0.02em]">
+              {title}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {description}
+            </p>
           </article>
         ))}
       </section>
