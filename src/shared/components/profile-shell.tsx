@@ -34,6 +34,7 @@ export function ProfileShell({
   const [menuOpen, setMenuOpen] = useState(false);
   const isNavy = tone === 'navy';
   const accentText = isNavy ? 'text-navy-dark' : 'text-green-dark';
+  const activeDrawerText = isNavy ? 'text-navy-dark' : 'text-green-dark';
   const drawerOverlay = isNavy ? 'bg-navy-dark/94' : 'bg-green-dark/92';
   const drawerRingOffset = isNavy
     ? 'focus-visible:ring-offset-navy-dark'
@@ -182,7 +183,7 @@ export function ProfileShell({
                       className={cn(
                         'flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
                         active
-                          ? 'bg-white text-green-dark shadow-sm'
+                          ? cn('bg-white shadow-sm', activeDrawerText)
                           : 'text-white/80 hover:bg-white/10 hover:text-white',
                       )}
                     >
