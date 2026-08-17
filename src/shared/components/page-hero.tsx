@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export function PublicPageHeader({
+export function PageHero({
   eyebrow,
   title,
   description,

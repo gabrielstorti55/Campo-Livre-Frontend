@@ -35,6 +35,7 @@ export function CadastroPage() {
           registerMockAccount({
             name: String(form.get('nome') ?? '').trim(),
             city: String(form.get('cidade') ?? '').trim(),
+            email: String(form.get('email') ?? '').trim(),
           });
           navigate('/login');
         }}

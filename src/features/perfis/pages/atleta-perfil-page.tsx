@@ -46,7 +46,8 @@ export function AtletaPerfil() {
                   Você ainda não está em nenhum time
                 </p>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Entre em uma equipe existente ou crie seu próprio time para começar a participar de campeonatos.
+                  Entre em uma equipe existente ou crie seu próprio time para
+                  começar a participar de campeonatos.
                 </p>
               </div>
             </div>

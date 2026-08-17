@@ -141,7 +141,7 @@ export function AtletaInicio() {
                   >
                     <RowAvatar name={c.nome} />
                     <Link
-                      to={`/atleta/campeonato/${c.id}`}
+                      to={`/campeonatos/${c.id}`}
                       className="min-w-0 flex-1"
                     >
                       <p className="truncate font-display font-semibold text-foreground">
@@ -165,7 +165,7 @@ export function AtletaInicio() {
                       </Button>
                     ) : (
                       <Link
-                        to={`/atleta/campeonato/${c.id}`}
+                        to={`/campeonatos/${c.id}`}
                         aria-label={`Abrir ${c.nome}`}
                       >
                         <Chevron />

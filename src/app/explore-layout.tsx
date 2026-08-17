@@ -4,6 +4,7 @@ import {
   LogIn,
   Menu,
   Trophy,
+  User,
   UserPlus,
   Users,
   X,
@@ -11,6 +12,10 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigation } from 'react-router-dom';
 
+import {
+  getSessionHome,
+  useSession,
+} from '@/features/auth/session/session-context';
 import { cn } from '@/shared/lib/utils';
 
 const navigationItems = [
@@ -23,7 +28,7 @@ const navigationItems = [
 const interactiveFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
-function PublicNavigation({ onNavigate }: { onNavigate?: () => void }) {
+function ExploreNavigation({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav className="space-y-1.5" aria-label="Navegação pública">
       {navigationItems.map((item) => {
@@ -54,10 +59,12 @@ function PublicNavigation({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function PublicLayout() {
+export function ExploreLayout() {
   const navigation = useNavigation();
+  const { session } = useSession();
   const loading = navigation.state !== 'idle';
   const [menuOpen, setMenuOpen] = useState(false);
+  const accountHome = session ? getSessionHome(session) : null;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -115,24 +122,38 @@ export function PublicLayout() {
           </Link>
 
           <div className="ml-auto flex items-center gap-2">
-            <Link
-              to="/login"
-              className={cn(
-                'hidden min-h-11 items-center rounded-xl px-4 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale sm:inline-flex',
-                interactiveFocus,
-              )}
-            >
-              Entrar
-            </Link>
-            <Link
-              to="/cadastro"
-              className={cn(
-                'inline-flex min-h-11 items-center rounded-xl bg-green-dark px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-150 hover:bg-green-mid hover:shadow-md',
-                interactiveFocus,
-              )}
-            >
-              Criar conta
-            </Link>
+            {accountHome ? (
+              <Link
+                to={accountHome}
+                className={cn(
+                  'inline-flex min-h-11 items-center rounded-xl bg-green-dark px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-150 hover:bg-green-mid hover:shadow-md',
+                  interactiveFocus,
+                )}
+              >
+                Minha área
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className={cn(
+                    'hidden min-h-11 items-center rounded-xl px-4 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale sm:inline-flex',
+                    interactiveFocus,
+                  )}
+                >
+                  Entrar
+                </Link>
+                <Link
+                  to="/cadastro"
+                  className={cn(
+                    'inline-flex min-h-11 items-center rounded-xl bg-green-dark px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-150 hover:bg-green-mid hover:shadow-md',
+                    interactiveFocus,
+                  )}
+                >
+                  Criar conta
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -152,7 +173,7 @@ export function PublicLayout() {
             aria-label="Menu público"
           >
             <img
-              src="./public/soccer-field.jpg"
+              src="/soccer-field.jpg"
               alt=""
               aria-hidden="true"
               className="absolute inset-0 h-full w-full object-cover"
@@ -167,7 +188,9 @@ export function PublicLayout() {
                   onClick={() => setMenuOpen(false)}
                   className={cn('rounded-lg px-1 py-1', interactiveFocus)}
                 >
-                  <p className="font-display text-xl font-bold tracking-[-0.03em]">CampoLivre</p>
+                  <p className="font-display text-xl font-bold tracking-[-0.03em]">
+                    CampoLivre
+                  </p>
                   <p className="mt-1 text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">
                     LigaPro
                   </p>
@@ -186,26 +209,45 @@ export function PublicLayout() {
                 </button>
               </div>
 
-              <PublicNavigation onNavigate={() => setMenuOpen(false)} />
+              <ExploreNavigation onNavigate={() => setMenuOpen(false)} />
 
               <div className="mt-auto rounded-2xl border border-white/15 bg-black/20 p-3 backdrop-blur-sm motion-reduce:backdrop-blur-none">
-                <p className="px-2 pb-2 text-xs leading-5 text-white/75">
-                  Navegue sem cadastro. Entre apenas quando precisar realizar uma ação pessoal.
-                </p>
-                <Link
-                  to="/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/85 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                >
-                  <LogIn className="h-4 w-4" aria-hidden="true" /> Entrar
-                </Link>
-                <Link
-                  to="/cadastro"
-                  onClick={() => setMenuOpen(false)}
-                  className="mt-1 flex min-h-12 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                >
-                  <UserPlus className="h-4 w-4" aria-hidden="true" /> Criar conta
-                </Link>
+                {accountHome ? (
+                  <>
+                    <p className="px-2 pb-2 text-xs leading-5 text-white/75">
+                      Continue consultando ou volte para as ações da sua conta.
+                    </p>
+                    <Link
+                      to={accountHome}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex min-h-12 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    >
+                      <User className="h-4 w-4" aria-hidden="true" /> Minha área
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="px-2 pb-2 text-xs leading-5 text-white/75">
+                      Navegue sem cadastro. Entre apenas quando precisar
+                      realizar uma ação pessoal.
+                    </p>
+                    <Link
+                      to="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/85 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    >
+                      <LogIn className="h-4 w-4" aria-hidden="true" /> Entrar
+                    </Link>
+                    <Link
+                      to="/cadastro"
+                      onClick={() => setMenuOpen(false)}
+                      className="mt-1 flex min-h-12 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    >
+                      <UserPlus className="h-4 w-4" aria-hidden="true" /> Criar
+                      conta
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </aside>
@@ -213,7 +255,11 @@ export function PublicLayout() {
       ) : null}
 
       {loading ? (
-        <div className="fixed top-16 right-0 left-0 z-50 h-0.5 overflow-hidden bg-green-pale" role="status" aria-label="Carregando página">
+        <div
+          className="fixed top-16 right-0 left-0 z-50 h-0.5 overflow-hidden bg-green-pale"
+          role="status"
+          aria-label="Carregando página"
+        >
           <div className="h-full w-1/2 animate-pulse bg-green-mid motion-reduce:animate-none" />
         </div>
       ) : null}

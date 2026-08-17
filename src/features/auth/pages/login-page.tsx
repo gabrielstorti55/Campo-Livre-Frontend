@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import {
-  getContextHome,
+  getSessionHome,
   useSession,
 } from '@/features/auth/session/session-context';
 import { Field } from '@/shared/components/campo-livre-ui';
@@ -35,13 +35,16 @@ export function LoginPage() {
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
-            const session = signInWithMock();
-            navigate(getContextHome(session.activeContext));
+            const formData = new FormData(event.currentTarget);
+            const email = String(formData.get('email') ?? '');
+            const session = signInWithMock(email);
+            navigate(getSessionHome(session));
           }}
         >
           <Field label="E-mail" htmlFor="e-mail-field">
             <Input
               id="e-mail-field"
+              name="email"
               type="email"
               autoComplete="email"
               required
