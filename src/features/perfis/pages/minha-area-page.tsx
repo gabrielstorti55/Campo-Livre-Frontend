@@ -1,4 +1,4 @@
-import { Search, ShieldCheck, Trophy, UserRound, Users } from 'lucide-react';
+import { MapPin, Search, ShieldCheck, Trophy, UserRound, Users } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 
 import { useSession } from '@/features/auth/session/session-context';
@@ -11,6 +11,15 @@ import {
   CardTitle,
 } from '@/shared/components/ui/card';
 
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+}
+
 export function MinhaAreaPage() {
   const { session } = useSession();
 
@@ -19,27 +28,37 @@ export function MinhaAreaPage() {
   const hasTeam = session.links.teamIds.length > 0;
   const organizesChampionship =
     session.links.organizedChampionshipIds.length > 0;
+  const city = session.account.city || 'Cidade não informada';
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <section className="overflow-hidden rounded-[28px] border border-green-light/60 bg-gradient-to-br from-green-pale via-white to-white p-6 shadow-[0_18px_50px_rgba(20,63,45,0.09)] sm:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-green-dark uppercase shadow-sm">
-              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              Conta pessoal
+          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-green-dark font-display text-lg font-bold text-white shadow-lg sm:h-20 sm:w-20 sm:text-xl">
+              {getInitials(session.account.name) || (
+                <UserRound className="h-8 w-8" aria-hidden="true" />
+              )}
             </div>
-            <h1 className="font-display text-3xl font-semibold tracking-[-0.035em] text-green-dark sm:text-4xl">
-              Sua conta está pronta
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Olá, {session.account.name}. Você pode acompanhar o esporte da
-              cidade agora e escolher como quer começar a participar.
-            </p>
+
+            <div className="min-w-0">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-green-dark uppercase shadow-sm">
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                Conta pessoal
+              </div>
+              <h1 className="truncate font-display text-3xl font-semibold tracking-[-0.035em] text-green-dark sm:text-4xl">
+                {session.account.name}
+              </h1>
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground sm:text-base">
+                <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {city}
+              </p>
+            </div>
           </div>
 
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-green-dark text-white shadow-lg">
-            <UserRound className="h-9 w-9" aria-hidden="true" />
+          <div className="max-w-md rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm leading-6 text-muted-foreground shadow-sm backdrop-blur-sm">
+            Este é o perfil da conta criada. Times, campeonatos e outras
+            capacidades aparecem conforme seus vínculos no CampoLivre.
           </div>
         </div>
       </section>
@@ -58,14 +77,14 @@ export function MinhaAreaPage() {
             <CardDescription className="leading-6">
               {hasTeam
                 ? 'Acompanhe os times vinculados à sua conta.'
-                : 'Explore os times existentes ou crie um para começar sua jornada no CampoLivre.'}
+                : 'Entre em uma equipe existente ou crie seu próprio time para começar a participar.'}
             </CardDescription>
           </CardHeader>
           {!hasTeam ? (
             <CardContent className="flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="campo" tone="green">
                 <Link to="/times">
-                  <Search aria-hidden="true" /> Explorar times
+                  <Search aria-hidden="true" /> Entrar em um time
                 </Link>
               </Button>
               <Button asChild variant="campoOutline" tone="green">
@@ -103,7 +122,7 @@ export function MinhaAreaPage() {
 
       <p className="mt-6 rounded-2xl border border-border/70 bg-card px-5 py-4 text-sm leading-6 text-muted-foreground">
         Novas áreas aparecem somente quando sua conta ganha um vínculo com um
-        time ou campeonato. Nenhum papel foi atribuído automaticamente.
+        time ou campeonato. Nenhum papel é atribuído automaticamente.
       </p>
     </div>
   );
