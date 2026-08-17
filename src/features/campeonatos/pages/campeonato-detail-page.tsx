@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import {
   ListaJogos,
+  ProximoJogoCard,
   ResultadoRow,
   TabelaClassificacao,
 } from '@/features/campeonatos/components/campeonato-widgets';
@@ -56,37 +57,41 @@ export function CampeonatoDetailPage() {
       </div>
 
       {tab === 'Visão geral' ? (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
-          <section className="rounded-[24px] border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
-            <Section title="Classificação">
-              <TabelaClassificacao
-                {...(highlightedTeam ? { destaque: highlightedTeam } : {})}
-              />
-            </Section>
-          </section>
+        <div className="space-y-6">
+          {session?.activeContext === 'atleta' ? <ProximoJogoCard /> : null}
 
-          <section className="rounded-[24px] border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
-            <Section title="Últimos resultados">
-              <div>
-                {partidas
-                  .filter((partida) => partida.concluida)
-                  .map((partida) => (
-                    <Link
-                      key={partida.id}
-                      to={`/partidas/${partida.id}`}
-                      className={cn('block rounded-lg', cardFocus)}
-                    >
-                      <ResultadoRow
-                        casa={partida.casa}
-                        fora={partida.fora}
-                        placar={`${partida.golsCasa} x ${partida.golsFora}`}
-                        subtitle={`${partida.data} · ${partida.campo}`}
-                      />
-                    </Link>
-                  ))}
-              </div>
-            </Section>
-          </section>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
+            <section className="rounded-[24px] border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
+              <Section title="Classificação">
+                <TabelaClassificacao
+                  {...(highlightedTeam ? { destaque: highlightedTeam } : {})}
+                />
+              </Section>
+            </section>
+
+            <section className="rounded-[24px] border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
+              <Section title="Últimos resultados">
+                <div>
+                  {partidas
+                    .filter((partida) => partida.concluida)
+                    .map((partida) => (
+                      <Link
+                        key={partida.id}
+                        to={`/partidas/${partida.id}`}
+                        className={cn('block rounded-lg', cardFocus)}
+                      >
+                        <ResultadoRow
+                          casa={partida.casa}
+                          fora={partida.fora}
+                          placar={`${partida.golsCasa} x ${partida.golsFora}`}
+                          subtitle={`${partida.data} · ${partida.campo}`}
+                        />
+                      </Link>
+                    ))}
+                </div>
+              </Section>
+            </section>
+          </div>
         </div>
       ) : null}
 

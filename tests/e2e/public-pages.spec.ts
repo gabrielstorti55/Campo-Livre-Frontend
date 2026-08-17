@@ -58,6 +58,7 @@ test('conta autenticada usa a mesma página canônica com acesso à sua área', 
     page.getByRole('heading', { name: 'Copa Franca 2026' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Minha área' })).toBeVisible();
+  await expect(page.getByText('Próximo jogo')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
 });
 
