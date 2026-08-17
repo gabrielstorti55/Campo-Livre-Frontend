@@ -24,6 +24,7 @@ import { VisaoGeral } from '@/features/campeonatos/pages/visao-geral-page';
 import { AtletaInicio } from '@/features/dashboard/pages/atleta-inicio-page';
 import { OrganizadorInicio } from '@/features/dashboard/pages/organizador-inicio-page';
 import { AtletaPerfil } from '@/features/perfis/pages/atleta-perfil-page';
+import { MinhaAreaPage } from '@/features/perfis/pages/minha-area-page';
 import { OrganizadorPerfil } from '@/features/perfis/pages/organizador-perfil-page';
 import { Aprovacoes } from '@/features/prefeitura/pages/aprovacoes-page';
 import { Calendario } from '@/features/prefeitura/pages/calendario-page';
@@ -55,7 +56,9 @@ export const router = createBrowserRouter([
             path: 'campeonatos/:id',
             Component: CampeonatoDetailPage,
           },
+          { path: 'minha-area', Component: MinhaAreaPage },
           { path: 'times', Component: TimesPage },
+          { path: 'times/criar', Component: CriarTime },
           { path: 'times/:id', Component: TimeDetailPage },
           { path: 'partidas', Component: PartidasPage },
           { path: 'partidas/:id', Component: PartidaDetailPage },

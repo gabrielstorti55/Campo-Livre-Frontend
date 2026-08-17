@@ -8,7 +8,7 @@ import {
 import { Link } from 'react-router-dom';
 
 import {
-  getContextHome,
+  getSessionHome,
   useSession,
 } from '@/features/auth/session/session-context';
 import { cn } from '@/shared/lib/utils';
@@ -57,9 +57,7 @@ const focusRing =
 
 export function HomePage() {
   const { session } = useSession();
-  const accountHome = session
-    ? getContextHome(session.activeContext)
-    : '/login';
+  const accountHome = session ? getSessionHome(session) : '/login';
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">

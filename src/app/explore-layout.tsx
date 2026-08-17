@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigation } from 'react-router-dom';
 
 import {
-  getContextHome,
+  getSessionHome,
   useSession,
 } from '@/features/auth/session/session-context';
 import { cn } from '@/shared/lib/utils';
@@ -64,7 +64,7 @@ export function ExploreLayout() {
   const { session } = useSession();
   const loading = navigation.state !== 'idle';
   const [menuOpen, setMenuOpen] = useState(false);
-  const accountHome = session ? getContextHome(session.activeContext) : null;
+  const accountHome = session ? getSessionHome(session) : null;
 
   useEffect(() => {
     if (!menuOpen) return;
