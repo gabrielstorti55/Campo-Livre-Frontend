@@ -1,6 +1,7 @@
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { getPublicacaoPartidaMock } from '@/features/partidas/mocks/partida-publicacao.mock';
 import { partidas } from '@/mocks/data';
 import { PageHero } from '@/shared/components/page-hero';
 import { ResourceState } from '@/shared/components/resource-state';
@@ -10,6 +11,12 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 function MatchCard({ partida }: { partida: (typeof partidas)[number] }) {
+  const { resultadoPublicado } = getPublicacaoPartidaMock(partida.id);
+  const placarPublicado =
+    resultadoPublicado &&
+    partida.golsCasa !== undefined &&
+    partida.golsFora !== undefined;
+
   return (
     <Link
       to={`/partidas/${partida.id}`}
@@ -32,7 +39,7 @@ function MatchCard({ partida }: { partida: (typeof partidas)[number] }) {
           {partida.casa}
         </p>
         <div className="rounded-2xl bg-green-dark px-3 py-2 font-display text-sm font-bold text-white shadow-sm sm:px-4 sm:text-base">
-          {partida.concluida
+          {placarPublicado
             ? `${partida.golsCasa} × ${partida.golsFora}`
             : '×'}
         </div>
@@ -56,7 +63,9 @@ function MatchCard({ partida }: { partida: (typeof partidas)[number] }) {
 
 export function PartidasPage() {
   const proximas = partidas.filter((partida) => !partida.concluida);
-  const resultados = partidas.filter((partida) => partida.concluida);
+  const resultados = partidas.filter(
+    (partida) => getPublicacaoPartidaMock(partida.id).resultadoPublicado,
+  );
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">

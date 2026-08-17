@@ -1,12 +1,29 @@
 import { CalendarDays, Clock, MapPin } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
+import { ResumoPartida } from '@/features/partidas/components/resumo-partida';
+import { getPublicacaoPartidaMock } from '@/features/partidas/mocks/partida-publicacao.mock';
 import { partidas, times } from '@/mocks/data';
 import { PageHero } from '@/shared/components/page-hero';
 import { ResourceState } from '@/shared/components/resource-state';
 
 function getTimeIdByName(name: string) {
   return times.find((time) => time.nome === name)?.id;
+}
+
+function getEstadoPartida({
+  concluida,
+  agendada,
+  resultadoPublicado,
+}: {
+  concluida: boolean;
+  agendada: boolean;
+  resultadoPublicado: boolean;
+}) {
+  if (resultadoPublicado) return 'Resultado publicado';
+  if (concluida) return 'Aguardando publicação';
+  if (agendada) return 'Agendada';
+  return 'A definir';
 }
 
 export function PartidaDetailPage() {
@@ -25,8 +42,20 @@ export function PartidaDetailPage() {
     );
   }
 
+  const publicacao = getPublicacaoPartidaMock(partida.id);
   const casaId = getTimeIdByName(partida.casa);
   const foraId = getTimeIdByName(partida.fora);
+  const placarPublicado =
+    publicacao.resultadoPublicado &&
+    partida.golsCasa !== undefined &&
+    partida.golsFora !== undefined
+      ? `${partida.golsCasa} × ${partida.golsFora}`
+      : null;
+  const estado = getEstadoPartida({
+    concluida: partida.concluida,
+    agendada: partida.agendada,
+    resultadoPublicado: publicacao.resultadoPublicado,
+  });
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
@@ -56,9 +85,7 @@ export function PartidaDetailPage() {
             </div>
 
             <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-display text-xl font-bold backdrop-blur-sm sm:px-6 sm:text-3xl motion-reduce:backdrop-blur-none">
-              {partida.concluida
-                ? `${partida.golsCasa} × ${partida.golsFora}`
-                : '×'}
+              {placarPublicado ?? '×'}
             </div>
 
             <div className="min-w-0">
@@ -78,7 +105,7 @@ export function PartidaDetailPage() {
           </div>
         </div>
 
-        <div className="grid bg-card sm:grid-cols-3">
+        <div className="grid bg-card sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: CalendarDays, label: 'Data', value: partida.data },
             { icon: Clock, label: 'Horário', value: partida.hora },
@@ -88,7 +115,7 @@ export function PartidaDetailPage() {
             return (
               <div
                 key={item.label}
-                className="flex items-start gap-3 border-b border-border/70 p-5 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0 sm:p-6"
+                className="flex items-start gap-3 border-b border-border/70 p-5 sm:border-r sm:p-6 lg:border-b-0"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
                   <Icon className="h-4 w-4" aria-hidden="true" />
@@ -102,12 +129,44 @@ export function PartidaDetailPage() {
               </div>
             );
           })}
+
+          <div className="flex items-start gap-3 p-5 sm:p-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
+              <span className="h-2.5 w-2.5 rounded-full bg-green-dark" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Estado</p>
+              <p className="mt-1 text-sm font-semibold">{estado}</p>
+            </div>
+          </div>
         </div>
       </section>
 
+      {publicacao.resultadoPublicado && publicacao.sumulaPublica && placarPublicado ? (
+        <ResumoPartida placar={placarPublicado} sumula={publicacao.sumulaPublica} />
+      ) : (
+        <section
+          aria-labelledby="resumo-partida-title"
+          className="mt-6 rounded-[28px] border border-border/70 bg-card p-5 sm:p-6"
+        >
+          <p className="text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
+            Súmula
+          </p>
+          <h2
+            id="resumo-partida-title"
+            className="mt-1 font-display text-2xl font-semibold tracking-[-0.03em]"
+          >
+            Resumo da partida
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            O resumo da partida será disponibilizado após a publicação do resultado.
+          </p>
+        </section>
+      )}
+
       <div className="mt-5 rounded-2xl border border-green-light/30 bg-green-pale px-4 py-3 text-sm leading-6 text-foreground/75 sm:px-5">
-        Esta página mostra somente informações públicas da partida. Escalações,
-        documentos e dados privados permanecem protegidos.
+        Esta página mostra somente informações esportivas publicáveis da partida.
+        Documentos, observações administrativas e dados privados permanecem protegidos.
       </div>
     </div>
   );
