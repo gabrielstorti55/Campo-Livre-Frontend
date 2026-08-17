@@ -1,5 +1,6 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, redirect } from 'react-router-dom';
 
+import { ExploreLayout } from '@/app/explore-layout';
 import { NotFoundPage } from '@/app/not-found-page';
 import {
   AtletaLayout,
@@ -11,7 +12,8 @@ import { CadastroPage } from '@/features/auth/pages/cadastro-page';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RecuperarSenhaPage } from '@/features/auth/pages/recuperar-senha-page';
 import { AtletaCampeonatos } from '@/features/campeonatos/pages/atleta-campeonatos-page';
-import { CampeonatoAtleta } from '@/features/campeonatos/pages/campeonato-atleta-page';
+import { CampeonatoDetailPage } from '@/features/campeonatos/pages/campeonato-detail-page';
+import { CampeonatosPage } from '@/features/campeonatos/pages/campeonatos-page';
 import { AgendarPartidas } from '@/features/partidas/pages/agendar-partidas-page';
 import { Chaveamento } from '@/features/campeonatos/pages/chaveamento-page';
 import { GerenciarTimes } from '@/features/times/pages/gerenciar-times-page';
@@ -22,6 +24,7 @@ import { VisaoGeral } from '@/features/campeonatos/pages/visao-geral-page';
 import { AtletaInicio } from '@/features/dashboard/pages/atleta-inicio-page';
 import { OrganizadorInicio } from '@/features/dashboard/pages/organizador-inicio-page';
 import { AtletaPerfil } from '@/features/perfis/pages/atleta-perfil-page';
+import { MinhaAreaPage } from '@/features/perfis/pages/minha-area-page';
 import { OrganizadorPerfil } from '@/features/perfis/pages/organizador-perfil-page';
 import { Aprovacoes } from '@/features/prefeitura/pages/aprovacoes-page';
 import { Calendario } from '@/features/prefeitura/pages/calendario-page';
@@ -29,23 +32,14 @@ import { Campos } from '@/features/prefeitura/pages/campos-page';
 import { NovoCampo } from '@/features/prefeitura/pages/novo-campo-page';
 import { Organizadores } from '@/features/prefeitura/pages/organizadores-page';
 import { Painel } from '@/features/prefeitura/pages/painel-page';
-import { PublicLayout } from '@/features/public/components/public-layout';
-import {
-  PublicCampeonatoDetailPage,
-  PublicCampeonatosPage,
-} from '@/features/public/pages/public-campeonatos-page';
-import { PublicHomePage } from '@/features/public/pages/public-home-page';
-import {
-  PublicPartidaDetailPage,
-  PublicPartidasPage,
-} from '@/features/public/pages/public-partidas-page';
-import {
-  PublicTimeDetailPage,
-  PublicTimesPage,
-} from '@/features/public/pages/public-times-page';
+import { HomePage } from '@/features/home/pages/home-page';
+import { PartidaDetailPage } from '@/features/partidas/pages/partida-detail-page';
+import { PartidasPage } from '@/features/partidas/pages/partidas-page';
 import { BuscarTimes } from '@/features/times/pages/buscar-times-page';
 import { CriarTime } from '@/features/times/pages/criar-time-page';
 import { GerenciarTime } from '@/features/times/pages/gerenciar-time-page';
+import { TimeDetailPage } from '@/features/times/pages/time-detail-page';
+import { TimesPage } from '@/features/times/pages/times-page';
 import { MeusEventos } from '@/features/campeonatos/pages/meus-eventos-page';
 
 export const router = createBrowserRouter([
@@ -54,18 +48,20 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     children: [
       {
-        Component: PublicLayout,
+        Component: ExploreLayout,
         children: [
-          { index: true, Component: PublicHomePage },
-          { path: 'campeonatos', Component: PublicCampeonatosPage },
+          { index: true, Component: HomePage },
+          { path: 'campeonatos', Component: CampeonatosPage },
           {
             path: 'campeonatos/:id',
-            Component: PublicCampeonatoDetailPage,
+            Component: CampeonatoDetailPage,
           },
-          { path: 'times', Component: PublicTimesPage },
-          { path: 'times/:id', Component: PublicTimeDetailPage },
-          { path: 'partidas', Component: PublicPartidasPage },
-          { path: 'partidas/:id', Component: PublicPartidaDetailPage },
+          { path: 'minha-area', Component: MinhaAreaPage },
+          { path: 'times', Component: TimesPage },
+          { path: 'times/criar', Component: CriarTime },
+          { path: 'times/:id', Component: TimeDetailPage },
+          { path: 'partidas', Component: PartidasPage },
+          { path: 'partidas/:id', Component: PartidaDetailPage },
         ],
       },
       { path: 'login', Component: LoginPage },
@@ -77,7 +73,11 @@ export const router = createBrowserRouter([
         children: [
           { path: 'inicio', Component: AtletaInicio },
           { path: 'campeonatos', Component: AtletaCampeonatos },
-          { path: 'campeonato/:id', Component: CampeonatoAtleta },
+          {
+            path: 'campeonato/:id',
+            loader: ({ params }) =>
+              redirect(`/campeonatos/${params['id'] ?? ''}`),
+          },
           { path: 'meus-eventos', Component: MeusEventos },
           { path: 'perfil', Component: AtletaPerfil },
           { path: 'time/buscar', Component: BuscarTimes },

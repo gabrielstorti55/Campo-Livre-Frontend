@@ -10,27 +10,22 @@ test('usa um cabeçalho de página semântico nas áreas autenticadas', async ({
   ).toBeVisible();
 });
 
-test('libera toda a largura para o conteúdo e fixa a navegação no rodapé móvel', async ({
+test('libera toda a largura e oferece o menu principal no cabeçalho móvel', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/atleta/inicio');
 
   const main = page.getByRole('main');
-  const navigation = page.getByRole('navigation', {
-    name: 'Navegação principal',
-  });
-
   const mainBox = await main.boundingBox();
-  const navigationBox = await navigation.boundingBox();
 
   expect(mainBox?.x).toBe(0);
   expect(mainBox?.width).toBe(390);
-  expect(navigationBox?.x).toBe(0);
-  expect(navigationBox?.width).toBe(390);
-  expect(
-    (navigationBox?.y ?? 0) + (navigationBox?.height ?? 0),
-  ).toBeGreaterThanOrEqual(840);
+
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await expect(
+    page.getByRole('navigation', { name: 'Navegação principal' }),
+  ).toBeVisible();
 });
 
 test('oferece atalho de teclado para o conteúdo principal', async ({

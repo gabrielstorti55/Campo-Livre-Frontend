@@ -16,7 +16,7 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
     await page.goto(route, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(new RegExp(`${route.replace('/', '\\/')}$`));
     await expect(
-      page.getByRole('navigation', { name: 'Navegação pública' }),
+      page.getByRole('button', { name: 'Abrir menu público' }),
     ).toBeVisible();
   }
 
@@ -24,6 +24,42 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
     sessionStorage.getItem('campo-livre:mock-personal-session'),
   );
   expect(session).toBeNull();
+});
+
+test('menu público é opcional e pode ser aberto e fechado', async ({
+  page,
+}) => {
+  await page.goto('/campeonatos');
+
+  await expect(
+    page.getByRole('navigation', { name: 'Navegação pública' }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: 'Abrir menu público' }).click();
+  await expect(
+    page.getByRole('navigation', { name: 'Navegação pública' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Fechar menu lateral' }).click();
+  await expect(
+    page.getByRole('navigation', { name: 'Navegação pública' }),
+  ).toHaveCount(0);
+});
+
+test('conta autenticada usa a mesma página canônica com acesso à sua área', async ({
+  page,
+}) => {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+
+  await page.goto('/campeonatos/1');
+
+  await expect(
+    page.getByRole('heading', { name: 'Copa Franca 2026' }),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Minha área' })).toBeVisible();
+  await expect(page.getByText('Próximo jogo')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
 });
 
 test('campeonato público mostra classificação e resultados sem dados pessoais', async ({

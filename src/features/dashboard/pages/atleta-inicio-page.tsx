@@ -1,9 +1,16 @@
-import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
+import { Link } from 'react-router-dom';
 
+import { useSession } from '@/features/auth/session/session-context';
 import { ProximaPartidaCard } from '@/features/campeonatos/components/campeonato-widgets';
+import { atletaLogado, campeonatos, partidas, times } from '@/mocks/data';
+import {
+  FilterPills,
+  GroupLabel,
+  SearchBar,
+  Section,
+} from '@/shared/components/campo-livre-ui';
 import {
   Chevron,
   ListRow,
@@ -12,13 +19,7 @@ import {
 } from '@/shared/components/list-row';
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 import { StatusBadge } from '@/shared/components/status-badge';
-import {
-  FilterPills,
-  GroupLabel,
-  SearchBar,
-  Section,
-} from '@/shared/components/campo-livre-ui';
-import { atletaLogado, campeonatos, partidas, times } from '@/mocks/data';
+import { Button } from '@/shared/components/ui/button';
 
 const filtros = [
   'Todos os tipos',
@@ -29,6 +30,7 @@ const filtros = [
 const abas = ['Todos', 'Ativos', 'Encerrados'];
 
 export function AtletaInicio() {
+  const { session } = useSession();
   const [filtro, setFiltro] = useState('Todos os tipos');
   const [aba, setAba] = useState('Todos');
   const [busca, setBusca] = useState('');
@@ -75,9 +77,9 @@ export function AtletaInicio() {
   return (
     <>
       <ProfileHeroHeader
-        name={atletaLogado.nome}
-        subtitle={`Atleta do ${atletaLogado.time}`}
-        meta={`Score ${atletaLogado.score} · ${atletaLogado.partidas} eventos realizados`}
+        name={session?.account.name ?? atletaLogado.nome}
+        subtitle={session?.account.city ?? atletaLogado.cidade}
+        meta="Minha área · conta pessoal"
       />
 
       <Section title="Meus Times">
@@ -139,7 +141,7 @@ export function AtletaInicio() {
                   >
                     <RowAvatar name={c.nome} />
                     <Link
-                      to={`/atleta/campeonato/${c.id}`}
+                      to={`/campeonatos/${c.id}`}
                       className="min-w-0 flex-1"
                     >
                       <p className="truncate font-display font-semibold text-foreground">
@@ -163,7 +165,7 @@ export function AtletaInicio() {
                       </Button>
                     ) : (
                       <Link
-                        to={`/atleta/campeonato/${c.id}`}
+                        to={`/campeonatos/${c.id}`}
                         aria-label={`Abrir ${c.nome}`}
                       >
                         <Chevron />

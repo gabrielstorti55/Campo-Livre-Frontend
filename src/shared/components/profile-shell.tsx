@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 import { Initials } from '@/shared/components/campo-livre-ui';
 import { cn } from '@/shared/lib/utils';
@@ -8,6 +9,9 @@ import { cn } from '@/shared/lib/utils';
 export type NavItem = { label: string; to: string; icon: LucideIcon };
 
 type ShellTone = 'green' | 'navy';
+
+const interactiveFocus =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 function isItemActive(pathname: string, to: string) {
   return pathname === to || (to !== '/' && pathname.startsWith(`${to}/`));
@@ -27,114 +31,197 @@ export function ProfileShell({
   children: ReactNode;
 }) {
   const { pathname } = useLocation();
-  const shellColor = tone === 'navy' ? 'bg-navy-dark' : 'bg-green-dark';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isNavy = tone === 'navy';
+  const accentText = isNavy ? 'text-navy-dark' : 'text-green-dark';
+  const activeDrawerText = isNavy ? 'text-navy-dark' : 'text-green-dark';
+  const drawerOverlay = isNavy ? 'bg-navy-dark/94' : 'bg-green-dark/92';
+  const drawerRingOffset = isNavy
+    ? 'focus-visible:ring-offset-navy-dark'
+    : 'focus-visible:ring-offset-green-dark';
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [menuOpen]);
 
   return (
-    <div className="min-h-screen w-full bg-surface lg:flex">
+    <div className="min-h-screen w-full bg-surface text-foreground">
       <a
         href="#conteudo-principal"
-        className="fixed top-3 left-3 z-50 -translate-y-20 bg-white px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-transform focus:translate-y-0"
+        className="sr-only z-[80] rounded-md bg-white px-4 py-2 font-semibold text-foreground shadow-lg focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
       >
         Ir para o conteúdo principal
       </a>
 
-      <aside
-        className={cn(
-          'sticky top-0 hidden h-screen w-64 shrink-0 flex-col lg:flex',
-          shellColor,
-        )}
-      >
-        <div className="border-b border-white/10 px-7 py-7">
-          <span className="block font-display text-xl font-bold tracking-[-0.04em] text-white">
-            CampoLivre
-          </span>
-          <span className="mt-1 block text-xs text-white/90">
-            LigaPro · Franca, SP
-          </span>
-        </div>
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex min-h-16 w-full max-w-[1380px] items-center gap-3 px-4 py-2 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            className={cn(
+              'inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold shadow-sm transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted hover:shadow-md',
+              accentText,
+              interactiveFocus,
+            )}
+            aria-label="Abrir menu"
+            aria-expanded={menuOpen}
+            aria-controls="profile-sidebar"
+          >
+            <Menu className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Menu</span>
+          </button>
 
-        <nav aria-label="Navegação principal" className="flex-1 px-4 py-6">
-          <p className="mb-3 px-3 text-[10px] font-bold tracking-[0.16em] text-white/90 uppercase">
-            Área de trabalho
-          </p>
-          <div className="space-y-1">
-            {items.map((item) => {
-              const active = isItemActive(pathname, item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  aria-current={active ? 'page' : undefined}
-                  className={cn(
-                    'flex items-center gap-3 border-l-2 border-transparent px-3 py-2.5 text-sm font-medium text-white/90 transition-colors hover:bg-white/5 hover:text-white',
-                    active && 'border-white bg-white/10 text-white',
-                  )}
-                >
-                  <item.icon className="h-[18px] w-[18px] shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
+          <Link
+            to={items[0]?.to ?? '/'}
+            className={cn(
+              'ml-1 min-h-11 rounded-lg px-2 py-2',
+              interactiveFocus,
+            )}
+          >
+            <p
+              className={cn(
+                'font-display text-lg font-bold tracking-[-0.025em]',
+                accentText,
+              )}
+            >
+              CampoLivre
+            </p>
+          </Link>
 
-        <div className="border-t border-white/10 px-5 py-5">
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex min-w-0 items-center gap-3 rounded-xl bg-card px-3 py-2 shadow-sm">
             <Initials
               name={userName}
-              tone={tone === 'navy' ? 'navy' : 'light'}
-              className="h-9 w-9 text-xs"
+              tone={isNavy ? 'navy' : 'green'}
+              className="h-8 w-8 text-[11px]"
             />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">
+            <div className="hidden min-w-0 sm:block">
+              <p className="max-w-44 truncate text-sm font-semibold text-foreground">
                 {userName}
               </p>
-              <p className="truncate text-xs text-white/90">{userRole}</p>
+              <p className="max-w-44 truncate text-xs text-muted-foreground">
+                {userRole}
+              </p>
             </div>
           </div>
         </div>
-      </aside>
+      </header>
 
-      <main
-        id="conteudo-principal"
-        tabIndex={-1}
-        className="min-w-0 flex-1 pb-24 outline-none lg:pb-0"
-      >
-        <div className="mx-auto max-w-7xl space-y-10 px-5 py-7 sm:px-7 md:py-9 lg:px-10 lg:py-10">
+      {menuOpen ? (
+        <div className="fixed inset-0 z-[70]" role="presentation">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/45 backdrop-blur-[2px] motion-reduce:backdrop-blur-none"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Fechar menu"
+          />
+
+          <aside
+            id="profile-sidebar"
+            className="relative flex h-full w-[min(88vw,360px)] flex-col overflow-hidden text-white shadow-2xl"
+            aria-label="Menu principal"
+          >
+            <img
+              src="/soccer-field.jpg"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className={cn('absolute inset-0', drawerOverlay)} />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/35" />
+
+            <div className="relative z-10 flex h-full flex-col p-4 sm:p-5">
+              <div className="mb-8 flex items-start justify-between gap-4 px-1 pt-1">
+                <Link
+                  to={items[0]?.to ?? '/'}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <p className="font-display text-xl font-bold tracking-[-0.03em]">
+                    CampoLivre
+                  </p>
+                  <p className="mt-1 text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">
+                    LigaPro
+                  </p>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    'flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition-colors duration-150 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2',
+                    drawerRingOffset,
+                  )}
+                  aria-label="Fechar menu lateral"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+
+              <nav className="space-y-1.5" aria-label="Navegação principal">
+                {items.map((item) => {
+                  const active = isItemActive(pathname, item.to);
+
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMenuOpen(false)}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn(
+                        'flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+                        active
+                          ? cn('bg-white shadow-sm', activeDrawerText)
+                          : 'text-white/80 hover:bg-white/10 hover:text-white',
+                      )}
+                    >
+                      <item.icon
+                        className="h-[18px] w-[18px] shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="mt-auto rounded-2xl border border-white/15 bg-black/20 p-3 backdrop-blur-sm motion-reduce:backdrop-blur-none">
+                <div className="flex items-center gap-3 rounded-xl px-2 py-2">
+                  <Initials
+                    name={userName}
+                    tone={isNavy ? 'navy' : 'light'}
+                    className="h-10 w-10 text-xs"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {userName}
+                    </p>
+                    <p className="truncate text-xs text-white/75">{userRole}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      ) : null}
+
+      <main id="conteudo-principal" tabIndex={-1} className="outline-none">
+        <div className="mx-auto w-full max-w-[1380px] space-y-10 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
           {children}
         </div>
       </main>
-
-      <nav
-        aria-label="Navegação principal"
-        className={cn(
-          'fixed inset-x-0 bottom-0 z-40 grid border-t border-white/10 px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-white shadow-[0_-2px_12px_rgba(15,23,42,0.12)] lg:hidden',
-          shellColor,
-        )}
-        style={{
-          gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {items.map((item) => {
-          const active = isItemActive(pathname, item.to);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              aria-current={active ? 'page' : undefined}
-              className={cn(
-                'flex min-w-0 flex-col items-center gap-1 border-t-2 border-transparent px-1 py-1 text-white/90',
-                active && 'border-white text-white',
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span className="w-full whitespace-nowrap text-center text-[9px] font-medium sm:text-[10px]">
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 }
@@ -150,28 +237,37 @@ export function ProfileHeroHeader({
   meta: string;
   tone?: ShellTone;
 }) {
+  const isNavy = tone === 'navy';
+
   return (
-    <header className="flex items-end justify-between gap-5 border-b border-border pb-6">
-      <div className="min-w-0">
-        <p
-          className={cn(
-            'mb-2 text-[11px] font-bold tracking-[0.15em] uppercase',
-            tone === 'navy' ? 'text-navy-mid' : 'text-green-dark',
-          )}
-        >
-          Visão geral
-        </p>
-        <h1 className="text-balance font-display text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-3xl">
-          {name}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-        <p className="mt-2 text-xs text-muted-foreground">{meta}</p>
+    <header
+      className={cn(
+        'mb-2 overflow-hidden rounded-3xl text-white shadow-sm',
+        isNavy ? 'bg-navy-dark' : 'bg-green-dark',
+      )}
+    >
+      <div className="relative px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10" />
+        <div className="relative flex items-end justify-between gap-5">
+          <div className="min-w-0">
+            <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-white/75 uppercase">
+              Visão geral
+            </p>
+            <h1 className="text-balance font-display text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+              {name}
+            </h1>
+            <p className="mt-2 text-sm text-white/80 sm:text-base">
+              {subtitle}
+            </p>
+            <p className="mt-2 text-xs text-white/70">{meta}</p>
+          </div>
+          <Initials
+            name={name}
+            tone={isNavy ? 'navy' : 'light'}
+            className="hidden h-12 w-12 text-sm sm:flex"
+          />
+        </div>
       </div>
-      <Initials
-        name={name}
-        tone={tone === 'navy' ? 'navy' : 'green'}
-        className="hidden h-12 w-12 text-sm sm:flex"
-      />
     </header>
   );
 }

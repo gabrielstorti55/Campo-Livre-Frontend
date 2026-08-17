@@ -9,7 +9,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         className="relative flex min-h-48 overflow-hidden px-6 py-6 text-white sm:min-h-56 sm:px-10 lg:min-h-screen lg:px-12 lg:py-10 xl:px-16"
       >
         <img
-          src="./public/soccer-field.jpg"
+          src="/soccer-field.jpg"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover object-center"

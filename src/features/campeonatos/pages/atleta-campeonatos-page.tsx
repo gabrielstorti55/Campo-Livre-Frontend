@@ -36,7 +36,7 @@ export function AtletaCampeonatos() {
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <Link
-                  to={`/atleta/campeonato/${c.id}`}
+                  to={`/campeonatos/${c.id}`}
                   className="truncate font-display font-semibold text-foreground hover:text-green-mid"
                 >
                   {c.nome}
