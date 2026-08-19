@@ -1,3 +1,5 @@
+'use client';
+
 import type { LucideIcon } from 'lucide-react';
 
 import { MetaRow } from '@/shared/components/list-row';

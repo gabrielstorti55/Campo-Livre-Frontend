@@ -1,5 +1,8 @@
+'use client';
+
 import { CalendarDays, Clock, MapPin } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import { ResumoPartida } from '@/features/partidas/components/resumo-partida';
 import { getPublicacaoPartidaMock } from '@/features/partidas/mocks/partida-publicacao.mock';
@@ -27,7 +30,7 @@ function getEstadoPartida({
 }
 
 export function PartidaDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const partida = partidas.find((item) => String(item.id) === String(id));
 
   if (!partida) {
@@ -72,7 +75,7 @@ export function PartidaDetailPage() {
             <div className="min-w-0">
               {casaId ? (
                 <Link
-                  to={`/times/${casaId}`}
+                  href={`/times/${casaId}`}
                   className="inline-flex min-h-11 items-center rounded-lg px-2 font-display text-lg font-semibold tracking-[-0.03em] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-3xl"
                 >
                   {partida.casa}
@@ -91,7 +94,7 @@ export function PartidaDetailPage() {
             <div className="min-w-0">
               {foraId ? (
                 <Link
-                  to={`/times/${foraId}`}
+                  href={`/times/${foraId}`}
                   className="inline-flex min-h-11 items-center rounded-lg px-2 font-display text-lg font-semibold tracking-[-0.03em] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:text-3xl"
                 >
                   {partida.fora}
@@ -132,18 +135,28 @@ export function PartidaDetailPage() {
 
           <div className="flex items-start gap-3 p-5 sm:p-6">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
-              <span className="h-2.5 w-2.5 rounded-full bg-green-dark" aria-hidden="true" />
+              <span
+                className="h-2.5 w-2.5 rounded-full bg-green-dark"
+                aria-hidden="true"
+              />
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Estado</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Estado
+              </p>
               <p className="mt-1 text-sm font-semibold">{estado}</p>
             </div>
           </div>
         </div>
       </section>
 
-      {publicacao.resultadoPublicado && publicacao.sumulaPublica && placarPublicado ? (
-        <ResumoPartida placar={placarPublicado} sumula={publicacao.sumulaPublica} />
+      {publicacao.resultadoPublicado &&
+      publicacao.sumulaPublica &&
+      placarPublicado ? (
+        <ResumoPartida
+          placar={placarPublicado}
+          sumula={publicacao.sumulaPublica}
+        />
       ) : (
         <section
           aria-labelledby="resumo-partida-title"
@@ -159,14 +172,16 @@ export function PartidaDetailPage() {
             Resumo da partida
           </h2>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            O resumo da partida será disponibilizado após a publicação do resultado.
+            O resumo da partida será disponibilizado após a publicação do
+            resultado.
           </p>
         </section>
       )}
 
       <div className="mt-5 rounded-2xl border border-green-light/30 bg-green-pale px-4 py-3 text-sm leading-6 text-foreground/75 sm:px-5">
-        Esta página mostra somente informações esportivas publicáveis da partida.
-        Documentos, observações administrativas e dados privados permanecem protegidos.
+        Esta página mostra somente informações esportivas publicáveis da
+        partida. Documentos, observações administrativas e dados privados
+        permanecem protegidos.
       </div>
     </div>
   );

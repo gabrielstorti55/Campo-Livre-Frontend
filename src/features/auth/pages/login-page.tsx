@@ -1,5 +1,8 @@
+'use client';
+
 import { ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import {
@@ -11,7 +14,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
 export function LoginPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { signInWithMock } = useSession();
 
   return (
@@ -38,7 +41,7 @@ export function LoginPage() {
             const formData = new FormData(event.currentTarget);
             const email = String(formData.get('email') ?? '');
             const session = signInWithMock(email);
-            navigate(getSessionHome(session));
+            router.push(getSessionHome(session));
           }}
         >
           <Field label="E-mail" htmlFor="e-mail-field">
@@ -69,7 +72,7 @@ export function LoginPage() {
 
             <div className="mt-1.5 text-right">
               <Link
-                to="/recuperar-senha"
+                href="/recuperar-senha"
                 className="text-xs font-medium text-green-dark underline-offset-4 hover:underline sm:text-sm"
               >
                 Esqueci minha senha
@@ -97,7 +100,7 @@ export function LoginPage() {
           </p>
 
           <Link
-            to="/cadastro"
+            href="/cadastro"
             className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
           >
             Criar minha conta

@@ -1,5 +1,8 @@
+'use client';
+
 import { ArrowUpRight, ShieldCheck, Trophy } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import { ResultadoRow } from '@/features/campeonatos/components/campeonato-widgets';
 import { partidas, times } from '@/mocks/data';
@@ -13,7 +16,7 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 export function TimeDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const time = times.find((item) => String(item.id) === String(id));
 
   if (!time) {
@@ -92,7 +95,7 @@ export function TimeDetailPage() {
                 {proximos.map((partida) => (
                   <Link
                     key={partida.id}
-                    to={`/partidas/${partida.id}`}
+                    href={`/partidas/${partida.id}`}
                     className={cn(
                       'group flex min-h-20 items-center justify-between gap-4 rounded-2xl bg-muted p-4 transition-colors duration-150 hover:bg-green-pale/60',
                       focusRing,
@@ -130,7 +133,7 @@ export function TimeDetailPage() {
                 {resultados.map((partida) => (
                   <Link
                     key={partida.id}
-                    to={`/partidas/${partida.id}`}
+                    href={`/partidas/${partida.id}`}
                     className={cn('block rounded-lg', focusRing)}
                   >
                     <ResultadoRow

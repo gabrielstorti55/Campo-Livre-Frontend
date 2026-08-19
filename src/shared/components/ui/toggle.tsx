@@ -35,5 +35,4 @@ const Toggle = React.forwardRef<
 Toggle.displayName = 'Toggle';
 
 // Exported for ToggleGroupItem to share the shadcn variants.
-// eslint-disable-next-line react-refresh/only-export-components
 export { Toggle, toggleVariants };

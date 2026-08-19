@@ -24,13 +24,16 @@ test('cadastro novo entra sem vínculos ou papéis automáticos', async ({
   await page.getByLabel('Confirmar senha').fill('senha-mock');
   await page.getByLabel('Cidade').fill('Franca, SP');
   await page.getByRole('button', { name: 'Criar conta pessoal' }).click();
+  await expect(page).toHaveURL(/\/login$/);
 
   await page.getByLabel('E-mail').fill('ana@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByLabel('Senha', { exact: true }).fill('senha-mock');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
   await expect(page).toHaveURL(/\/minha-area$/);
-  await expect(page.getByText('Olá, Ana Souza.')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Ana Souza' }),
+  ).toBeVisible();
 
   const session = await page.evaluate(() =>
     JSON.parse(
@@ -54,6 +57,13 @@ test('login não exige papel global e abre a área autenticada da sessão', asyn
   await page.getByLabel('Senha').fill('senha-mock');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        sessionStorage.getItem('campo-livre:mock-personal-session'),
+      ),
+    )
+    .not.toBeNull();
   await expect(page).toHaveURL(/\/atleta\/inicio$/);
   await expect(
     page.getByRole('heading', { level: 1, name: 'Marcos Oliveira' }),
@@ -68,14 +78,14 @@ test('conta sem vínculos entra em uma área pessoal vazia', async ({ page }) =>
 
   await expect(page).toHaveURL(/\/minha-area$/);
   await expect(
-    page.getByRole('heading', { name: 'Sua conta está pronta' }),
+    page.getByRole('heading', { level: 1, name: 'Lucas Ferreira' }),
   ).toBeVisible();
   await expect(
     page.getByText('Você ainda não participa de nenhum time'),
   ).toBeVisible();
   await expect(page.getByText('Nenhum campeonato organizado')).toBeVisible();
   await expect(
-    page.getByRole('link', { name: 'Explorar times' }),
+    page.getByRole('link', { name: 'Entrar em um time' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar um time' })).toBeVisible();
 

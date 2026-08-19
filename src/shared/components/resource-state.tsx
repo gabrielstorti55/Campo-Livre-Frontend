@@ -1,3 +1,5 @@
+'use client';
+
 import { AlertCircle, Inbox } from 'lucide-react';
 
 export function ResourceState({

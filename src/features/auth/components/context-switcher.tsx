@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
 
 import {
   getContextHome,
@@ -13,7 +15,7 @@ const contextLabels: Record<PersonalContext, string> = {
 };
 
 export function ContextSwitcher() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { session, switchContext } = useSession();
 
   if (!session || session.capabilities.length < 2) return null;
@@ -27,7 +29,7 @@ export function ContextSwitcher() {
       className="w-full"
       onClick={() => {
         switchContext(nextContext);
-        navigate(getContextHome(nextContext));
+        router.push(getContextHome(nextContext));
       }}
     >
       Trocar para contexto {contextLabels[nextContext]}

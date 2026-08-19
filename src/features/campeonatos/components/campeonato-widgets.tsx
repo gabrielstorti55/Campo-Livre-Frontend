@@ -1,3 +1,5 @@
+'use client';
+
 import { CalendarDays, Clock, MapPin } from 'lucide-react';
 import type { ReactNode } from 'react';
 

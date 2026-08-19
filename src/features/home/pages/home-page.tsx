@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowUpRight,
   CalendarDays,
@@ -5,7 +7,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import {
   getSessionHome,
@@ -85,7 +87,7 @@ export function HomePage() {
 
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
-                to="/campeonatos"
+                href="/campeonatos"
                 className={cn(
                   'inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-green-dark shadow-sm transition-[background-color,box-shadow] duration-150 hover:bg-green-pale hover:shadow-md',
                   focusRing,
@@ -95,7 +97,7 @@ export function HomePage() {
                 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
-                to={accountHome}
+                href={accountHome}
                 className="inline-flex min-h-12 items-center rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur-sm transition-colors duration-150 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-green-dark motion-reduce:backdrop-blur-none"
               >
                 {session ? 'Ir para minha área' : 'Entrar na minha conta'}
@@ -109,7 +111,7 @@ export function HomePage() {
               return (
                 <Link
                   key={area.title}
-                  to={area.to}
+                  href={area.to}
                   className="group flex min-h-24 items-center gap-4 rounded-2xl border border-white/15 bg-black/20 p-4 backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-150 hover:border-white/25 hover:bg-white/10 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white motion-reduce:backdrop-blur-none"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">

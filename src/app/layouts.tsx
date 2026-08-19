@@ -1,3 +1,5 @@
+'use client';
+
 import {
   CalendarDays,
   CheckSquare,
@@ -7,17 +9,13 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { Outlet } from 'react-router-dom';
+import type { ReactNode } from 'react';
 
 import { useSession } from '@/features/auth/session/session-context';
 import { atletaLogado, organizadorLogado } from '@/mocks/data';
 import { ProfileShell } from '@/shared/components/profile-shell';
 
-export function RootLayout() {
-  return <Outlet />;
-}
-
-export function AtletaLayout() {
+export function AtletaLayout({ children }: { children: ReactNode }) {
   const { session } = useSession();
   const items = [
     { label: 'Início', to: '/atleta/inicio', icon: Home },
@@ -33,12 +31,12 @@ export function AtletaLayout() {
       userName={session?.account.name ?? atletaLogado.nome}
       userRole="Atleta / Capitão"
     >
-      <Outlet />
+      {children}
     </ProfileShell>
   );
 }
 
-export function OrganizadorLayout() {
+export function OrganizadorLayout({ children }: { children: ReactNode }) {
   const { session } = useSession();
   const items = [
     { label: 'Início', to: '/organizador/inicio', icon: Home },
@@ -53,12 +51,12 @@ export function OrganizadorLayout() {
       userName={session?.account.name ?? organizadorLogado.nome}
       userRole="Organizador"
     >
-      <Outlet />
+      {children}
     </ProfileShell>
   );
 }
 
-export function PrefeituraLayout() {
+export function PrefeituraLayout({ children }: { children: ReactNode }) {
   const items = [
     { label: 'Início', to: '/prefeitura/painel', icon: Home },
     { label: 'Campos', to: '/prefeitura/campos', icon: MapPinned },
@@ -74,7 +72,7 @@ export function PrefeituraLayout() {
       userName="Prefeitura Franca"
       userRole="Gestão pública"
     >
-      <Outlet />
+      {children}
     </ProfileShell>
   );
 }

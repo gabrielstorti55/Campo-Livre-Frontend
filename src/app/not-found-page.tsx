@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 
 import { StatusPage } from '@/shared/components/status-page';
 import { Button } from '@/shared/components/ui/button';
@@ -11,7 +13,7 @@ export function NotFoundPage() {
       description="A página que você está procurando não existe ou foi movida."
       actions={
         <Button variant="campo" asChild>
-          <Link to="/login">Voltar ao acesso</Link>
+          <Link href="/login">Voltar ao acesso</Link>
         </Button>
       }
     />

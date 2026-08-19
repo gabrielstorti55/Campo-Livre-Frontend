@@ -1,5 +1,7 @@
+'use client';
+
 import { ArrowUpRight, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import { getPublicacaoPartidaMock } from '@/features/partidas/mocks/partida-publicacao.mock';
 import { partidas } from '@/mocks/data';
@@ -19,7 +21,7 @@ function MatchCard({ partida }: { partida: (typeof partidas)[number] }) {
 
   return (
     <Link
-      to={`/partidas/${partida.id}`}
+      href={`/partidas/${partida.id}`}
       className={cn(
         'group block rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_10px_30px_rgba(30,54,43,0.06)] transition-[border-color,box-shadow] duration-150 hover:border-green-light hover:shadow-[0_14px_36px_rgba(30,54,43,0.10)] sm:p-6',
         focusRing,
@@ -39,9 +41,7 @@ function MatchCard({ partida }: { partida: (typeof partidas)[number] }) {
           {partida.casa}
         </p>
         <div className="rounded-2xl bg-green-dark px-3 py-2 font-display text-sm font-bold text-white shadow-sm sm:px-4 sm:text-base">
-          {placarPublicado
-            ? `${partida.golsCasa} × ${partida.golsFora}`
-            : '×'}
+          {placarPublicado ? `${partida.golsCasa} × ${partida.golsFora}` : '×'}
         </div>
         <p className="text-right font-display text-base font-semibold tracking-[-0.02em] sm:text-xl">
           {partida.fora}

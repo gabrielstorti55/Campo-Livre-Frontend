@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { CalendarDays, ChevronRight, MapPinned, Users } from 'lucide-react';
 
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
@@ -67,7 +69,7 @@ export function Painel() {
             {acoes.map((acao) => (
               <Link
                 key={acao.to}
-                to={acao.to}
+                href={acao.to}
                 className="group flex items-center gap-4 border-b border-border py-5"
               >
                 <acao.icon className="h-5 w-5 shrink-0 text-navy-mid" />

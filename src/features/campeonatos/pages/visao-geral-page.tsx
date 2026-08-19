@@ -1,4 +1,7 @@
-import { Link, useParams } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { CalendarPlus, GitBranch, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -15,7 +18,7 @@ import { PageHeader, StatCard, Tabs } from '@/shared/components/campo-livre-ui';
 import { getCampeonato, partidas } from '@/mocks/data';
 
 export function VisaoGeral() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const campeonato = getCampeonato(id ?? '');
   const [tab, setTab] = useState('Visão Geral');
   const basePath = `/organizador/campeonato/${id ?? ''}`;
@@ -36,17 +39,17 @@ export function VisaoGeral() {
 
       <div className="flex flex-wrap gap-2">
         <Button variant="campoOutline" className="py-2.5" asChild>
-          <Link to={`${basePath}/times`}>
+          <Link href={`${basePath}/times`}>
             <Users className="h-4 w-4" /> Gerenciar times
           </Link>
         </Button>
         <Button variant="campoOutline" className="py-2.5" asChild>
-          <Link to={`${basePath}/partidas`}>
+          <Link href={`${basePath}/partidas`}>
             <CalendarPlus className="h-4 w-4" /> Agendar partidas
           </Link>
         </Button>
         <Button variant="campoOutline" className="py-2.5" asChild>
-          <Link to={`${basePath}/chaveamento`}>
+          <Link href={`${basePath}/chaveamento`}>
             <GitBranch className="h-4 w-4" /> Chaveamento
           </Link>
         </Button>
@@ -86,10 +89,10 @@ export function VisaoGeral() {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <Button variant="campoOutline" className="py-2.5" asChild>
-              <Link to={`${basePath}/partidas`}>Agendar</Link>
+              <Link href={`${basePath}/partidas`}>Agendar</Link>
             </Button>
             <Button variant="campoOutline" className="py-2.5" asChild>
-              <Link to={`${basePath}/sumula`}>Lançar resultado</Link>
+              <Link href={`${basePath}/sumula`}>Lançar resultado</Link>
             </Button>
           </div>
           <ListaJogos />
@@ -99,7 +102,7 @@ export function VisaoGeral() {
       {tab === 'Times' ? (
         <div className="space-y-4">
           <Button variant="campoOutline" className="py-2.5" asChild>
-            <Link to={`${basePath}/times`}>Gerenciar elencos</Link>
+            <Link href={`${basePath}/times`}>Gerenciar elencos</Link>
           </Button>
           <ListaTimes />
         </div>

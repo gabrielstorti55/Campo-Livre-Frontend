@@ -1,3 +1,5 @@
+'use client';
+
 import {
   CalendarDays,
   Home,
@@ -9,8 +11,9 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import {
   getSessionHome,
@@ -29,40 +32,41 @@ const interactiveFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 function ExploreNavigation({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+
   return (
     <nav className="space-y-1.5" aria-label="Navegação pública">
       {navigationItems.map((item) => {
         const Icon = item.icon;
+        const isActive =
+          pathname === item.to ||
+          (item.to !== '/' && pathname.startsWith(`${item.to}/`));
 
         return (
-          <NavLink
+          <Link
             key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              cn(
-                'flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition-[background-color,color,box-shadow] duration-150',
-                interactiveFocus,
-                isActive
-                  ? 'bg-white text-green-dark shadow-sm'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white',
-              )
-            }
+            href={item.to}
+            {...(onNavigate ? { onClick: onNavigate } : {})}
+            aria-current={isActive ? 'page' : undefined}
+            className={cn(
+              'flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition-[background-color,color,box-shadow] duration-150',
+              interactiveFocus,
+              isActive
+                ? 'bg-white text-green-dark shadow-sm'
+                : 'text-white/80 hover:bg-white/10 hover:text-white',
+            )}
           >
             <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
             <span>{item.label}</span>
-          </NavLink>
+          </Link>
         );
       })}
     </nav>
   );
 }
 
-export function ExploreLayout() {
-  const navigation = useNavigation();
+export function ExploreLayout({ children }: { children: ReactNode }) {
   const { session } = useSession();
-  const loading = navigation.state !== 'idle';
   const [menuOpen, setMenuOpen] = useState(false);
   const accountHome = session ? getSessionHome(session) : null;
 
@@ -110,7 +114,7 @@ export function ExploreLayout() {
           </button>
 
           <Link
-            to="/"
+            href="/"
             className={cn(
               'ml-1 min-h-11 rounded-lg px-2 py-2',
               interactiveFocus,
@@ -124,7 +128,7 @@ export function ExploreLayout() {
           <div className="ml-auto flex items-center gap-2">
             {accountHome ? (
               <Link
-                to={accountHome}
+                href={accountHome}
                 className={cn(
                   'inline-flex min-h-11 items-center rounded-xl bg-green-dark px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-150 hover:bg-green-mid hover:shadow-md',
                   interactiveFocus,
@@ -135,7 +139,7 @@ export function ExploreLayout() {
             ) : (
               <>
                 <Link
-                  to="/login"
+                  href="/login"
                   className={cn(
                     'hidden min-h-11 items-center rounded-xl px-4 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale sm:inline-flex',
                     interactiveFocus,
@@ -144,7 +148,7 @@ export function ExploreLayout() {
                   Entrar
                 </Link>
                 <Link
-                  to="/cadastro"
+                  href="/cadastro"
                   className={cn(
                     'inline-flex min-h-11 items-center rounded-xl bg-green-dark px-4 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-150 hover:bg-green-mid hover:shadow-md',
                     interactiveFocus,
@@ -184,7 +188,7 @@ export function ExploreLayout() {
             <div className="relative z-10 flex h-full flex-col p-4 sm:p-5">
               <div className="mb-8 flex items-start justify-between gap-4 px-1 pt-1">
                 <Link
-                  to="/"
+                  href="/"
                   onClick={() => setMenuOpen(false)}
                   className={cn('rounded-lg px-1 py-1', interactiveFocus)}
                 >
@@ -218,7 +222,7 @@ export function ExploreLayout() {
                       Continue consultando ou volte para as ações da sua conta.
                     </p>
                     <Link
-                      to={accountHome}
+                      href={accountHome}
                       onClick={() => setMenuOpen(false)}
                       className="flex min-h-12 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
@@ -232,14 +236,14 @@ export function ExploreLayout() {
                       realizar uma ação pessoal.
                     </p>
                     <Link
-                      to="/login"
+                      href="/login"
                       onClick={() => setMenuOpen(false)}
                       className="flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/85 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
                       <LogIn className="h-4 w-4" aria-hidden="true" /> Entrar
                     </Link>
                     <Link
-                      to="/cadastro"
+                      href="/cadastro"
                       onClick={() => setMenuOpen(false)}
                       className="mt-1 flex min-h-12 items-center gap-3 rounded-xl bg-white px-3 text-sm font-semibold text-green-dark transition-colors duration-150 hover:bg-green-pale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
@@ -254,22 +258,8 @@ export function ExploreLayout() {
         </div>
       ) : null}
 
-      {loading ? (
-        <div
-          className="fixed top-16 right-0 left-0 z-50 h-0.5 overflow-hidden bg-green-pale"
-          role="status"
-          aria-label="Carregando página"
-        >
-          <div className="h-full w-1/2 animate-pulse bg-green-mid motion-reduce:animate-none" />
-        </div>
-      ) : null}
-
-      <main
-        id="conteudo-publico"
-        aria-busy={loading}
-        className="min-h-[calc(100vh-4rem)]"
-      >
-        <Outlet />
+      <main id="conteudo-publico" className="min-h-[calc(100vh-4rem)]">
+        {children}
       </main>
     </div>
   );

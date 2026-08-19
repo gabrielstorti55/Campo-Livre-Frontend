@@ -1,0 +1,17 @@
+# Graphify pilot: keep secrets and generated artifacts out of the corpus.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dependencies, build/test output, and Graphify's own generated files.
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+graphify-out/
+.hermes/

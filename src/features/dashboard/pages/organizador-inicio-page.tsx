@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -35,7 +37,7 @@ export function OrganizadorInicio() {
 
       <div className="flex justify-end">
         <Button variant="campo" asChild>
-          <Link to="/organizador/novo">
+          <Link href="/organizador/novo">
             <Plus className="h-4 w-4" /> Novo campeonato
           </Link>
         </Button>
@@ -44,7 +46,7 @@ export function OrganizadorInicio() {
       <Section title="Meus campeonatos">
         <div className="space-y-3">
           {meus.map((c) => (
-            <Link key={c.id} to={`/organizador/campeonato/${c.id}`}>
+            <Link key={c.id} href={`/organizador/campeonato/${c.id}`}>
               <ListRow
                 interactive
                 title={c.nome}
@@ -72,7 +74,7 @@ export function OrganizadorInicio() {
           {regiao.map((c) => (
             <Link
               key={c.id}
-              to={`/organizador/campeonato/${c.id}`}
+              href={`/organizador/campeonato/${c.id}`}
               className="border-b border-border py-4"
             >
               <div className="space-y-2">

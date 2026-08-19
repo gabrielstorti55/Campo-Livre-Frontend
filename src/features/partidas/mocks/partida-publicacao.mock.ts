@@ -67,16 +67,20 @@ const publicacaoPorPartida: Record<string, PublicacaoPartidaMock> = {
         },
       ],
     },
-    observacaoAdministrativaMock: 'Revisar documento do árbitro antes do arquivamento.',
+    observacaoAdministrativaMock:
+      'Revisar documento do árbitro antes do arquivamento.',
   },
   '4': {
     resultadoPublicado: false,
-    observacaoAdministrativaMock: 'Resultado aguardando revisão interna do organizador.',
+    observacaoAdministrativaMock:
+      'Resultado aguardando revisão interna do organizador.',
   },
   '5': { resultadoPublicado: false },
   '6': { resultadoPublicado: false },
 };
 
-export function getPublicacaoPartidaMock(id: string | number): PublicacaoPartidaMock {
+export function getPublicacaoPartidaMock(
+  id: string | number,
+): PublicacaoPartidaMock {
   return publicacaoPorPartida[String(id)] ?? { resultadoPublicado: false };
 }

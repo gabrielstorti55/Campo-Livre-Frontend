@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -36,7 +38,7 @@ export function AtletaCampeonatos() {
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <Link
-                  to={`/campeonatos/${c.id}`}
+                  href={`/campeonatos/${c.id}`}
                   className="truncate font-display font-semibold text-foreground hover:text-green-mid"
                 >
                   {c.nome}

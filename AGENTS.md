@@ -60,3 +60,26 @@ npm run check
 ```
 
 Revise o diff e informe separadamente os resultados de formatação, lint, TypeScript, build e E2E. Não faça commit, push ou publicação sem que a solicitação do usuário autorize essas ações.
+
+## Graphify (piloto local)
+
+Este projeto possui um grafo de código local em `graphify-out/`. Ele é um índice derivado e não substitui a leitura do diff nem dos arquivos-fonte.
+
+Regras:
+
+- Use `graphify query "<pergunta>" --budget 1200` primeiro somente para perguntas amplas de arquitetura, dependências, impacto ou fluxos que cruzem vários módulos.
+- Para tarefas pequenas, revisão de diff, rota conhecida, símbolo conhecido ou busca textual exata, prefira `search_files`/`read_file`; neste repositório essas buscas foram mais rápidas e menores no piloto.
+- Se a consulta ampla não localizar o ponto exato, use `graphify explain "<símbolo-ou-arquivo>"`; confirme decisões importantes na fonte.
+- Não use modo estrito e não trate saída inferida como fato sem conferir a origem indicada.
+- Depois de alterar código, execute `graphify update .` para manter o índice AST atualizado, sem API e sem custo de LLM.
+- `graphify-out/` é local durante o piloto e não deve ser commitado.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

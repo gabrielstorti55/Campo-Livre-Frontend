@@ -1,6 +1,8 @@
+'use client';
+
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import { times } from '@/mocks/data';
 import { SearchBar } from '@/shared/components/campo-livre-ui';
@@ -51,7 +53,7 @@ export function TimesPage() {
           {lista.map((time) => (
             <Link
               key={time.id}
-              to={`/times/${time.id}`}
+              href={`/times/${time.id}`}
               className={cn(
                 'group rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_10px_30px_rgba(30,54,43,0.06)] transition-[border-color,box-shadow] duration-150 hover:border-green-light hover:shadow-[0_14px_36px_rgba(30,54,43,0.10)] sm:p-6',
                 focusRing,

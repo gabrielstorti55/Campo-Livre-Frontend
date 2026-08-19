@@ -1,4 +1,6 @@
-import { useParams } from 'react-router-dom';
+'use client';
+
+import { useParams } from 'next/navigation';
 import { CalendarDays, MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -14,7 +16,7 @@ import {
 import { atletaLogado, elenco, getTime, partidas } from '@/mocks/data';
 
 export function GerenciarTime() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const time = getTime(id ?? '');
   const [tab, setTab] = useState('Elenco');
 

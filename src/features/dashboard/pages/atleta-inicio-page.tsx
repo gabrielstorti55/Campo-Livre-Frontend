@@ -1,6 +1,8 @@
+'use client';
+
 import { CalendarDays, MapPin, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import { useSession } from '@/features/auth/session/session-context';
 import { ProximaPartidaCard } from '@/features/campeonatos/components/campeonato-widgets';
@@ -85,7 +87,7 @@ export function AtletaInicio() {
       <Section title="Meus Times">
         <div className="grid gap-4 md:grid-cols-2">
           {meusTimes.map((t) => (
-            <Link key={t.id} to={`/atleta/time/${t.id}`}>
+            <Link key={t.id} href={`/atleta/time/${t.id}`}>
               <ListRow
                 interactive
                 avatar={<RowAvatar name={t.nome} />}
@@ -141,7 +143,7 @@ export function AtletaInicio() {
                   >
                     <RowAvatar name={c.nome} />
                     <Link
-                      to={`/campeonatos/${c.id}`}
+                      href={`/campeonatos/${c.id}`}
                       className="min-w-0 flex-1"
                     >
                       <p className="truncate font-display font-semibold text-foreground">
@@ -165,7 +167,7 @@ export function AtletaInicio() {
                       </Button>
                     ) : (
                       <Link
-                        to={`/campeonatos/${c.id}`}
+                        href={`/campeonatos/${c.id}`}
                         aria-label={`Abrir ${c.nome}`}
                       >
                         <Chevron />

@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 
@@ -26,7 +28,7 @@ export function BuscarTimes() {
         subtitle="Busque um time existente ou crie o seu"
         actions={
           <Button variant="campoOutline" asChild>
-            <Link to="/atleta/time/criar">Criar time</Link>
+            <Link href="/atleta/time/criar">Criar time</Link>
           </Button>
         }
       />

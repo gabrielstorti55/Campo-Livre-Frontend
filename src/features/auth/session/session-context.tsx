@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+'use client';
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
 export type PersonalContext = 'atleta' | 'organizador';
 
@@ -26,6 +34,7 @@ type MockRegisteredAccount = {
 
 type SessionContextValue = {
   session: PersonalSession | null;
+  hydrated: boolean;
   registerMockAccount: (account: MockRegisteredAccount) => void;
   signInWithMock: (email?: string) => PersonalSession;
   switchContext: (context: PersonalContext) => void;
@@ -67,6 +76,8 @@ const mockUnlinkedPersonalSession: PersonalSession = {
 };
 
 function readStoredSession(): PersonalSession | null {
+  if (typeof window === 'undefined') return null;
+
   const stored = sessionStorage.getItem(STORAGE_KEY);
   if (!stored) return null;
 
@@ -118,15 +129,29 @@ function storeSession(session: PersonalSession) {
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<PersonalSession | null>(() =>
-    readStoredSession(),
-  );
+  const [session, setSession] = useState<PersonalSession | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    queueMicrotask(() => {
+      if (!active) return;
+      setSession(readStoredSession());
+      setHydrated(true);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function registerMockAccount(account: MockRegisteredAccount) {
     // TODO(auth-api): remover esta persistência quando a API retornar a conta criada.
     sessionStorage.setItem(REGISTERED_ACCOUNT_KEY, JSON.stringify(account));
     sessionStorage.removeItem(STORAGE_KEY);
     setSession(null);
+    setHydrated(true);
   }
 
   function signInWithMock(email = '') {
@@ -155,6 +180,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         : mockPersonalSession;
 
     setSession(nextSession);
+    setHydrated(true);
     storeSession(nextSession);
     return nextSession;
   }
@@ -170,7 +196,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   return (
     <SessionContext.Provider
-      value={{ session, registerMockAccount, signInWithMock, switchContext }}
+      value={{
+        session,
+        hydrated,
+        registerMockAccount,
+        signInWithMock,
+        switchContext,
+      }}
     >
       {children}
     </SessionContext.Provider>

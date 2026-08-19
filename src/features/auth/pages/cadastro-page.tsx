@@ -1,4 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { AuthShell } from '@/features/auth/components/auth-shell';
 import { useSession } from '@/features/auth/session/session-context';
@@ -7,7 +10,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
 export function CadastroPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { registerMockAccount } = useSession();
 
   return (
@@ -37,7 +40,7 @@ export function CadastroPage() {
             city: String(form.get('cidade') ?? '').trim(),
             email: String(form.get('email') ?? '').trim(),
           });
-          navigate('/login');
+          router.push('/login');
         }}
       >
         <Field label="Nome completo" htmlFor="nome-completo-field">
@@ -104,7 +107,10 @@ export function CadastroPage() {
 
       <p className="mt-8 border-t border-border pt-6 text-sm text-muted-foreground">
         Já participa do CampoLivre?{' '}
-        <Link to="/login" className="font-display font-semibold text-green-mid">
+        <Link
+          href="/login"
+          className="font-display font-semibold text-green-mid"
+        >
           Acessar minha conta
         </Link>
       </p>

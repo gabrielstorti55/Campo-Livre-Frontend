@@ -1,5 +1,15 @@
-import { MapPin, Search, ShieldCheck, Trophy, UserRound, Users } from 'lucide-react';
-import { Link, Navigate } from 'react-router-dom';
+'use client';
+
+import {
+  MapPin,
+  Search,
+  ShieldCheck,
+  Trophy,
+  UserRound,
+  Users,
+} from 'lucide-react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { useSession } from '@/features/auth/session/session-context';
 import { Button } from '@/shared/components/ui/button';
@@ -21,9 +31,20 @@ function getInitials(name: string) {
 }
 
 export function MinhaAreaPage() {
-  const { session } = useSession();
+  const { session, hydrated } = useSession();
 
-  if (!session) return <Navigate to="/login" replace />;
+  if (!hydrated) {
+    return (
+      <p
+        className="px-4 py-10 text-center text-sm text-muted-foreground"
+        role="status"
+      >
+        Carregando sua conta...
+      </p>
+    );
+  }
+
+  if (!session) redirect('/login');
 
   const hasTeam = session.links.teamIds.length > 0;
   const organizesChampionship =
@@ -83,12 +104,12 @@ export function MinhaAreaPage() {
           {!hasTeam ? (
             <CardContent className="flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="campo" tone="green">
-                <Link to="/times">
+                <Link href="/times">
                   <Search aria-hidden="true" /> Entrar em um time
                 </Link>
               </Button>
               <Button asChild variant="campoOutline" tone="green">
-                <Link to="/times/criar">Criar um time</Link>
+                <Link href="/times/criar">Criar um time</Link>
               </Button>
             </CardContent>
           ) : null}
@@ -113,7 +134,7 @@ export function MinhaAreaPage() {
           {!organizesChampionship ? (
             <CardContent>
               <Button asChild variant="campoOutline" tone="green">
-                <Link to="/campeonatos">Explorar campeonatos</Link>
+                <Link href="/campeonatos">Explorar campeonatos</Link>
               </Button>
             </CardContent>
           ) : null}

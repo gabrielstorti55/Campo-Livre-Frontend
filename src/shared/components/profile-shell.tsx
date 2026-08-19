@@ -1,7 +1,10 @@
+'use client';
+
 import { Menu, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
 
 import { Initials } from '@/shared/components/campo-livre-ui';
 import { cn } from '@/shared/lib/utils';
@@ -30,7 +33,7 @@ export function ProfileShell({
   userRole: string;
   children: ReactNode;
 }) {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const isNavy = tone === 'navy';
   const accentText = isNavy ? 'text-navy-dark' : 'text-green-dark';
@@ -85,7 +88,7 @@ export function ProfileShell({
           </button>
 
           <Link
-            to={items[0]?.to ?? '/'}
+            href={items[0]?.to ?? '/'}
             className={cn(
               'ml-1 min-h-11 rounded-lg px-2 py-2',
               interactiveFocus,
@@ -145,7 +148,7 @@ export function ProfileShell({
             <div className="relative z-10 flex h-full flex-col p-4 sm:p-5">
               <div className="mb-8 flex items-start justify-between gap-4 px-1 pt-1">
                 <Link
-                  to={items[0]?.to ?? '/'}
+                  href={items[0]?.to ?? '/'}
                   onClick={() => setMenuOpen(false)}
                   className="rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
@@ -177,7 +180,7 @@ export function ProfileShell({
                   return (
                     <Link
                       key={item.to}
-                      to={item.to}
+                      href={item.to}
                       onClick={() => setMenuOpen(false)}
                       aria-current={active ? 'page' : undefined}
                       className={cn(

@@ -8,8 +8,14 @@ test('visitante vê o resumo de uma partida com resultado publicado', async ({
   await expect(
     page.getByRole('heading', { name: 'Resumo da partida' }),
   ).toBeVisible();
-  await expect(page.getByText('3 × 1')).toBeVisible();
-  await expect(page.getByText('Resultado publicado')).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Resumo da partida' }).getByText('3 × 1'),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Resumo da partida' })
+      .getByText('Resultado publicado'),
+  ).toBeVisible();
 
   const session = await page.evaluate(() =>
     sessionStorage.getItem('campo-livre:mock-personal-session'),
@@ -24,9 +30,10 @@ test('eventos esportivos publicados aparecem no resumo', async ({ page }) => {
   await expect(page.getByText('Marcos Oliveira')).toBeVisible();
   await expect(page.getByText("12'")).toBeVisible();
 
-  await expect(page.getByRole('heading', { name: 'Cartões' })).toBeVisible();
-  await expect(page.getByText('Diego Souza')).toBeVisible();
-  await expect(page.getByText('Rogério Lima')).toBeVisible();
+  const cartoes = page.getByRole('region', { name: 'Cartões' });
+  await expect(cartoes).toBeVisible();
+  await expect(cartoes.getByText('Diego Souza')).toBeVisible();
+  await expect(cartoes.getByText('Rogério Lima')).toBeVisible();
 
   await expect(
     page.getByRole('heading', { name: 'Substituições' }),
@@ -72,7 +79,9 @@ test('página canônica não possui controles de edição da súmula', async ({
   await expect(page.getByRole('combobox')).toHaveCount(0);
 });
 
-test('conta autenticada usa a mesma rota canônica da partida', async ({ page }) => {
+test('conta autenticada usa a mesma rota canônica da partida', async ({
+  page,
+}) => {
   await page.goto('/login');
   await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
   await page.getByLabel('Senha').fill('senha-mock');
@@ -84,5 +93,7 @@ test('conta autenticada usa a mesma rota canônica da partida', async ({ page })
   await expect(
     page.getByRole('heading', { name: 'Resumo da partida' }),
   ).toBeVisible();
-  await expect(page.getByText('3 × 1')).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Resumo da partida' }).getByText('3 × 1'),
+  ).toBeVisible();
 });

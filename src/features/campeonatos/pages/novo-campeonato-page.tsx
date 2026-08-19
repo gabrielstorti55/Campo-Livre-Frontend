@@ -1,3 +1,5 @@
+'use client';
+
 import { Copy, Plus, QrCode } from 'lucide-react';
 import { useState } from 'react';
 

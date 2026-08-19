@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -21,7 +23,7 @@ export function OrganizadorCampeonatos() {
         subtitle="Todos os eventos que você organiza"
         actions={
           <Button variant="campo" className="py-2.5" asChild>
-            <Link to="/organizador/novo">
+            <Link href="/organizador/novo">
               <Plus className="h-4 w-4" /> Novo
             </Link>
           </Button>
@@ -35,7 +37,7 @@ export function OrganizadorCampeonatos() {
 
       <div className="space-y-3">
         {lista.map((c) => (
-          <Link key={c.id} to={`/organizador/campeonato/${c.id}`}>
+          <Link key={c.id} href={`/organizador/campeonato/${c.id}`}>
             <ListRow
               title={c.nome}
               subtitle={`${c.modalidade} · ${c.formato} · ${c.times} times`}

@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -26,7 +28,7 @@ export function RecuperarSenhaPage() {
             verifique também a caixa de spam.
           </p>
           <Link
-            to="/login"
+            href="/login"
             className="mt-8 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
           >
             Voltar para o acesso
@@ -67,7 +69,7 @@ export function RecuperarSenhaPage() {
           </form>
           <p className="mt-8 border-t border-border pt-6 text-sm">
             <Link
-              to="/login"
+              href="/login"
               className="font-semibold text-green-dark underline-offset-4 hover:underline"
             >
               Voltar para o acesso

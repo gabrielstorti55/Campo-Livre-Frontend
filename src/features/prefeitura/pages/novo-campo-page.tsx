@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, Field, PageHeader } from '@/shared/components/campo-livre-ui';
 import { Input } from '@/shared/components/ui/input';
 import {

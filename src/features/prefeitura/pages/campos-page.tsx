@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -23,7 +25,7 @@ export function Campos() {
         subtitle={`${campos.length} campos municipais`}
         actions={
           <Button variant="campoOutline" tone="navy" className="py-2.5" asChild>
-            <Link to="/prefeitura/campos/novo">
+            <Link href="/prefeitura/campos/novo">
               <Plus className="h-4 w-4" /> Novo campo
             </Link>
           </Button>

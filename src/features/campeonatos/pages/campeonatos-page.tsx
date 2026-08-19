@@ -1,6 +1,8 @@
+'use client';
+
 import { ArrowUpRight, MapPin, Trophy, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import { CampeonatoMeta } from '@/features/campeonatos/components/campeonato-meta';
 import { campeonatos } from '@/mocks/data';
@@ -52,7 +54,7 @@ export function CampeonatosPage() {
           {lista.map((campeonato, index) => (
             <Link
               key={campeonato.id}
-              to={`/campeonatos/${campeonato.id}`}
+              href={`/campeonatos/${campeonato.id}`}
               className={cn(
                 'group relative overflow-hidden rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_10px_30px_rgba(30,54,43,0.06)] transition-[border-color,box-shadow] duration-150 hover:border-green-light hover:shadow-[0_14px_36px_rgba(30,54,43,0.10)] sm:p-6',
                 cardFocus,

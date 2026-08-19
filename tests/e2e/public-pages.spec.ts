@@ -38,6 +38,10 @@ test('menu público é opcional e pode ser aberto e fechado', async ({
   await expect(
     page.getByRole('navigation', { name: 'Navegação pública' }),
   ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Campeonatos' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
   await page.getByRole('button', { name: 'Fechar menu lateral' }).click();
   await expect(
     page.getByRole('navigation', { name: 'Navegação pública' }),

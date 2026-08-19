@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { useState } from 'react';
 
 import { Chevron, ListRow } from '@/shared/components/list-row';
@@ -22,7 +24,7 @@ export function MeusEventos() {
 
       <div className="space-y-3">
         {lista.map((c) => (
-          <Link key={c.id} to={`/campeonatos/${c.id}`}>
+          <Link key={c.id} href={`/campeonatos/${c.id}`}>
             <ListRow
               interactive
               title={c.nome}

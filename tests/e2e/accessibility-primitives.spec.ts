@@ -7,12 +7,14 @@ test('apresenta a identidade CampoLivre sem aparência de card genérico', async
   await page.goto('/login');
 
   await expect(page.getByTestId('auth-brand-panel')).toBeVisible();
-  await expect(page.getByText('LigaPro · Franca, SP')).toBeVisible();
+  await expect(page.getByText('LigaPro', { exact: true })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Acesse sua conta' }),
+    page.getByRole('heading', { name: 'Entre no CampoLivre' }),
   ).toBeVisible();
   await expect(
-    page.getByText('Gestão de campeonatos municipais'),
+    page.getByRole('heading', {
+      name: 'Seu time, seus campeonatos, sua cidade.',
+    }),
   ).toBeVisible();
 });
 
@@ -21,11 +23,13 @@ test('mantém a autenticação utilizável em uma tela móvel', async ({ page })
   await page.goto('/login');
 
   await expect(
-    page.getByRole('heading', { name: 'Acesse sua conta' }),
+    page.getByRole('heading', { name: 'Entre no CampoLivre' }),
   ).toBeVisible();
   await expect(page.getByLabel('E-mail')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Criar conta' })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Criar minha conta' }),
+  ).toBeVisible();
 });
 
 test('associa os rótulos aos controles do formulário de login', async ({
@@ -37,40 +41,16 @@ test('associa os rótulos aos controles do formulário de login', async ({
   await page.getByLabel('Senha').fill('segredo');
 });
 
-for (const scenario of [
-  { perfil: 'Atleta', rota: '/atleta/inicio' },
-  { perfil: 'Organizador', rota: '/organizador/inicio' },
-  { perfil: 'Prefeitura', rota: '/prefeitura/painel' },
-]) {
-  test(`direciona o perfil ${scenario.perfil} para sua área demonstrativa`, async ({
-    page,
-  }) => {
-    await page.goto('/login');
-    await page.getByLabel('E-mail').fill('demo@campolivre.test');
-    await page.getByLabel('Senha').fill('segredo');
-    await page.getByLabel('Perfil').click();
-    await page.getByRole('option', { name: scenario.perfil }).click();
-    await page.getByRole('button', { name: 'Entrar' }).click();
-
-    await expect(page).toHaveURL(new RegExp(`${scenario.rota}$`));
-  });
-}
-
-test('seleciona o perfil como um grupo de opções exclusivo pelo teclado', async ({
+test('mantém o cadastro pessoal acessível sem seleção de papel global', async ({
   page,
 }) => {
   await page.goto('/cadastro');
 
-  const atleta = page.getByRole('radio', { name: 'Atleta' });
-  const organizador = page.getByRole('radio', { name: 'Organizador' });
-
-  await expect(atleta).toBeChecked();
-  await organizador.focus();
-  await page.keyboard.press('Space');
-  await expect(organizador).toBeChecked();
-
-  const perfilBox = await organizador.boundingBox();
-  expect(perfilBox?.height).toBeLessThan(180);
+  await expect(page.getByLabel('Nome completo')).toBeVisible();
+  await expect(page.getByLabel('E-mail')).toBeVisible();
+  await expect(page.getByLabel('Senha', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Confirmar senha')).toBeVisible();
+  await expect(page.getByLabel('Perfil')).toHaveCount(0);
 });
 
 test('agenda data, horário e partida com primitivas de seleção acessíveis', async ({
@@ -104,7 +84,9 @@ test('agenda data, horário e partida com primitivas de seleção acessíveis', 
     calendar.getByRole('button', { name: /julho|setembro/i }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: /previous|next|anterior|próximo/i }),
+    calendar.getByRole('button', {
+      name: /previous|next|anterior|próximo/i,
+    }),
   ).toHaveCount(0);
 
   const salvar = page.getByRole('button', { name: /20\/08\/2026 às 17:00/ });

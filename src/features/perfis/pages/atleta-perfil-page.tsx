@@ -1,3 +1,5 @@
+'use client';
+
 import {
   CalendarDays,
   MapPin,
@@ -6,7 +8,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import { ContextSwitcher } from '@/features/auth/components/context-switcher';
 import { useSession } from '@/features/auth/session/session-context';
@@ -32,9 +34,7 @@ export function AtletaPerfil() {
   const accountName = session?.account.name ?? atletaLogado.nome;
   const accountCity = session?.account.city ?? atletaLogado.cidade;
   const teamIds = session?.links.teamIds ?? [];
-  const linkedTeams = times.filter((time) =>
-    teamIds.includes(String(time.id)),
-  );
+  const linkedTeams = times.filter((time) => teamIds.includes(String(time.id)));
   const hasTeam = linkedTeams.length > 0;
 
   return (
@@ -49,7 +49,7 @@ export function AtletaPerfil() {
         {hasTeam ? (
           <div className="grid gap-3 md:grid-cols-2">
             {linkedTeams.map((time) => (
-              <Link key={time.id} to={`/atleta/time/${time.id}`}>
+              <Link key={time.id} href={`/atleta/time/${time.id}`}>
                 <ListRow
                   interactive
                   avatar={<RowAvatar name={time.nome} />}
@@ -80,14 +80,14 @@ export function AtletaPerfil() {
 
               <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
                 <Link
-                  to="/atleta/time/buscar"
+                  href="/atleta/time/buscar"
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-green-dark px-4 text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Search className="h-4 w-4" aria-hidden="true" />
                   Entrar em um time
                 </Link>
                 <Link
-                  to="/atleta/time/criar"
+                  href="/atleta/time/criar"
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-green-dark px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-mid focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Plus className="h-4 w-4" aria-hidden="true" />

@@ -1,3 +1,5 @@
+'use client';
+
 import { Clock, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { ptBR } from 'date-fns/locale';

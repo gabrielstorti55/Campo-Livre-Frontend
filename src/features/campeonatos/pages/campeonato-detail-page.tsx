@@ -1,6 +1,9 @@
+'use client';
+
 import { ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import {
   ListaJogos,
@@ -20,7 +23,7 @@ const cardFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 export function CampeonatoDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { session } = useSession();
   const campeonato = campeonatos.find((item) => String(item.id) === String(id));
   const [tab, setTab] = useState('Visão geral');
@@ -77,7 +80,7 @@ export function CampeonatoDetailPage() {
                     .map((partida) => (
                       <Link
                         key={partida.id}
-                        to={`/partidas/${partida.id}`}
+                        href={`/partidas/${partida.id}`}
                         className={cn('block rounded-lg', cardFocus)}
                       >
                         <ResultadoRow
@@ -114,7 +117,7 @@ export function CampeonatoDetailPage() {
           {times.map((time) => (
             <Link
               key={time.id}
-              to={`/times/${time.id}`}
+              href={`/times/${time.id}`}
               className={cn(
                 'group flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-[0_8px_22px_rgba(30,54,43,0.05)] transition-[border-color,box-shadow] duration-150 hover:border-green-light hover:shadow-md',
                 cardFocus,
