@@ -20,9 +20,11 @@ export type PersonalSession = {
   };
   capabilities: PersonalContext[];
   activeContext: PersonalContext | null;
+  organizerEnabledAt?: string;
   links: {
     teamIds: string[];
     organizedChampionshipIds: string[];
+    institutionalOrganizationIds: string[];
   };
 };
 
@@ -37,10 +39,15 @@ type SessionContextValue = {
   hydrated: boolean;
   registerMockAccount: (account: MockRegisteredAccount) => void;
   signInWithMock: (email?: string) => PersonalSession;
+  enableOrganizer: () => void;
   switchContext: (context: PersonalContext) => void;
 };
 
 const STORAGE_KEY = 'campo-livre:mock-personal-session';
+export const MOCK_ACTIVE_ACCOUNT_KEY = 'campo-livre:mock-active-account-id';
+export const MOCK_ACTIVE_CHAMPIONSHIPS_KEY =
+  'campo-livre:mock-active-organized-championship-ids';
+export const MOCK_SESSION_CHANGED_EVENT = 'campo-livre:mock-session-changed';
 const REGISTERED_ACCOUNT_KEY = 'campo-livre:mock-registered-account';
 
 const mockPersonalSession: PersonalSession = {
@@ -53,9 +60,11 @@ const mockPersonalSession: PersonalSession = {
   },
   capabilities: ['atleta', 'organizador'],
   activeContext: 'atleta',
+  organizerEnabledAt: '2026-08-01T12:00:00.000Z',
   links: {
     teamIds: ['1'],
-    organizedChampionshipIds: ['1'],
+    organizedChampionshipIds: ['1', '2', '4', '5', '7'],
+    institutionalOrganizationIds: ['prefeitura-franca'],
   },
 };
 
@@ -72,6 +81,25 @@ const mockUnlinkedPersonalSession: PersonalSession = {
   links: {
     teamIds: [],
     organizedChampionshipIds: [],
+    institutionalOrganizationIds: [],
+  },
+};
+
+const mockCollaboratorSession: PersonalSession = {
+  sessionId: 'mock-session-collaborator-1',
+  account: {
+    id: 'mock-person-collaborator-1',
+    name: 'Juliana Lopes',
+    city: 'Franca, SP',
+    type: 'pessoa',
+  },
+  capabilities: ['atleta', 'organizador'],
+  activeContext: 'organizador',
+  organizerEnabledAt: '2026-08-05T12:00:00.000Z',
+  links: {
+    teamIds: [],
+    organizedChampionshipIds: ['4'],
+    institutionalOrganizationIds: [],
   },
 };
 
@@ -94,9 +122,11 @@ function readStoredSession(): PersonalSession | null {
 
     return {
       ...parsed,
-      links: parsed.links ?? {
-        teamIds: [],
-        organizedChampionshipIds: [],
+      links: {
+        teamIds: parsed.links?.teamIds ?? [],
+        organizedChampionshipIds: parsed.links?.organizedChampionshipIds ?? [],
+        institutionalOrganizationIds:
+          parsed.links?.institutionalOrganizationIds ?? [],
       },
     };
   } catch {
@@ -126,6 +156,15 @@ function storeSession(session: PersonalSession) {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
 }
 
+function setActiveMockSession(session: PersonalSession) {
+  sessionStorage.setItem(MOCK_ACTIVE_ACCOUNT_KEY, session.account.id);
+  sessionStorage.setItem(
+    MOCK_ACTIVE_CHAMPIONSHIPS_KEY,
+    JSON.stringify(session.links.organizedChampionshipIds),
+  );
+  window.dispatchEvent(new Event(MOCK_SESSION_CHANGED_EVENT));
+}
+
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -137,7 +176,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     queueMicrotask(() => {
       if (!active) return;
-      setSession(readStoredSession());
+      const storedSession = readStoredSession();
+      if (storedSession) setActiveMockSession(storedSession);
+      setSession(storedSession);
       setHydrated(true);
     });
 
@@ -150,6 +191,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // TODO(auth-api): remover esta persistência quando a API retornar a conta criada.
     sessionStorage.setItem(REGISTERED_ACCOUNT_KEY, JSON.stringify(account));
     sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(MOCK_ACTIVE_ACCOUNT_KEY);
+    sessionStorage.removeItem(MOCK_ACTIVE_CHAMPIONSHIPS_KEY);
+    window.dispatchEvent(new Event(MOCK_SESSION_CHANGED_EVENT));
     setSession(null);
     setHydrated(true);
   }
@@ -177,8 +221,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         }
       : normalizedEmail === 'sem-time@campolivre.test'
         ? mockUnlinkedPersonalSession
-        : mockPersonalSession;
+        : normalizedEmail === 'colaborador@campolivre.test'
+          ? mockCollaboratorSession
+          : mockPersonalSession;
 
+    setActiveMockSession(nextSession);
     setSession(nextSession);
     setHydrated(true);
     storeSession(nextSession);
@@ -194,6 +241,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  function enableOrganizer() {
+    setSession((current) => {
+      if (!current) return current;
+      const nextSession: PersonalSession = {
+        ...current,
+        capabilities: current.capabilities.includes('organizador')
+          ? current.capabilities
+          : [...current.capabilities, 'organizador'],
+        activeContext: 'organizador',
+        organizerEnabledAt:
+          current.organizerEnabledAt ?? new Date().toISOString(),
+      };
+      storeSession(nextSession);
+      return nextSession;
+    });
+  }
+
   return (
     <SessionContext.Provider
       value={{
@@ -201,6 +265,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         hydrated,
         registerMockAccount,
         signInWithMock,
+        enableOrganizer,
         switchContext,
       }}
     >

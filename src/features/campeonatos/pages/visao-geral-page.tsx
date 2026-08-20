@@ -1,111 +1,498 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { CalendarPlus, GitBranch, Users } from 'lucide-react';
 import { useState } from 'react';
+
+import { useSession } from '@/features/auth/session/session-context';
+import type { EstadoCampeonatoOperacional } from '@/features/organizador/model/organizer-models';
+import { organizerCatalogMock } from '@/features/organizador/services/organizer-catalog.mock';
+import { useOrganizerOperationalState } from '@/features/organizador/state/organizer-operational-store';
+import { publicCatalogMock } from '@/features/publico/services/public-catalog.mock';
+import { PageHeader } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
+import { Input } from '@/shared/components/ui/input';
 
-import {
-  ListaJogos,
-  ListaTimes,
-  ProximoJogoCard,
-  ResultadoRow,
-  TabelaClassificacao,
-} from '@/features/campeonatos/components/campeonato-widgets';
-import { StatusBadge } from '@/shared/components/status-badge';
-import { PageHeader, StatCard, Tabs } from '@/shared/components/campo-livre-ui';
-import { getCampeonato, partidas } from '@/mocks/data';
+const estadoLabel: Record<EstadoCampeonatoOperacional, string> = {
+  EM_CONFIGURACAO: 'Em configuração',
+  EM_ANDAMENTO: 'Em andamento',
+  ENCERRADO: 'Encerrado',
+  CANCELADO: 'Cancelado',
+};
 
-export function VisaoGeral() {
-  const { id } = useParams<{ id: string }>();
-  const campeonato = getCampeonato(id ?? '');
-  const [tab, setTab] = useState('Visão Geral');
-  const basePath = `/organizador/campeonato/${id ?? ''}`;
+export function VisaoGeral({ campeonatoId }: { campeonatoId: string }) {
+  const { session, hydrated } = useSession();
+  const operacional = useOrganizerOperationalState(Number(campeonatoId));
+  const campeonato = organizerCatalogMock.obterCampeonato(
+    campeonatoId,
+    session?.account.id ?? '',
+    session?.links.organizedChampionshipIds ?? [],
+  );
+  const [novoColaborador, setNovoColaborador] = useState('');
+  const [transferindo, setTransferindo] = useState(false);
+  const [novoResponsavel, setNovoResponsavel] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [cancelando, setCancelando] = useState(false);
+  const [motivoCancelamento, setMotivoCancelamento] = useState('');
+
+  if (!hydrated) return <p role="status">Carregando campeonato...</p>;
+
+  if (!campeonato) {
+    return (
+      <Card className="p-6">
+        <h1 className="font-display text-2xl font-semibold">
+          Sem acesso administrativo
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          A conta não possui vínculo ativo com este campeonato. A consulta
+          pública continua disponível quando a competição for pública.
+        </p>
+        <Button asChild variant="campoOutline" className="mt-4">
+          <Link href={`/campeonatos/${campeonatoId}`}>Ver página pública</Link>
+        </Button>
+      </Card>
+    );
+  }
+
+  const estado = operacional.estado?.estado ?? campeonato.estado;
+  const pendencias = operacional.estado?.pendencias ?? campeonato.pendencias;
+  const validado = operacional.estado?.validado ?? false;
+  const inscricoesAbertas =
+    operacional.estado?.inscricoesAbertas ??
+    Boolean(campeonato.inscricoesAbertasEm);
+  const partidasPendentes = publicCatalogMock
+    .listarPartidas()
+    .filter(
+      (partida) =>
+        partida.campeonatoId === campeonato.id &&
+        !partida.resultadoPublicado &&
+        (operacional.estado?.partidaEstados[partida.id] ?? partida.estado) !==
+          'CANCELADA' &&
+        !operacional.estado?.fatosDefinitivos[partida.id],
+    );
+  const colaboradores =
+    operacional.estado?.colaboradores ??
+    organizerCatalogMock.listarConvitesColaborador(Number(campeonatoId));
+  const responsavelAtual =
+    operacional.estado?.responsavelAtual ?? campeonato.responsavel;
+  const responsavel = operacional.estado
+    ? operacional.estado.responsavelContaId === session?.account.id
+    : campeonato.papelDaConta === 'RESPONSAVEL';
+  const emConfiguracao = estado === 'EM_CONFIGURACAO';
+  const emAndamento = estado === 'EM_ANDAMENTO';
+
+  function executarPendenciaLocal(item: string) {
+    if (item === 'Publicar regulamento') operacional.publicarRegulamento();
+    if (item === 'Configurar critérios de desempate')
+      operacional.salvarCriterios();
+    if (item === 'Validar elencos inscritos') operacional.validarElencos();
+    setFeedback(`${item} registrado no estado operacional mock.`);
+  }
 
   return (
     <>
       <PageHeader
         title={campeonato.nome}
-        subtitle={`${campeonato.modalidade} · ${campeonato.formato}`}
-        actions={<StatusBadge status={campeonato.status} />}
-      />
-
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Times" value={campeonato.times} />
-        <StatCard label="Rodada" value={campeonato.rodada} />
-        <StatCard label="Partidas" value={partidas.length} />
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Button variant="campoOutline" className="py-2.5" asChild>
-          <Link href={`${basePath}/times`}>
-            <Users className="h-4 w-4" /> Gerenciar times
-          </Link>
-        </Button>
-        <Button variant="campoOutline" className="py-2.5" asChild>
-          <Link href={`${basePath}/partidas`}>
-            <CalendarPlus className="h-4 w-4" /> Agendar partidas
-          </Link>
-        </Button>
-        <Button variant="campoOutline" className="py-2.5" asChild>
-          <Link href={`${basePath}/chaveamento`}>
-            <GitBranch className="h-4 w-4" /> Chaveamento
-          </Link>
-        </Button>
-      </div>
-
-      <Tabs
-        tabs={['Visão Geral', 'Pts Corridos', 'Jogos', 'Times']}
-        active={tab}
-        onChange={setTab}
-      />
-
-      {tab === 'Visão Geral' ? (
-        <div className="space-y-6">
-          <ProximoJogoCard />
-          <TabelaClassificacao />
-          <div className="space-y-2">
-            <h3 className="font-display font-semibold text-foreground">
-              Últimos resultados
-            </h3>
-            {partidas
-              .filter((p) => p.concluida)
-              .map((p) => (
-                <ResultadoRow
-                  key={p.id}
-                  casa={p.casa}
-                  fora={p.fora}
-                  placar={`${p.golsCasa} x ${p.golsFora}`}
-                />
-              ))}
-          </div>
-        </div>
-      ) : null}
-
-      {tab === 'Pts Corridos' ? <TabelaClassificacao /> : null}
-
-      {tab === 'Jogos' ? (
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button variant="campoOutline" className="py-2.5" asChild>
-              <Link href={`${basePath}/partidas`}>Agendar</Link>
-            </Button>
-            <Button variant="campoOutline" className="py-2.5" asChild>
-              <Link href={`${basePath}/sumula`}>Lançar resultado</Link>
-            </Button>
-          </div>
-          <ListaJogos />
-        </div>
-      ) : null}
-
-      {tab === 'Times' ? (
-        <div className="space-y-4">
-          <Button variant="campoOutline" className="py-2.5" asChild>
-            <Link href={`${basePath}/times`}>Gerenciar elencos</Link>
+        subtitle={`${campeonato.modalidade} · ${campeonato.contexto.nome}`}
+        actions={
+          <Button asChild variant="campoOutline">
+            <Link href={`/campeonatos/${campeonato.id}`}>
+              Visualizar página pública
+            </Link>
           </Button>
-          <ListaTimes />
+        }
+      />
+
+      <div className="mb-6 rounded-2xl border border-border bg-card p-4 text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <strong>{estadoLabel[estado]}</strong>
+            <p className="mt-1 text-muted-foreground">
+              {responsavel
+                ? 'Você é o responsável ativo'
+                : 'Você atua como colaborador'}
+            </p>
+            <p className="text-muted-foreground">
+              Responsável: {responsavelAtual}
+            </p>
+          </div>
+          {inscricoesAbertas && emConfiguracao ? (
+            <span className="rounded-full bg-blue-100 px-3 py-1 font-semibold text-blue-800">
+              Inscrições abertas
+            </span>
+          ) : null}
         </div>
+      </div>
+
+      {estado !== 'CANCELADO' && estado !== 'ENCERRADO' ? (
+        <section aria-label="Operações do campeonato" className="mb-8">
+          <h2 className="font-display text-xl font-semibold">Operações</h2>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Button asChild variant="campoOutline">
+              <Link href={`/organizador/campeonato/${campeonato.id}/times`}>
+                Times e elencos
+              </Link>
+            </Button>
+            <Button asChild variant="campoOutline">
+              <Link href={`/organizador/campeonato/${campeonato.id}/partidas`}>
+                Operar partidas
+              </Link>
+            </Button>
+            <Button asChild variant="campoOutline">
+              <Link href={`/organizador/campeonato/${campeonato.id}/sumula`}>
+                Preencher súmula
+              </Link>
+            </Button>
+            <Button asChild variant="campoOutline">
+              <Link href={`/organizador/campeonato/${campeonato.id}/reservas`}>
+                Reservas de campo
+              </Link>
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {emConfiguracao ? (
+        <section aria-label="Configuração e validação" className="mb-8">
+          <Card className="p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-xl font-semibold">
+                  Configuração e validação
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Alterações relevantes invalidam a validação anterior.
+                </p>
+              </div>
+              <strong className="text-sm">
+                {pendencias.length} pendências bloqueantes
+              </strong>
+            </div>
+
+            {pendencias.length > 0 ? (
+              <ul className="mt-5 space-y-2">
+                {pendencias.map((item) => (
+                  <li
+                    key={item}
+                    className="flex flex-col justify-between gap-2 rounded-xl bg-muted p-3 sm:flex-row sm:items-center"
+                  >
+                    <span className="text-sm">{item}</span>
+                    {responsavel ? (
+                      [
+                        'Publicar regulamento',
+                        'Configurar critérios de desempate',
+                      ].includes(item) ? (
+                        <Button
+                          size="sm"
+                          variant="campoOutline"
+                          aria-label={`Registrar: ${item}`}
+                          onClick={() => executarPendenciaLocal(item)}
+                        >
+                          Registrar fato mock
+                        </Button>
+                      ) : (
+                        <Button asChild size="sm" variant="campoOutline">
+                          <Link
+                            href={`/organizador/campeonato/${campeonato.id}/${item === 'Resolver convites pendentes' || item === 'Validar elencos inscritos' ? 'times' : 'chaveamento'}`}
+                          >
+                            Resolver na operação correspondente
+                          </Link>
+                        </Button>
+                      )
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-5 rounded-xl bg-green-pale p-3 text-sm text-green-dark">
+                Nenhuma pendência detectada. O responsável pode revalidar a
+                configuração.
+              </p>
+            )}
+
+            {responsavel ? (
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Button
+                  variant="campoOutline"
+                  disabled={pendencias.length > 0}
+                  onClick={() => {
+                    operacional.validarConfiguracao();
+                    setFeedback('Configuração validada localmente');
+                  }}
+                >
+                  Validar configuração
+                </Button>
+                <Button
+                  variant="campoOutline"
+                  disabled={!validado || inscricoesAbertas}
+                  onClick={() => {
+                    operacional.abrirInscricoes();
+                    setFeedback('Inscrições abertas');
+                  }}
+                >
+                  Abrir inscrições
+                </Button>
+                <Button
+                  variant="campo"
+                  disabled={!validado || !inscricoesAbertas}
+                  onClick={() => {
+                    operacional.iniciarCampeonato();
+                    setFeedback('Campeonato em andamento');
+                  }}
+                >
+                  Iniciar campeonato
+                </Button>
+              </div>
+            ) : null}
+          </Card>
+        </section>
+      ) : null}
+
+      {responsavel && emConfiguracao ? (
+        <section aria-label="Equipe organizadora" className="mb-8">
+          <Card className="p-5">
+            <h2 className="font-display text-xl font-semibold">
+              Equipe organizadora
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Convites exigem aceite explícito. Apenas o responsável transfere a
+              titularidade ou remove colaboradores.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Input
+                aria-label="Usuário ou e-mail do organizador"
+                placeholder="usuario ou email"
+                value={novoColaborador}
+                onChange={(event) => setNovoColaborador(event.target.value)}
+              />
+              <Button
+                variant="campoOutline"
+                disabled={!novoColaborador.trim()}
+                onClick={() => {
+                  operacional.convidarOrganizador(
+                    novoColaborador.trim(),
+                    campeonato.contexto.nome,
+                  );
+                  setNovoColaborador('');
+                  setFeedback('Convite de organizador enviado localmente.');
+                }}
+              >
+                Convidar organizador
+              </Button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {colaboradores.map((colaborador) => (
+                <div
+                  key={colaborador.id}
+                  className="flex flex-col justify-between gap-2 rounded-xl bg-muted p-3 sm:flex-row sm:items-center"
+                >
+                  <p className="text-sm">
+                    {colaborador.conta} ·{' '}
+                    {colaborador.estado === 'PENDENTE'
+                      ? 'Pendente de aceite'
+                      : colaborador.estado}
+                  </p>
+                  {colaborador.estado === 'PENDENTE' ? (
+                    <Button
+                      size="sm"
+                      variant="campoOutline"
+                      aria-label={`Cancelar convite de ${colaborador.conta}`}
+                      onClick={() =>
+                        operacional.cancelarConviteOrganizador(colaborador.id)
+                      }
+                    >
+                      Cancelar convite
+                    </Button>
+                  ) : colaborador.estado === 'ACEITO' ? (
+                    <Button
+                      size="sm"
+                      variant="campoOutline"
+                      onClick={() =>
+                        operacional.removerColaborador(colaborador.id)
+                      }
+                    >
+                      Remover colaborador
+                    </Button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="campoOutline"
+              className="mt-4"
+              onClick={() => {
+                setNovoResponsavel(
+                  colaboradores.find((item) => item.estado === 'ACEITO')
+                    ?.contaId ?? '',
+                );
+                setTransferindo(true);
+              }}
+            >
+              Transferir responsabilidade
+            </Button>
+            {transferindo ? (
+              <div className="mt-4 rounded-xl border border-border p-4">
+                <label
+                  htmlFor="novo-responsavel"
+                  className="text-sm font-semibold"
+                >
+                  Novo responsável
+                </label>
+                <select
+                  id="novo-responsavel"
+                  className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3"
+                  value={novoResponsavel}
+                  onChange={(event) => setNovoResponsavel(event.target.value)}
+                >
+                  {colaboradores
+                    .filter((item) => item.estado === 'ACEITO' && item.contaId)
+                    .map((item) => (
+                      <option key={item.id} value={item.contaId}>
+                        {item.conta}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Você permanecerá como colaborador após a transferência.
+                </p>
+                <Button
+                  variant="campo"
+                  className="mt-3"
+                  disabled={!novoResponsavel}
+                  onClick={() => {
+                    const destino = colaboradores.find(
+                      (item) => item.contaId === novoResponsavel,
+                    );
+                    if (!destino?.contaId) return;
+                    operacional.transferirResponsabilidade(
+                      destino.contaId,
+                      destino.conta,
+                    );
+                    setTransferindo(false);
+                    setFeedback(
+                      `Responsabilidade transferida localmente para ${destino.conta}.`,
+                    );
+                  }}
+                >
+                  Confirmar transferência
+                </Button>
+              </div>
+            ) : null}
+          </Card>
+        </section>
+      ) : null}
+
+      {emAndamento ? (
+        <Card className="mb-8 p-5">
+          <h2 className="font-display text-xl font-semibold">
+            Campeonato em andamento
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Composição, formato e regulamento bloqueados. Permanecem disponíveis
+            operações de partidas sem resultado, WO, reservas e súmula.
+          </p>
+        </Card>
+      ) : null}
+
+      {responsavel && (emConfiguracao || emAndamento) ? (
+        <section aria-label="Ciclo de vida" className="mb-8">
+          <Card className="p-5">
+            <h2 className="font-display text-xl font-semibold">
+              Ciclo de vida
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Finalização e cancelamento preservam o histórico e exigirão
+              transação e auditoria no backend.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {emAndamento ? (
+                <Button
+                  variant="campoOutline"
+                  onClick={() => {
+                    if (partidasPendentes.length > 0) {
+                      setFeedback(
+                        `Finalização bloqueada: ${partidasPendentes.length} partidas ainda não possuem resultado definitivo publicado.`,
+                      );
+                      return;
+                    }
+                    operacional.encerrarCampeonato();
+                    setFeedback('Campeonato encerrado; histórico preservado.');
+                  }}
+                >
+                  Finalizar campeonato
+                </Button>
+              ) : null}
+              <Button variant="destructive" onClick={() => setCancelando(true)}>
+                Cancelar campeonato
+              </Button>
+            </div>
+            {cancelando ? (
+              <div className="mt-4 rounded-xl border border-danger/30 p-4">
+                <label
+                  htmlFor="motivo-cancelamento"
+                  className="text-sm font-semibold"
+                >
+                  Motivo do cancelamento
+                </label>
+                <Input
+                  id="motivo-cancelamento"
+                  className="mt-2"
+                  value={motivoCancelamento}
+                  onChange={(event) =>
+                    setMotivoCancelamento(event.target.value)
+                  }
+                />
+                <Button
+                  variant="destructive"
+                  className="mt-3"
+                  disabled={!motivoCancelamento.trim()}
+                  onClick={() => {
+                    operacional.cancelarCampeonato();
+                    setCancelando(false);
+                    setFeedback(
+                      'Campeonato cancelado localmente; histórico preservado.',
+                    );
+                  }}
+                >
+                  Confirmar cancelamento
+                </Button>
+              </div>
+            ) : null}
+          </Card>
+        </section>
+      ) : null}
+
+      {estado === 'CANCELADO' ? (
+        <Card className="mb-8 p-5">
+          <h2 className="font-display text-xl font-semibold">
+            Campeonato cancelado
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Novas operações estão bloqueadas. Fatos e resultados já publicados
+            permanecem no histórico.
+          </p>
+        </Card>
+      ) : null}
+
+      {estado === 'ENCERRADO' ? (
+        <Card className="mb-8 p-5">
+          <h2 className="font-display text-xl font-semibold">
+            Campeonato encerrado
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Todas as partidas possuem fato definitivo. Novas operações estão
+            bloqueadas e o histórico permanece disponível.
+          </p>
+        </Card>
+      ) : null}
+
+      {feedback ? (
+        <p
+          role="status"
+          className="rounded-xl bg-green-pale p-3 text-sm font-semibold text-green-dark"
+        >
+          {feedback}
+        </p>
       ) : null}
     </>
   );

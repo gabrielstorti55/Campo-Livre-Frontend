@@ -15,7 +15,7 @@ import { Input } from '@/shared/components/ui/input';
 
 export function LoginPage() {
   const router = useRouter();
-  const { signInWithMock } = useSession();
+  const { hydrated, signInWithMock } = useSession();
 
   return (
     <AuthShell>
@@ -83,6 +83,7 @@ export function LoginPage() {
           <Button
             variant="campo"
             type="submit"
+            disabled={!hydrated}
             className="group mt-2 h-11 w-full"
           >
             <span>Entrar</span>

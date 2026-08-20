@@ -56,6 +56,10 @@ test('mantém o cadastro pessoal acessível sem seleção de papel global', asyn
 test('agenda data, horário e partida com primitivas de seleção acessíveis', async ({
   page,
 }) => {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
   await page.goto('/organizador/campeonato/1/partidas');
 
   const calendar = page.getByRole('grid', { name: /agosto 2026/i });

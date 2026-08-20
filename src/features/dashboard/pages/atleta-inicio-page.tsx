@@ -21,7 +21,6 @@ import {
 } from '@/shared/components/list-row';
 import { ProfileHeroHeader } from '@/shared/components/profile-shell';
 import { StatusBadge } from '@/shared/components/status-badge';
-import { Button } from '@/shared/components/ui/button';
 
 const filtros = [
   'Todos os tipos',
@@ -162,17 +161,16 @@ export function AtletaInicio() {
                     </Link>
                     <StatusBadge status={c.status} />
                     {c.status === 'Inscrições abertas' ? (
-                      <Button variant="campo" className="py-2.5">
-                        Solicitar inscrição
-                      </Button>
-                    ) : (
-                      <Link
-                        href={`/campeonatos/${c.id}`}
-                        aria-label={`Abrir ${c.nome}`}
-                      >
-                        <Chevron />
-                      </Link>
-                    )}
+                      <span className="text-xs font-semibold text-green-dark">
+                        Participação por convite do organizador
+                      </span>
+                    ) : null}
+                    <Link
+                      href={`/campeonatos/${c.id}`}
+                      aria-label={`Abrir ${c.nome}`}
+                    >
+                      <Chevron />
+                    </Link>
                   </div>
                 ))}
               </div>

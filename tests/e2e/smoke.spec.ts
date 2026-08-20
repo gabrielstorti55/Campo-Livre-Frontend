@@ -12,7 +12,7 @@ test('abre a aplicação na área pública sem exigir autenticação', async ({
   await expect(page).toHaveTitle(/CampoLivre LigaPro/);
   await expect(
     page.getByRole('heading', {
-      name: 'O esporte da cidade, aberto para quem quer acompanhar.',
+      name: 'Campeonatos em andamento',
     }),
   ).toBeVisible();
   await expect(
@@ -26,6 +26,11 @@ test('renderiza as áreas principais e rotas parametrizadas sem erro', async ({
 }) => {
   const pageErrors: string[] = [];
   page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
 
   const routes = [
     '/atleta/inicio',

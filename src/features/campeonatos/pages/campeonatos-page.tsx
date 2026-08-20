@@ -1,53 +1,182 @@
 'use client';
 
 import { ArrowUpRight, MapPin, Trophy, Users } from 'lucide-react';
-import { useState } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
 
-import { CampeonatoMeta } from '@/features/campeonatos/components/campeonato-meta';
-import { campeonatos } from '@/mocks/data';
+import type {
+  CampeonatoEstadoPublico,
+  CampeonatoFormato,
+} from '@/features/publico/model/public-models';
+import { publicCatalogMock } from '@/features/publico/services/public-catalog.mock';
 import { SearchBar } from '@/shared/components/campo-livre-ui';
 import { PageHero } from '@/shared/components/page-hero';
 import { ResourceState } from '@/shared/components/resource-state';
-import { StatusBadge } from '@/shared/components/status-badge';
 import { cn } from '@/shared/lib/utils';
 
 const cardFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+const selectClass =
+  'h-11 rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+const estadoLabel: Record<CampeonatoEstadoPublico, string> = {
+  EM_CONFIGURACAO: 'Em configuração',
+  EM_ANDAMENTO: 'Em andamento',
+  ENCERRADO: 'Encerrado',
+  CANCELADO: 'Cancelado',
+};
+
+const formatoLabel: Record<CampeonatoFormato, string> = {
+  PONTOS_CORRIDOS: 'Pontos corridos',
+  MATA_MATA: 'Mata-mata',
+  GRUPOS_MATA_MATA: 'Grupos + mata-mata',
+};
 
 export function CampeonatosPage() {
   const [busca, setBusca] = useState('');
-  const lista = campeonatos.filter((campeonato) =>
-    campeonato.nome.toLowerCase().includes(busca.toLowerCase()),
+  const [estado, setEstado] = useState<CampeonatoEstadoPublico | 'TODOS'>(
+    'TODOS',
   );
+  const [municipio, setMunicipio] = useState('');
+  const [uf, setUf] = useState('');
+  const [formato, setFormato] = useState<CampeonatoFormato | 'TODOS'>('TODOS');
+  const [periodo, setPeriodo] = useState<
+    'TODOS' | 'PROXIMOS' | '2026' | '2025'
+  >('TODOS');
+  const [ordenacao, setOrdenacao] = useState<
+    'INICIO_ASC' | 'RECENTES' | 'NOME'
+  >('INICIO_ASC');
+
+  const lista = publicCatalogMock.listarCampeonatos({
+    busca,
+    estado,
+    ...(municipio ? { municipio } : {}),
+    ...(uf ? { uf } : {}),
+    formato,
+    periodo,
+    ordenacao,
+  });
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <PageHero
         eyebrow="Competições públicas"
         title="Campeonatos"
-        description="Acompanhe competições, classificação e resultados sem precisar entrar na sua conta."
+        description="Acompanhe competições publicadas, seus participantes, estrutura, classificação e resultados."
       />
 
-      <div className="mb-7 grid gap-4 rounded-2xl border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5">
-        <div className="max-w-xl">
-          <SearchBar
-            placeholder="Buscar campeonatos..."
-            value={busca}
-            onChange={setBusca}
-          />
+      <section
+        aria-label="Filtros de campeonatos"
+        className="mb-7 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5"
+      >
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="md:col-span-2">
+            <SearchBar
+              placeholder="Buscar campeonatos..."
+              value={busca}
+              onChange={setBusca}
+            />
+          </div>
+          <label className="grid gap-1 text-xs font-semibold">
+            Estado do campeonato
+            <select
+              className={selectClass}
+              value={estado}
+              onChange={(event) =>
+                setEstado(
+                  event.target.value as CampeonatoEstadoPublico | 'TODOS',
+                )
+              }
+            >
+              <option value="TODOS">Todos</option>
+              {Object.entries(estadoLabel).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold">
+            Município
+            <select
+              className={selectClass}
+              value={municipio}
+              onChange={(event) => setMunicipio(event.target.value)}
+            >
+              <option value="">Todos</option>
+              <option value="Franca">Franca</option>
+              <option value="Batatais">Batatais</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold">
+            UF
+            <select
+              className={selectClass}
+              value={uf}
+              onChange={(event) => setUf(event.target.value)}
+            >
+              <option value="">Todas</option>
+              <option value="SP">SP</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold">
+            Formato
+            <select
+              className={selectClass}
+              value={formato}
+              onChange={(event) =>
+                setFormato(event.target.value as CampeonatoFormato | 'TODOS')
+              }
+            >
+              <option value="TODOS">Todos</option>
+              {Object.entries(formatoLabel).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold">
+            Período de início
+            <select
+              className={selectClass}
+              value={periodo}
+              onChange={(event) =>
+                setPeriodo(event.target.value as typeof periodo)
+              }
+            >
+              <option value="TODOS">Todos</option>
+              <option value="PROXIMOS">Próximos</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold">
+            Ordenar campeonatos
+            <select
+              className={selectClass}
+              value={ordenacao}
+              onChange={(event) =>
+                setOrdenacao(event.target.value as typeof ordenacao)
+              }
+            >
+              <option value="INICIO_ASC">Início mais próximo</option>
+              <option value="RECENTES">Criação recente</option>
+              <option value="NOME">Nome</option>
+            </select>
+          </label>
         </div>
-        <p className="text-sm text-muted-foreground sm:text-right">
-          <span className="font-semibold text-foreground">{lista.length}</span>{' '}
-          competições visíveis
+        <p className="mt-4 text-sm text-muted-foreground">
+          <strong className="text-foreground">{lista.length}</strong>{' '}
+          competições visíveis · página mock 1 de 1
         </p>
-      </div>
+      </section>
 
       {lista.length === 0 ? (
         <ResourceState
           kind="empty"
           title="Nenhum campeonato encontrado"
-          description="Tente outro termo de busca. Quando novos campeonatos públicos estiverem disponíveis, eles aparecerão aqui."
+          description="Tente outros filtros. Rascunhos e competições não publicadas nunca aparecem nesta consulta."
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -56,7 +185,7 @@ export function CampeonatosPage() {
               key={campeonato.id}
               href={`/campeonatos/${campeonato.id}`}
               className={cn(
-                'group relative overflow-hidden rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_10px_30px_rgba(30,54,43,0.06)] transition-[border-color,box-shadow] duration-150 hover:border-green-light hover:shadow-[0_14px_36px_rgba(30,54,43,0.10)] sm:p-6',
+                'group relative overflow-hidden rounded-[24px] border border-border/70 bg-card p-5 shadow-sm transition hover:border-green-light hover:shadow-md sm:p-6',
                 cardFocus,
               )}
             >
@@ -69,29 +198,32 @@ export function CampeonatosPage() {
                   <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
                     {index === 0 ? 'Em destaque' : campeonato.modalidade}
                   </p>
-                  <h2 className="mt-1.5 font-display text-xl font-semibold tracking-[-0.03em] transition-colors duration-150 group-hover:text-green-dark sm:text-2xl">
+                  <h2 className="mt-1.5 font-display text-xl font-semibold sm:text-2xl">
                     {campeonato.nome}
                   </h2>
-                  <CampeonatoMeta cidade={campeonato.cidade} icon={MapPin} />
+                  <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                    {campeonato.municipio}, {campeonato.uf}
+                  </p>
                 </div>
-                <StatusBadge status={campeonato.status} />
+                <span className="rounded-full bg-green-pale px-3 py-1 text-xs font-semibold text-green-dark">
+                  {campeonato.inscricoesAbertas
+                    ? 'Inscrições abertas'
+                    : estadoLabel[campeonato.estado]}
+                </span>
               </div>
-
               <div className="mt-6 flex flex-wrap gap-2 border-t border-border/70 pt-4 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5">
-                  <Users className="h-3.5 w-3.5" aria-hidden="true" />{' '}
-                  {campeonato.times} times
+                  <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                  {campeonato.timeIds.length} times
                 </span>
                 <span className="rounded-full bg-muted px-3 py-1.5">
-                  {campeonato.formato}
+                  {formatoLabel[campeonato.formato]}
                 </span>
               </div>
-
               <div className="mt-6 flex min-h-11 items-center justify-between text-sm font-semibold text-green-dark">
                 Ver campeonato
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-green-pale transition-colors duration-150 group-hover:bg-green-light/30">
-                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                </span>
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </div>
             </Link>
           ))}

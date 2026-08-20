@@ -16,6 +16,10 @@ const comEventos = [3, 7, 10, 14, 17, 21, 24, 28].map(
 export function Calendario() {
   const [data, setData] = useState(new Date(2026, 7, 7));
   const dia = data.getDate();
+  const dataSelecionada = `${String(dia).padStart(2, '0')}/08/2026`;
+  const reservasDoDia = reservas.filter(
+    (reserva) => reserva.data === dataSelecionada,
+  );
 
   return (
     <>
@@ -46,7 +50,7 @@ export function Calendario() {
       <Section
         title={`Eventos de hoje: ${String(dia).padStart(2, '0')}/08/2026`}
       >
-        {reservas.map((reserva) => (
+        {reservasDoDia.map((reserva) => (
           <Card key={reserva.id} className="space-y-1">
             <p className="flex items-center gap-1 font-display font-semibold text-foreground">
               <MapPin className="h-4 w-4 text-navy-mid" /> {reserva.campo}
@@ -55,11 +59,16 @@ export function Calendario() {
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" /> {reserva.horario}
               </span>
-              <span>{String(dia).padStart(2, '0')}/08/2026</span>
+              <span>{dataSelecionada}</span>
               <span>{reserva.campeonato}</span>
             </p>
           </Card>
         ))}
+        {reservasDoDia.length === 0 ? (
+          <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            Nenhuma reserva nesta data.
+          </p>
+        ) : null}
       </Section>
     </>
   );

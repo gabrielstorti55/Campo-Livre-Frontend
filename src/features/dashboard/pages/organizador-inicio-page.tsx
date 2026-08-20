@@ -1,99 +1,121 @@
 'use client';
 
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { MapPin, Plus } from 'lucide-react';
-import { useState } from 'react';
+
+import { useSession } from '@/features/auth/session/session-context';
+import { organizerCatalogMock } from '@/features/organizador/services/organizer-catalog.mock';
+import { PageHeader } from '@/shared/components/campo-livre-ui';
+import { StatusBadge } from '@/shared/components/status-badge';
 import { Button } from '@/shared/components/ui/button';
 
-import { Chevron, ListRow, MetaRow } from '@/shared/components/list-row';
-import { ProfileHeroHeader } from '@/shared/components/profile-shell';
-import { StatusBadge } from '@/shared/components/status-badge';
-import {
-  FilterPills,
-  SearchBar,
-  Section,
-} from '@/shared/components/campo-livre-ui';
-import { campeonatos, organizadorLogado } from '@/mocks/data';
-
-const filtros = ['Todos os tipos', 'Society', 'Campo'];
+const papelLabel = {
+  RESPONSAVEL: 'Responsável',
+  ORGANIZADOR: 'Colaborador',
+} as const;
 
 export function OrganizadorInicio() {
-  const [filtro, setFiltro] = useState('Todos os tipos');
-  const [busca, setBusca] = useState('');
-  const meus = campeonatos.slice(0, 3);
-  const regiao = campeonatos.filter(
-    (c) =>
-      (filtro === 'Todos os tipos' || c.modalidade.includes(filtro)) &&
-      c.nome.toLowerCase().includes(busca.toLowerCase()),
+  const { session } = useSession();
+  const campeonatos = organizerCatalogMock.listarCampeonatos(
+    session?.account.id ?? '',
+    session?.links.organizedChampionshipIds ?? [],
+  );
+  const comercial = organizerCatalogMock.obterSituacaoComercial(
+    session?.account.id ?? '',
   );
 
   return (
     <>
-      <ProfileHeroHeader
-        name={organizadorLogado.nome}
-        subtitle={organizadorLogado.cidade}
-        meta={`Score ${organizadorLogado.score} · ${organizadorLogado.eventos} eventos realizados`}
+      <PageHeader
+        title={session?.account.name ?? 'Painel do organizador'}
+        subtitle="Organize apenas os campeonatos vinculados à sua conta"
+        actions={
+          <Button variant="campo" asChild>
+            <Link href="/organizador/novo">
+              <Plus className="h-4 w-4" /> Novo campeonato
+            </Link>
+          </Button>
+        }
       />
 
-      <div className="flex justify-end">
-        <Button variant="campo" asChild>
-          <Link href="/organizador/novo">
-            <Plus className="h-4 w-4" /> Novo campeonato
-          </Link>
-        </Button>
-      </div>
-
-      <Section title="Meus campeonatos">
-        <div className="space-y-3">
-          {meus.map((c) => (
-            <Link key={c.id} href={`/organizador/campeonato/${c.id}`}>
-              <ListRow
-                interactive
-                title={c.nome}
-                subtitle={`${c.modalidade} · ${c.times} times`}
-                right={
-                  <>
-                    <StatusBadge status={c.status} />
-                    <Chevron />
-                  </>
-                }
-              />
-            </Link>
-          ))}
+      <section
+        aria-label="Situação comercial"
+        className="mb-8 rounded-3xl border border-border/70 bg-card p-5"
+      >
+        <h2 className="font-display text-xl font-semibold">
+          Situação comercial
+        </h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl bg-muted p-4 text-sm">
+            <strong>
+              {comercial.primeiroCampeonatoUtilizado
+                ? 'Primeiro campeonato gratuito utilizado'
+                : 'Primeiro campeonato gratuito disponível'}
+            </strong>
+            <p className="mt-1 text-muted-foreground">
+              O benefício pessoal é consumido uma única vez.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-muted p-4 text-sm">
+            <strong>
+              {comercial.direitosAdicionaisDisponiveis}{' '}
+              {comercial.direitosAdicionaisDisponiveis === 1
+                ? 'direito adicional disponível'
+                : 'direitos adicionais disponíveis'}
+            </strong>
+            <p className="mt-1 text-muted-foreground">
+              Campeonatos de Prefeitura elegível são isentos e não consomem o
+              benefício pessoal.
+            </p>
+          </div>
         </div>
-      </Section>
+      </section>
 
-      <Section title="Campeonatos na Região">
-        <SearchBar
-          placeholder="Buscar campeonato..."
-          value={busca}
-          onChange={setBusca}
-        />
-        <FilterPills options={filtros} value={filtro} onChange={setFiltro} />
-        <div className="grid gap-x-8 pt-1 md:grid-cols-2">
-          {regiao.map((c) => (
-            <Link
-              key={c.id}
-              href={`/organizador/campeonato/${c.id}`}
-              className="border-b border-border py-4"
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 truncate font-display font-semibold text-foreground">
-                    {c.nome}
-                  </p>
-                  <StatusBadge status={c.status} />
+      <section aria-label="Meus campeonatos" className="space-y-4">
+        <h2 className="font-display text-2xl font-semibold">
+          Meus campeonatos
+        </h2>
+        {campeonatos.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-card p-6">
+            <p className="font-semibold">Nenhum vínculo com campeonato</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Ativar o painel não concede acesso a competições de terceiros.
+              Crie um campeonato para se tornar responsável por ele.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {campeonatos.map((campeonato) => (
+              <Link
+                key={campeonato.id}
+                href={`/organizador/campeonato/${campeonato.id}`}
+                className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm transition hover:border-green-light"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-lg font-semibold">
+                      {campeonato.nome}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {campeonato.modalidade} · {campeonato.municipio}/
+                      {campeonato.uf}
+                    </p>
+                  </div>
+                  <StatusBadge status={campeonato.estado} />
                 </div>
-                <MetaRow
-                  items={[
-                    { icon: MapPin, label: `${c.cidade} · ${c.times} times` },
-                  ]}
-                />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </Section>
+                <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold">
+                  <span className="rounded-full bg-green-pale px-3 py-1 text-green-dark">
+                    {papelLabel[campeonato.papelDaConta]}
+                  </span>
+                  <span className="rounded-full bg-muted px-3 py-1">
+                    {campeonato.contexto.nome}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </>
   );
 }

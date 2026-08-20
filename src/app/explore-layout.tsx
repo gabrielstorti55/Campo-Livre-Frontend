@@ -7,6 +7,7 @@ import {
   Menu,
   Trophy,
   User,
+  UserRoundSearch,
   UserPlus,
   Users,
   X,
@@ -22,10 +23,11 @@ import {
 import { cn } from '@/shared/lib/utils';
 
 const navigationItems = [
-  { label: 'Início', to: '/', icon: Home },
+  { label: 'Inicio', to: '/', icon: Home },
   { label: 'Campeonatos', to: '/campeonatos', icon: Trophy },
   { label: 'Times', to: '/times', icon: Users },
   { label: 'Partidas', to: '/partidas', icon: CalendarDays },
+  { label: 'Atletas', to: '/atletas', icon: UserRoundSearch },
 ] as const;
 
 const interactiveFocus =

@@ -27,7 +27,9 @@ test('eventos esportivos publicados aparecem no resumo', async ({ page }) => {
   await page.goto('/partidas/3');
 
   await expect(page.getByRole('heading', { name: 'Gols' })).toBeVisible();
-  await expect(page.getByText('Marcos Oliveira')).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Gols' }).getByText('Marcos Oliveira'),
+  ).toBeVisible();
   await expect(page.getByText("12'")).toBeVisible();
 
   const cartoes = page.getByRole('region', { name: 'Cartões' });

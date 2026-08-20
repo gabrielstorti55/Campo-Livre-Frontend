@@ -174,6 +174,7 @@ export type Jogador = {
   posicao: string;
   capitao?: boolean;
   gols: number;
+  desde: string;
 };
 
 export const elenco: Jogador[] = [
@@ -183,14 +184,35 @@ export const elenco: Jogador[] = [
     posicao: 'Atacante',
     capitao: true,
     gols: 7,
+    desde: '2024',
   },
-  { id: 2, nome: 'Rafael Lima', posicao: 'Goleiro', gols: 0 },
-  { id: 3, nome: 'Diego Souza', posicao: 'Zagueiro', gols: 1 },
-  { id: 4, nome: 'Bruno Alves', posicao: 'Lateral', gols: 2 },
-  { id: 5, nome: 'Felipe Rocha', posicao: 'Meia', gols: 4 },
-  { id: 6, nome: 'Lucas Prado', posicao: 'Atacante', gols: 5 },
-  { id: 7, nome: 'Vitor Nunes', posicao: 'Volante', gols: 1 },
+  { id: 2, nome: 'Rafael Lima', posicao: 'Goleiro', gols: 0, desde: '2023' },
+  { id: 3, nome: 'Diego Souza', posicao: 'Zagueiro', gols: 1, desde: '2025' },
+  { id: 4, nome: 'Bruno Alves', posicao: 'Lateral', gols: 2, desde: '2025' },
+  { id: 5, nome: 'Felipe Rocha', posicao: 'Meia', gols: 4, desde: '2024' },
+  { id: 6, nome: 'Lucas Prado', posicao: 'Atacante', gols: 5, desde: '2026' },
+  { id: 7, nome: 'Vitor Nunes', posicao: 'Volante', gols: 1, desde: '2024' },
 ];
+
+const nomesPorTime: Record<number, string[]> = {
+  2: ['Henrique Alves', 'Matheus Costa', 'Caio Martins'],
+  3: ['André Pereira', 'Renan Gomes', 'Igor Freitas'],
+  4: ['Samuel Duarte', 'Gustavo Melo', 'Daniel Ribeiro'],
+  5: ['Eduardo Nunes', 'Thiago Lopes', 'Murilo Reis'],
+  6: ['Leonardo Paiva', 'Vinícius Teles', 'Fábio Moura'],
+};
+
+export function getElencoDoTime(id: string | number): Jogador[] {
+  const timeId = Number(id);
+  if (timeId === 1) return elenco;
+  const nomes = nomesPorTime[timeId] ?? [];
+  return nomes.map((nome, indice) => ({
+    ...elenco[indice]!,
+    id: timeId * 100 + indice,
+    nome,
+    capitao: indice === 0,
+  }));
+}
 
 export type LinhaClassificacao = {
   time: string;

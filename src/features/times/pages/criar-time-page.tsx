@@ -66,7 +66,7 @@ export function CriarTime() {
         </Field>
 
         <Button variant="campo" className="w-full">
-          Salvar e adicionar jogadores
+          Salvar time e convidar atletas
         </Button>
       </FormCard>
     </>

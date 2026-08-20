@@ -10,6 +10,8 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
     '/times/1',
     '/partidas',
     '/partidas/1',
+    '/atletas',
+    '/atletas/1',
   ];
 
   for (const route of routes) {
@@ -96,16 +98,15 @@ test('classificação pública permanece legível sem estourar a página no mobi
   expect(pageOverflows).toBe(false);
 });
 
-test('times públicos não expõem elenco nem dados pessoais de atletas', async ({
+test('times públicos expõem somente o elenco esportivo permitido', async ({
   page,
 }) => {
   await page.goto('/times/1');
 
   await expect(page.getByRole('heading', { name: 'Time A' })).toBeVisible();
-  await expect(
-    page.getByText('Elenco e dados pessoais de atletas não são exibidos'),
-  ).toBeVisible();
-  await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
+  const elenco = page.getByRole('region', { name: 'Elenco público' });
+  await expect(elenco.getByText('Marcos Oliveira')).toBeVisible();
+  await expect(page.getByText(/@campolivre\.test/)).toHaveCount(0);
 });
 
 test('prevê estados vazio e erro nas consultas públicas', async ({ page }) => {

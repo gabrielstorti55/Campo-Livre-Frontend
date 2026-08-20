@@ -19,6 +19,10 @@ export function GerenciarTime() {
   const { id } = useParams<{ id: string }>();
   const time = getTime(id ?? '');
   const [tab, setTab] = useState('Elenco');
+  const [convitePendente, setConvitePendente] = useState<{
+    conta: string;
+    modo: 'email' | 'link';
+  } | null>(null);
 
   return (
     <>
@@ -82,9 +86,78 @@ export function GerenciarTime() {
               </div>
             ))}
           </div>
-          <Button variant="campoOutline" className="w-full sm:w-auto">
-            <Plus className="h-4 w-4" /> Adicionar jogador
-          </Button>
+          <form
+            className="mt-5 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[minmax(0,1fr)_13rem_auto] sm:items-end"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const dados = new FormData(event.currentTarget);
+              setConvitePendente({
+                conta: String(dados.get('conta') ?? ''),
+                modo: dados.get('envio') === 'link' ? 'link' : 'email',
+              });
+              event.currentTarget.reset();
+            }}
+          >
+            <label className="space-y-1.5 text-sm font-medium">
+              <span>Conta do atleta</span>
+              <input
+                name="conta"
+                required
+                placeholder="E-mail, telefone, CPF ou usuário"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              />
+            </label>
+            <label className="space-y-1.5 text-sm font-medium">
+              <span>Forma de envio</span>
+              <select
+                name="envio"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="email">E-mail automático</option>
+                <option value="link">Link compartilhável</option>
+              </select>
+            </label>
+            <Button type="submit" variant="campoOutline">
+              <Plus className="h-4 w-4" /> Enviar convite nominal
+            </Button>
+          </form>
+          {convitePendente ? (
+            <div
+              className="mt-3 space-y-3 rounded-xl border border-border p-4"
+              role="status"
+            >
+              <p className="text-sm font-semibold text-green-dark">
+                Convite pendente para {convitePendente.conta}
+              </p>
+              {convitePendente.modo === 'link' ? (
+                <label className="block text-sm font-medium">
+                  Link compartilhável
+                  <input
+                    readOnly
+                    value="https://campolivre.app/convites/time/convite-mock-01"
+                    className="mt-1 h-10 w-full rounded-md border border-input bg-surface px-3 text-sm"
+                  />
+                </label>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Envio automático por e-mail solicitado.
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="campoOutline">
+                  Reenviar convite
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  tone="danger"
+                  onClick={() => setConvitePendente(null)}
+                >
+                  Cancelar convite
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </Section>
       ) : null}
 

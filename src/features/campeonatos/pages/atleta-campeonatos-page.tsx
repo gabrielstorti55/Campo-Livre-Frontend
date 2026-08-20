@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
 
 import { CampeonatoMeta } from '@/features/campeonatos/components/campeonato-meta';
 import { StatusBadge } from '@/shared/components/status-badge';
@@ -34,28 +33,30 @@ export function AtletaCampeonatos() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {lista.map((c) => (
-          <Card key={c.id} className="flex flex-col gap-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <Link
-                  href={`/campeonatos/${c.id}`}
-                  className="truncate font-display font-semibold text-foreground hover:text-green-mid"
-                >
-                  {c.nome}
-                </Link>
-                <CampeonatoMeta cidade={c.cidade} icon={MapPin} />
+          <section key={c.id} role="region" aria-label={`Campeonato ${c.nome}`}>
+            <Card className="flex h-full flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <Link
+                    href={`/campeonatos/${c.id}`}
+                    className="truncate font-display font-semibold text-foreground hover:text-green-mid"
+                  >
+                    {c.nome}
+                  </Link>
+                  <CampeonatoMeta cidade={c.cidade} icon={MapPin} />
+                </div>
+                <StatusBadge status={c.status} />
               </div>
-              <StatusBadge status={c.status} />
-            </div>
-            <CampeonatoMeta
-              times={c.times}
-              modalidade={c.modalidade}
-              formato={c.formato}
-            />
-            <Button variant="campo" className="w-full py-2.5">
-              Solicitar inscrição
-            </Button>
-          </Card>
+              <CampeonatoMeta
+                times={c.times}
+                modalidade={c.modalidade}
+                formato={c.formato}
+              />
+              <p className="rounded-lg bg-green-pale px-3 py-2 text-center text-xs font-semibold text-green-dark">
+                Participação por convite do organizador ao capitão
+              </p>
+            </Card>
+          </section>
         ))}
       </div>
     </>

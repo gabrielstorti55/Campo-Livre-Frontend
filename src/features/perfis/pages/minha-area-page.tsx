@@ -9,10 +9,19 @@ import {
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import { useSession } from '@/features/auth/session/session-context';
 import { Button } from '@/shared/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 import {
   Card,
   CardContent,
@@ -31,7 +40,9 @@ function getInitials(name: string) {
 }
 
 export function MinhaAreaPage() {
-  const { session, hydrated } = useSession();
+  const { session, hydrated, enableOrganizer } = useSession();
+  const router = useRouter();
+  const [activationOpen, setActivationOpen] = useState(false);
 
   if (!hydrated) {
     return (
@@ -49,6 +60,7 @@ export function MinhaAreaPage() {
   const hasTeam = session.links.teamIds.length > 0;
   const organizesChampionship =
     session.links.organizedChampionshipIds.length > 0;
+  const organizerEnabled = session.capabilities.includes('organizador');
   const city = session.account.city || 'Cidade não informada';
 
   return (
@@ -132,7 +144,20 @@ export function MinhaAreaPage() {
             </CardDescription>
           </CardHeader>
           {!organizesChampionship ? (
-            <CardContent>
+            <CardContent className="flex flex-wrap gap-3">
+              {organizerEnabled ? (
+                <Button asChild variant="campo" tone="green">
+                  <Link href="/organizador/novo">Criar campeonato</Link>
+                </Button>
+              ) : (
+                <Button
+                  variant="campo"
+                  tone="green"
+                  onClick={() => setActivationOpen(true)}
+                >
+                  Ativar painel de organizador
+                </Button>
+              )}
               <Button asChild variant="campoOutline" tone="green">
                 <Link href="/campeonatos">Explorar campeonatos</Link>
               </Button>
@@ -145,6 +170,40 @@ export function MinhaAreaPage() {
         Novas áreas aparecem somente quando sua conta ganha um vínculo com um
         time ou campeonato. Nenhum papel é atribuído automaticamente.
       </p>
+
+      <Dialog open={activationOpen} onOpenChange={setActivationOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ativar painel de organizador</DialogTitle>
+            <DialogDescription>
+              Você poderá criar e administrar campeonatos conforme seus
+              vínculos. A ativação não concede acesso a campeonatos de terceiros
+              nem cria autoridade global.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl bg-muted p-4 text-sm text-muted-foreground">
+            Cada campeonato terá exatamente um responsável ativo. Operações em
+            nome de Prefeitura exigirão vínculo institucional próprio.
+          </div>
+          <DialogFooter>
+            <Button
+              variant="campoOutline"
+              onClick={() => setActivationOpen(false)}
+            >
+              Agora não
+            </Button>
+            <Button
+              variant="campo"
+              onClick={() => {
+                enableOrganizer();
+                router.push('/organizador/inicio');
+              }}
+            >
+              Confirmar ativação do painel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

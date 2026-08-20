@@ -1,153 +1,96 @@
 'use client';
 
-import { ArrowUpRight, ShieldCheck, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
-import { ResultadoRow } from '@/features/campeonatos/components/campeonato-widgets';
-import { partidas, times } from '@/mocks/data';
-import { Section } from '@/shared/components/campo-livre-ui';
+import { publicCatalogMock } from '@/features/publico/services/public-catalog.mock';
+import { Initials } from '@/shared/components/campo-livre-ui';
 import { PageHero } from '@/shared/components/page-hero';
 import { ResourceState } from '@/shared/components/resource-state';
-import { StatusBadge } from '@/shared/components/status-badge';
-import { cn } from '@/shared/lib/utils';
-
-const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 export function TimeDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const time = times.find((item) => String(item.id) === String(id));
-
-  if (!time) {
+  const detalhe = publicCatalogMock.obterTime(id);
+  if (!detalhe)
     return (
-      <div className="mx-auto w-full max-w-[1380px] px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1100px] px-4 py-10">
         <ResourceState
           kind="error"
           title="Time não encontrado"
-          description="O link pode estar incorreto ou este time pode não estar disponível publicamente."
+          description="O link pode estar incorreto ou este time não está disponível publicamente."
         />
       </div>
     );
-  }
-
-  const jogos = partidas.filter(
-    (partida) => partida.casa === time.nome || partida.fora === time.nome,
-  );
-  const resultados = jogos.filter((partida) => partida.concluida);
-  const proximos = jogos.filter((partida) => !partida.concluida);
-
+  const { time, elenco, campeonatos } = detalhe;
   return (
-    <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <PageHero
-        eyebrow="Perfil público do time"
+        eyebrow={`${time.municipio}, ${time.uf} · fundado em ${time.fundadoEm}`}
         title={time.nome}
-        description={time.cidade}
-        action={<StatusBadge status={time.status} />}
+        description="Projeção esportiva pública do time, sem contatos ou dados pessoais de seus integrantes."
       />
-
-      <div className="mb-8 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[24px] border border-border/70 bg-card p-5 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
-              <Trophy className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                Campeonato atual
+      <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+        <section
+          role="region"
+          aria-label="Elenco público"
+          className="rounded-3xl border border-border/70 bg-card p-5 sm:p-6"
+        >
+          <h2 className="font-display text-xl font-semibold">Elenco público</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Somente vínculos com exposição autorizada.
+          </p>
+          <div className="mt-5 grid gap-3">
+            {elenco.map((atleta) => (
+              <Link
+                key={atleta.id}
+                href={`/atletas/${atleta.id}`}
+                className="flex items-center gap-3 rounded-2xl border border-border/70 p-3"
+              >
+                <div role="img" aria-label={`Foto de ${atleta.nome}`}>
+                  <Initials name={atleta.nome} className="h-10 w-10" />
+                </div>
+                <span className="text-sm">
+                  <strong>{atleta.nome}</strong> ·{' '}
+                  {atleta.historicoTimes.find((item) => item.time === time.nome)
+                    ?.funcao ?? atleta.posicao}{' '}
+                  · {atleta.golsPublicados} gols · desde{' '}
+                  {atleta.historicoTimes.find((item) => item.time === time.nome)
+                    ?.inicio ?? 'período não informado'}
+                </span>
+              </Link>
+            ))}
+            {elenco.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhum atleta autorizou a exposição do perfil.
               </p>
-              <p className="mt-2 font-display text-xl font-semibold">
-                {time.campeonato ?? 'Sem campeonato público informado'}
-              </p>
-            </div>
+            ) : null}
           </div>
-        </div>
-
-        <div className="rounded-[24px] border border-green-light/30 bg-green-pale p-5 sm:p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-card text-green-dark shadow-sm">
-              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
-                Privacidade
-              </p>
-              <p className="mt-2 text-sm leading-6 text-foreground/75">
-                Elenco e dados pessoais de atletas não são exibidos nesta área
-                pública.
-              </p>
-            </div>
+        </section>
+        <section className="rounded-3xl border border-border/70 bg-card p-5 sm:p-6">
+          <h2 className="font-display text-xl font-semibold">
+            Histórico competitivo
+          </h2>
+          <div className="mt-4 space-y-3">
+            {campeonatos.map((campeonato) => (
+              <Link
+                key={campeonato.id}
+                href={`/campeonatos/${campeonato.id}`}
+                className="block rounded-2xl bg-muted p-4"
+              >
+                <strong>{campeonato.nome}</strong>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {campeonato.estado
+                    .replaceAll('_', ' ')
+                    .toLocaleLowerCase('pt-BR')}
+                </p>
+              </Link>
+            ))}
           </div>
-        </div>
+        </section>
       </div>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="rounded-[24px] border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
-          <Section title="Próximas partidas">
-            {proximos.length === 0 ? (
-              <ResourceState
-                kind="empty"
-                title="Nenhuma partida futura"
-                description="Ainda não há uma próxima partida pública para este time."
-              />
-            ) : (
-              <div className="space-y-2">
-                {proximos.map((partida) => (
-                  <Link
-                    key={partida.id}
-                    href={`/partidas/${partida.id}`}
-                    className={cn(
-                      'group flex min-h-20 items-center justify-between gap-4 rounded-2xl bg-muted p-4 transition-colors duration-150 hover:bg-green-pale/60',
-                      focusRing,
-                    )}
-                  >
-                    <div>
-                      <p className="font-display font-semibold">
-                        {partida.casa} vs {partida.fora}
-                      </p>
-                      <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                        {partida.data} · {partida.hora} · {partida.campo}
-                      </p>
-                    </div>
-                    <ArrowUpRight
-                      className="h-4 w-4 shrink-0 text-muted-foreground transition-colors duration-150 group-hover:text-green-dark"
-                      aria-hidden="true"
-                    />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </Section>
-        </section>
-
-        <section className="rounded-[24px] border border-border/70 bg-card p-4 shadow-[0_8px_24px_rgba(30,54,43,0.05)] sm:p-6">
-          <Section title="Resultados">
-            {resultados.length === 0 ? (
-              <ResourceState
-                kind="empty"
-                title="Nenhum resultado publicado"
-                description="Os resultados públicos deste time aparecerão aqui."
-              />
-            ) : (
-              <div>
-                {resultados.map((partida) => (
-                  <Link
-                    key={partida.id}
-                    href={`/partidas/${partida.id}`}
-                    className={cn('block rounded-lg', focusRing)}
-                  >
-                    <ResultadoRow
-                      casa={partida.casa}
-                      fora={partida.fora}
-                      placar={`${partida.golsCasa} x ${partida.golsFora}`}
-                      subtitle={`${partida.data} · ${partida.campo}`}
-                    />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </Section>
-        </section>
+      <div className="mt-6 rounded-2xl border border-green-light/30 bg-green-pale px-5 py-4 text-sm text-foreground/75">
+        Dados pessoais, contatos e informações administrativas não fazem parte
+        desta projeção.
       </div>
     </div>
   );
