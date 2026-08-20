@@ -116,12 +116,12 @@ export function MinhaAreaPage() {
           {!hasTeam ? (
             <CardContent className="flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="campo" tone="green">
-                <Link href="/times">
+                <Link href="/atleta/time/buscar">
                   <Search aria-hidden="true" /> Entrar em um time
                 </Link>
               </Button>
               <Button asChild variant="campoOutline" tone="green">
-                <Link href="/times/criar">Criar um time</Link>
+                <Link href="/atleta/time/criar">Criar um time</Link>
               </Button>
             </CardContent>
           ) : null}

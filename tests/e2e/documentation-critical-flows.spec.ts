@@ -5,11 +5,16 @@ async function loginAsOrganizer(page: Page) {
   await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
   await page.getByLabel('Senha').fill('senha-mock');
   await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page).toHaveURL(/\/atleta\/inicio$/);
 }
 
 test('entrada em time ocorre por convite nominal, sem solicitação aberta', async ({
   page,
 }) => {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('sem-time@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
   await page.goto('/atleta/time/buscar');
 
   await expect(
@@ -28,6 +33,7 @@ test('entrada em time ocorre por convite nominal, sem solicitação aberta', asy
 test('capitão convida uma conta nominal em vez de adicionar jogador diretamente', async ({
   page,
 }) => {
+  await loginAsOrganizer(page);
   await page.goto('/atleta/time/1');
 
   await expect(page.getByLabel('Conta do atleta')).toBeVisible();
@@ -153,6 +159,7 @@ test('campeonato nasce como rascunho e recebe times somente por convite', async 
 test('súmula reúne fatos obrigatórios antes da confirmação definitiva', async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date('2026-08-23T12:00:00'));
   await loginAsOrganizer(page);
   await page.goto('/organizador/campeonato/1/sumula');
 

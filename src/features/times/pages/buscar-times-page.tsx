@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useSession } from '@/features/auth/session/session-context';
 import { PageHeader, Section } from '@/shared/components/campo-livre-ui';
 import { Button } from '@/shared/components/ui/button';
 
@@ -10,14 +12,31 @@ const convitesIniciais = [
   {
     id: 1,
     time: 'Leões FC',
+    timeId: '2',
+    recipientAccountId: 'mock-person-unlinked-1',
     capitao: 'Rafael Lima',
     validade: '26/08/2026',
   },
 ];
 
 export function BuscarTimes() {
+  const router = useRouter();
+  const { session, linkTeam } = useSession();
   const [convites, setConvites] = useState(convitesIniciais);
+  const [declinedInviteIds, setDeclinedInviteIds] = useState<number[]>(() => {
+    if (typeof window === 'undefined' || !session) return [];
+    const stored = sessionStorage.getItem(
+      `campo-livre:declined-team-invites:${session.account.id}`,
+    );
+    return stored ? (JSON.parse(stored) as number[]) : [];
+  });
   const [decisao, setDecisao] = useState<string | null>(null);
+  const convitesVisiveis = convites.filter(
+    (convite) =>
+      convite.recipientAccountId === session?.account.id &&
+      !declinedInviteIds.includes(convite.id) &&
+      !session.links.teamIds.includes(convite.timeId),
+  );
 
   function decidir(id: number, resultado: 'aceito' | 'recusado') {
     const convite = convites.find((item) => item.id === id);
@@ -28,6 +47,17 @@ export function BuscarTimes() {
         ? `Convite do ${convite.time} aceito.`
         : `Convite do ${convite.time} recusado.`,
     );
+    if (resultado === 'aceito') {
+      linkTeam(convite.timeId);
+      router.push('/atleta/inicio');
+    } else if (session) {
+      const nextDeclinedIds = [...declinedInviteIds, convite.id];
+      setDeclinedInviteIds(nextDeclinedIds);
+      sessionStorage.setItem(
+        `campo-livre:declined-team-invites:${session.account.id}`,
+        JSON.stringify(nextDeclinedIds),
+      );
+    }
   }
 
   return (
@@ -52,13 +82,13 @@ export function BuscarTimes() {
       ) : null}
 
       <Section title="Convites recebidos">
-        {convites.length === 0 ? (
+        {convitesVisiveis.length === 0 ? (
           <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
             Você não possui convites pendentes.
           </p>
         ) : (
           <div className="space-y-3">
-            {convites.map((convite) => (
+            {convitesVisiveis.map((convite) => (
               <article
                 key={convite.id}
                 className="rounded-2xl border border-border bg-card p-5 shadow-sm"

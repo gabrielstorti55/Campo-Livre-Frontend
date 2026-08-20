@@ -426,6 +426,7 @@ test('bloqueia finalização incompleta e cancela preservando histórico', async
 test('finaliza quando todas as partidas possuem fato definitivo', async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date('2026-08-23T12:00:00'));
   await page.goto('/login');
   await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
   await page.getByLabel('Senha').fill('senha-mock');

@@ -36,9 +36,26 @@ export function AtletaInicio() {
   const [aba, setAba] = useState('Todos');
   const [busca, setBusca] = useState('');
 
-  const meusTimes = times.slice(0, 2);
+  const teamIds = session?.links.teamIds ?? ['1'];
+  const linkedTeams = times.filter((time) => teamIds.includes(String(time.id)));
+  const createdTeams = (session?.links.createdTeams ?? []).map((time) => ({
+    id: time.id,
+    nome: time.name,
+    cidade: time.city,
+    jogadores: 1,
+    status: 'Confirmado' as const,
+    campeonato: undefined,
+  }));
+  const meusTimes = [...linkedTeams, ...createdTeams];
+  const linkedTeamNames = new Set(meusTimes.map((time) => time.nome));
   const proximosJogos = partidas
-    .filter((p) => p.agendada && !p.concluida)
+    .filter(
+      (partida) =>
+        partida.agendada &&
+        !partida.concluida &&
+        (linkedTeamNames.has(partida.casa) ||
+          linkedTeamNames.has(partida.fora)),
+    )
     .slice(0, 2);
 
   const lista = campeonatos.filter((c) => {
@@ -84,19 +101,53 @@ export function AtletaInicio() {
       />
 
       <Section title="Meus Times">
-        <div className="grid gap-4 md:grid-cols-2">
-          {meusTimes.map((t) => (
-            <Link key={t.id} href={`/atleta/time/${t.id}`}>
-              <ListRow
-                interactive
-                avatar={<RowAvatar name={t.nome} />}
-                title={t.nome}
-                subtitle={t.campeonato ?? 'Sem campeonato'}
-                right={<StatusBadge status={t.status} />}
-              />
-            </Link>
-          ))}
-        </div>
+        {meusTimes.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <p className="font-display font-semibold">
+              Você ainda não participa de nenhum time
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Aceite um convite nominal ou crie uma equipe para iniciar sua
+              jornada esportiva.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/atleta/time/buscar"
+                className="rounded-xl bg-green-dark px-4 py-2.5 text-sm font-semibold text-white"
+              >
+                Ver convites
+              </Link>
+              <Link
+                href="/atleta/time/criar"
+                className="rounded-xl border border-green-dark px-4 py-2.5 text-sm font-semibold text-green-dark"
+              >
+                Criar time
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {meusTimes.map((t) => {
+              const isCaptain = session?.links.captainTeamIds.includes(
+                String(t.id),
+              );
+              return (
+                <Link
+                  key={t.id}
+                  href={isCaptain ? `/atleta/time/${t.id}` : `/times/${t.id}`}
+                >
+                  <ListRow
+                    interactive
+                    avatar={<RowAvatar name={t.nome} />}
+                    title={t.nome}
+                    subtitle={t.campeonato ?? 'Sem campeonato'}
+                    right={<StatusBadge status={t.status} />}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </Section>
 
       <Section title="Meus próximos jogos">

@@ -9,6 +9,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { useSession } from '@/features/auth/session/session-context';
@@ -16,10 +17,12 @@ import { atletaLogado, organizadorLogado } from '@/mocks/data';
 import { ProfileShell } from '@/shared/components/profile-shell';
 
 export function AtletaLayout({ children }: { children: ReactNode }) {
-  const { session } = useSession();
+  const router = useRouter();
+  const { session, signOut } = useSession();
   const items = [
     { label: 'Início', to: '/atleta/inicio', icon: Home },
     { label: 'Campeonatos', to: '/atleta/campeonatos', icon: Trophy },
+    { label: 'Times e convites', to: '/atleta/time/buscar', icon: Users },
     { label: 'Meus Eventos', to: '/atleta/meus-eventos', icon: CalendarDays },
     { label: 'Perfil', to: '/atleta/perfil', icon: User },
   ];
@@ -29,7 +32,11 @@ export function AtletaLayout({ children }: { children: ReactNode }) {
       items={items}
       tone="green"
       userName={session?.account.name ?? atletaLogado.nome}
-      userRole="Atleta / Capitão"
+      userRole="Conta pessoal"
+      onSignOut={() => {
+        signOut();
+        router.replace('/login');
+      }}
     >
       {children}
     </ProfileShell>
@@ -37,7 +44,8 @@ export function AtletaLayout({ children }: { children: ReactNode }) {
 }
 
 export function OrganizadorLayout({ children }: { children: ReactNode }) {
-  const { session } = useSession();
+  const router = useRouter();
+  const { session, signOut } = useSession();
   const items = [
     { label: 'Início', to: '/organizador/inicio', icon: Home },
     { label: 'Meus Campeonatos', to: '/organizador/campeonatos', icon: Trophy },
@@ -50,6 +58,10 @@ export function OrganizadorLayout({ children }: { children: ReactNode }) {
       tone="green"
       userName={session?.account.name ?? organizadorLogado.nome}
       userRole="Organizador"
+      onSignOut={() => {
+        signOut();
+        router.replace('/login');
+      }}
     >
       {children}
     </ProfileShell>

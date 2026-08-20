@@ -1,9 +1,18 @@
 import { expect, test } from '@playwright/test';
 
+async function loginAsAthlete(page: import('@playwright/test').Page) {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page).toHaveURL(/\/atleta\/inicio$/);
+}
+
 test('usa um cabeçalho de página semântico nas áreas autenticadas', async ({
   page,
 }) => {
-  await page.goto('/atleta/inicio');
+  await loginAsAthlete(page);
+  await page.goto('/atleta/perfil');
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Marcos Oliveira' }),
@@ -14,6 +23,7 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await loginAsAthlete(page);
   await page.goto('/atleta/inicio');
 
   const main = page.getByRole('main');

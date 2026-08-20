@@ -5,7 +5,10 @@ import { CalendarDays, MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 
+import { useSession } from '@/features/auth/session/session-context';
+
 import { StatusBadge } from '@/shared/components/status-badge';
+import { ResourceState } from '@/shared/components/resource-state';
 import {
   Initials,
   PageHeader,
@@ -13,16 +16,73 @@ import {
   StatCard,
   Tabs,
 } from '@/shared/components/campo-livre-ui';
-import { atletaLogado, elenco, getTime, partidas } from '@/mocks/data';
+import { atletaLogado, getElencoDoTime, partidas, times } from '@/mocks/data';
 
 export function GerenciarTime() {
   const { id } = useParams<{ id: string }>();
-  const time = getTime(id ?? '');
+  const { session } = useSession();
+  const createdTeam = session?.links.createdTeams.find(
+    (team) => team.id === id,
+  );
+  const time = createdTeam
+    ? {
+        id: createdTeam.id,
+        nome: createdTeam.name,
+        cidade: createdTeam.city,
+        jogadores: 1,
+        status: 'Confirmado' as const,
+        campeonato: undefined,
+      }
+    : times.find((candidate) => String(candidate.id) === id);
+  const teamRoster = createdTeam
+    ? [
+        {
+          id: session?.account.id ?? 'atleta-local',
+          nome: session?.account.name ?? atletaLogado.nome,
+          posicao: 'Capitão',
+          capitao: true,
+          gols: 0,
+        },
+      ]
+    : getElencoDoTime(id);
+  const teamMatches = time
+    ? partidas.filter(
+        (match) => match.casa === time.nome || match.fora === time.nome,
+      )
+    : [];
+  const completedMatches = teamMatches.filter((match) => match.concluida);
+  const goals = completedMatches.reduce((total, match) => {
+    if (match.casa === time?.nome) return total + (match.golsCasa ?? 0);
+    return total + (match.golsFora ?? 0);
+  }, 0);
+  const goalsPerMatch = completedMatches.length
+    ? Number((goals / completedMatches.length).toFixed(1))
+    : 0;
   const [tab, setTab] = useState('Elenco');
   const [convitePendente, setConvitePendente] = useState<{
     conta: string;
     modo: 'email' | 'link';
   } | null>(null);
+
+  if (!time) {
+    return (
+      <ResourceState
+        kind="error"
+        title="Time não encontrado"
+        description="O endereço informado não corresponde a um time disponível."
+      />
+    );
+  }
+
+  if (!session?.links.captainTeamIds.includes(id ?? '')) {
+    return (
+      <ResourceState
+        kind="error"
+        title="Você não pode gerenciar este time"
+        description="Somente uma conta com vínculo de capitão deste time pode acessar convites, elenco e operações de gestão."
+      />
+    );
+  }
 
   return (
     <>
@@ -49,22 +109,28 @@ export function GerenciarTime() {
       </div>
 
       <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
-        <StatCard label="Gols" value={24} />
-        <StatCard label="Partidas" value={14} />
-        <StatCard label="Gols / jogo" value={1.7} />
-        <StatCard label="Score" value={atletaLogado.score} />
+        <StatCard label="Gols" value={goals} />
+        <StatCard label="Partidas" value={completedMatches.length} />
+        <StatCard label="Gols / jogo" value={goalsPerMatch} />
+        <StatCard label="Jogadores" value={teamRoster.length} />
       </div>
 
       <Tabs
         tabs={['Elenco', 'Jogos', 'Estatísticas']}
         active={tab}
         onChange={setTab}
+        panelId="team-management-panel"
       />
 
       {tab === 'Elenco' ? (
-        <Section title="Jogadores cadastrados">
+        <Section
+          title="Jogadores cadastrados"
+          id="team-management-panel"
+          role="tabpanel"
+          labelledBy="team-management-panel-tab-Elenco"
+        >
           <div className="border-t border-border">
-            {elenco.map((jogador) => (
+            {teamRoster.map((jogador) => (
               <div
                 key={jogador.id}
                 className="flex items-center gap-3 border-b border-border py-4"
@@ -162,37 +228,53 @@ export function GerenciarTime() {
       ) : null}
 
       {tab === 'Jogos' ? (
-        <Section title="Próximos jogos">
-          <div className="border-t border-border">
-            {partidas
-              .filter((partida) => !partida.concluida)
-              .map((partida) => (
-                <div
-                  key={partida.id}
-                  className="flex flex-wrap items-center gap-3 border-b border-border py-4"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-foreground">
-                      {partida.casa} vs {partida.fora}
-                    </p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <CalendarDays className="h-3 w-3" /> {partida.data} ·{' '}
-                      {partida.hora} · {partida.campo}
-                    </p>
+        <Section
+          title="Próximos jogos"
+          id="team-management-panel"
+          role="tabpanel"
+          labelledBy="team-management-panel-tab-Jogos"
+        >
+          {teamMatches.some((match) => !match.concluida) ? (
+            <div className="border-t border-border">
+              {teamMatches
+                .filter((partida) => !partida.concluida)
+                .map((partida) => (
+                  <div
+                    key={partida.id}
+                    className="flex flex-wrap items-center gap-3 border-b border-border py-4"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground">
+                        {partida.casa} vs {partida.fora}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <CalendarDays className="h-3 w-3" /> {partida.data} ·{' '}
+                        {partida.hora} · {partida.campo}
+                      </p>
+                    </div>
+                    <StatusBadge
+                      status={partida.agendada ? 'Em andamento' : 'Pendente'}
+                    />
                   </div>
-                  <StatusBadge
-                    status={partida.agendada ? 'Em andamento' : 'Pendente'}
-                  />
-                </div>
-              ))}
-          </div>
+                ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+              Nenhum próximo jogo cadastrado para este time.
+            </p>
+          )}
         </Section>
       ) : null}
 
       {tab === 'Estatísticas' ? (
-        <Section title="Artilharia do time">
+        <Section
+          title="Artilharia do time"
+          id="team-management-panel"
+          role="tabpanel"
+          labelledBy="team-management-panel-tab-Estatísticas"
+        >
           <div className="border-t border-border">
-            {elenco.map((jogador) => (
+            {teamRoster.map((jogador) => (
               <div
                 key={jogador.id}
                 className="flex items-center justify-between gap-3 border-b border-border py-3"
@@ -210,12 +292,18 @@ export function GerenciarTime() {
       ) : null}
 
       <Section title="Campeonatos inscritos">
-        <div className="flex items-center justify-between gap-3 border-y border-border py-4">
-          <span className="min-w-0 truncate font-semibold text-foreground">
-            {time.campeonato ?? 'Copa Franca 2026'}
-          </span>
-          <StatusBadge status="Em andamento" />
-        </div>
+        {time.campeonato ? (
+          <div className="flex items-center justify-between gap-3 border-y border-border py-4">
+            <span className="min-w-0 truncate font-semibold text-foreground">
+              {time.campeonato}
+            </span>
+            <StatusBadge status="Em andamento" />
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            Nenhum campeonato inscrito.
+          </p>
+        )}
       </Section>
     </>
   );

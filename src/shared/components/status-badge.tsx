@@ -8,6 +8,7 @@ const styles: Record<string, string> = {
   Confirmado: 'bg-green-pale text-green-dark',
   Aprovado: 'bg-green-pale text-success',
   Encerrado: 'bg-muted text-muted-foreground',
+  Cancelado: 'bg-[oklch(0.94_0.04_25)] text-danger',
   'Fase Final': 'bg-[oklch(0.95_0.08_95)] text-[oklch(0.45_0.11_70)]',
   'Inscrições abertas': 'bg-[oklch(0.93_0.05_255)] text-[oklch(0.48_0.19_264)]',
   Pendente: 'bg-[oklch(0.95_0.08_95)] text-warning',

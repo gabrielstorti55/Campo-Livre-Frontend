@@ -1,7 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
@@ -183,10 +183,12 @@ export function Tabs({
   tabs,
   active,
   onChange,
+  panelId,
 }: {
   tabs: string[];
   active: string;
   onChange: (t: string) => void;
+  panelId?: string;
 }) {
   return (
     <UITabs value={active} onValueChange={onChange}>
@@ -195,6 +197,8 @@ export function Tabs({
           <TabsTrigger
             key={t}
             value={t}
+            id={panelId ? `${panelId}-tab-${t}` : undefined}
+            aria-controls={panelId}
             className="shrink-0 rounded-none border-b-2 border-transparent px-2.5 py-2.5 text-xs font-semibold text-muted-foreground shadow-none data-[state=active]:border-green-mid data-[state=active]:bg-transparent data-[state=active]:text-green-dark data-[state=active]:shadow-none sm:px-4 sm:text-sm"
           >
             {t}
@@ -249,14 +253,30 @@ export function Section({
   title,
   children,
   className,
+  id,
+  role,
+  labelledBy,
 }: {
   title: string;
   children: ReactNode;
   className?: string;
+  id?: string;
+  role?: 'tabpanel';
+  labelledBy?: string;
 }) {
+  const titleId = useId();
+
   return (
-    <section className={cn('space-y-4', className)}>
-      <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground sm:text-xl">
+    <section
+      id={id}
+      role={role}
+      aria-labelledby={labelledBy ?? titleId}
+      className={cn('space-y-4', className)}
+    >
+      <h2
+        id={titleId}
+        className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground sm:text-xl"
+      >
         {title}
       </h2>
       {children}

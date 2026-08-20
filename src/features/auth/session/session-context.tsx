@@ -10,6 +10,15 @@ import {
 
 export type PersonalContext = 'atleta' | 'organizador';
 
+export type CreatedTeamLink = {
+  id: string;
+  name: string;
+  city: string;
+  modality: 'Society' | 'Campo';
+  description: string;
+  role: 'CAPITAO';
+};
+
 export type PersonalSession = {
   sessionId: string;
   account: {
@@ -23,6 +32,8 @@ export type PersonalSession = {
   organizerEnabledAt?: string;
   links: {
     teamIds: string[];
+    captainTeamIds: string[];
+    createdTeams: CreatedTeamLink[];
     organizedChampionshipIds: string[];
     institutionalOrganizationIds: string[];
   };
@@ -39,6 +50,9 @@ type SessionContextValue = {
   hydrated: boolean;
   registerMockAccount: (account: MockRegisteredAccount) => void;
   signInWithMock: (email?: string) => PersonalSession;
+  linkTeam: (teamId: string) => void;
+  createTeam: (input: Omit<CreatedTeamLink, 'id' | 'role'>) => string;
+  signOut: () => void;
   enableOrganizer: () => void;
   switchContext: (context: PersonalContext) => void;
 };
@@ -63,6 +77,8 @@ const mockPersonalSession: PersonalSession = {
   organizerEnabledAt: '2026-08-01T12:00:00.000Z',
   links: {
     teamIds: ['1'],
+    captainTeamIds: ['1'],
+    createdTeams: [],
     organizedChampionshipIds: ['1', '2', '4', '5', '7'],
     institutionalOrganizationIds: ['prefeitura-franca'],
   },
@@ -80,6 +96,8 @@ const mockUnlinkedPersonalSession: PersonalSession = {
   activeContext: null,
   links: {
     teamIds: [],
+    captainTeamIds: [],
+    createdTeams: [],
     organizedChampionshipIds: [],
     institutionalOrganizationIds: [],
   },
@@ -98,6 +116,8 @@ const mockCollaboratorSession: PersonalSession = {
   organizerEnabledAt: '2026-08-05T12:00:00.000Z',
   links: {
     teamIds: [],
+    captainTeamIds: [],
+    createdTeams: [],
     organizedChampionshipIds: ['4'],
     institutionalOrganizationIds: [],
   },
@@ -124,6 +144,18 @@ function readStoredSession(): PersonalSession | null {
       ...parsed,
       links: {
         teamIds: parsed.links?.teamIds ?? [],
+        captainTeamIds:
+          parsed.links?.captainTeamIds ??
+          Array.from(
+            new Set([
+              ...(parsed.links?.createdTeams ?? []).map((team) => team.id),
+              ...(parsed.account.id === 'mock-person-1' &&
+              parsed.links?.teamIds?.includes('1')
+                ? ['1']
+                : []),
+            ]),
+          ),
+        createdTeams: parsed.links?.createdTeams ?? [],
         organizedChampionshipIds: parsed.links?.organizedChampionshipIds ?? [],
         institutionalOrganizationIds:
           parsed.links?.institutionalOrganizationIds ?? [],
@@ -241,6 +273,65 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  function linkTeam(teamId: string) {
+    setSession((current) => {
+      if (!current) return current;
+      const nextSession: PersonalSession = {
+        ...current,
+        capabilities: current.capabilities.includes('atleta')
+          ? current.capabilities
+          : [...current.capabilities, 'atleta'],
+        activeContext: 'atleta',
+        links: {
+          ...current.links,
+          teamIds: current.links.teamIds.includes(teamId)
+            ? current.links.teamIds
+            : [...current.links.teamIds, teamId],
+        },
+      };
+      storeSession(nextSession);
+      setActiveMockSession(nextSession);
+      return nextSession;
+    });
+  }
+
+  function createTeam(input: Omit<CreatedTeamLink, 'id' | 'role'>) {
+    const teamId = `local-${Date.now()}`;
+    setSession((current) => {
+      if (!current) return current;
+      const createdTeam: CreatedTeamLink = {
+        ...input,
+        id: teamId,
+        role: 'CAPITAO',
+      };
+      const nextSession: PersonalSession = {
+        ...current,
+        capabilities: current.capabilities.includes('atleta')
+          ? current.capabilities
+          : [...current.capabilities, 'atleta'],
+        activeContext: 'atleta',
+        links: {
+          ...current.links,
+          teamIds: [...current.links.teamIds, teamId],
+          captainTeamIds: [...current.links.captainTeamIds, teamId],
+          createdTeams: [...current.links.createdTeams, createdTeam],
+        },
+      };
+      storeSession(nextSession);
+      setActiveMockSession(nextSession);
+      return nextSession;
+    });
+    return teamId;
+  }
+
+  function signOut() {
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(MOCK_ACTIVE_ACCOUNT_KEY);
+    sessionStorage.removeItem(MOCK_ACTIVE_CHAMPIONSHIPS_KEY);
+    setSession(null);
+    window.dispatchEvent(new Event(MOCK_SESSION_CHANGED_EVENT));
+  }
+
   function enableOrganizer() {
     setSession((current) => {
       if (!current) return current;
@@ -265,6 +356,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         hydrated,
         registerMockAccount,
         signInWithMock,
+        linkTeam,
+        createTeam,
+        signOut,
         enableOrganizer,
         switchContext,
       }}

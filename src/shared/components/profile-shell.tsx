@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, X } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -25,12 +25,14 @@ export function ProfileShell({
   tone,
   userName,
   userRole,
+  onSignOut,
   children,
 }: {
   items: NavItem[];
   tone: ShellTone;
   userName: string;
   userRole: string;
+  onSignOut?: () => void;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -214,6 +216,16 @@ export function ProfileShell({
                     <p className="truncate text-xs text-white/75">{userRole}</p>
                   </div>
                 </div>
+                {onSignOut ? (
+                  <button
+                    type="button"
+                    onClick={onSignOut}
+                    className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/20 px-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                    Sair da conta
+                  </button>
+                ) : null}
               </div>
             </div>
           </aside>
