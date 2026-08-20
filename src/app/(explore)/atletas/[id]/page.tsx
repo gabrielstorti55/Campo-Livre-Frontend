@@ -1,5 +1,5 @@
-import { AtletaPublicoDetailPage } from '@/features/atletas/pages/atleta-publico-detail-page';
+import { TelaPerfilAtleta } from '@/screens/publico/perfil-atleta';
 
 export default function Page() {
-  return <AtletaPublicoDetailPage />;
+  return <TelaPerfilAtleta />;
 }

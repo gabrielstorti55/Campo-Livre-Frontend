@@ -1,5 +1,5 @@
-import { CadastroPage } from '@/features/auth/pages/cadastro-page';
+import { TelaCadastro } from '@/screens/publico/cadastro';
 
 export default function Page() {
-  return <CadastroPage />;
+  return <TelaCadastro />;
 }

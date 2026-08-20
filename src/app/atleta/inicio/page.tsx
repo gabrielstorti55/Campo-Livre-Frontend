@@ -1,5 +1,5 @@
-import { AtletaInicio } from '@/features/dashboard/pages/atleta-inicio-page';
+import { TelaInicioAtleta } from '@/screens/atleta/inicio';
 
 export default function Page() {
-  return <AtletaInicio />;
+  return <TelaInicioAtleta />;
 }

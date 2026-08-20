@@ -1,4 +1,4 @@
-import { Chaveamento } from '@/features/campeonatos/pages/chaveamento-page';
+import { TelaChaveamento } from '@/screens/organizador/chaveamento';
 
 export default async function Page({
   params,
@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <Chaveamento campeonatoId={id} />;
+  return <TelaChaveamento campeonatoId={id} />;
 }

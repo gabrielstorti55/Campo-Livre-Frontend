@@ -18,15 +18,21 @@ Não trate interface renderizada, estado local ou mocks como integração persis
 
 ## Organização
 
-- `src/app`: bootstrap, providers, rotas e estilos globais.
-- `src/features`: código organizado por capacidade de negócio.
-- `src/shared`: componentes, hooks e utilitários realmente reutilizáveis.
+- `src/app`: rotas, layouts e entrypoints reais do Next.js App Router.
+- `src/screens`: composição das telas por contexto (`publico`, `conta`, `atleta`, `organizador` e `prefeitura`).
+- `src/components`: primitivas de UI, padrões de layout e módulos visuais de domínio.
+- `src/hooks`: hooks React compartilhados.
+- `src/services`: consultas, adapters e regras locais.
+- `src/stores`: estado reativo e persistência temporária no navegador.
+- `src/types`: contratos internos estáveis.
 - `src/mocks`: dados simulados, isolados da interface.
+- `src/layouts`: shells e composição estrutural das áreas.
+- `src/utils` e `src/constants`: infraestrutura técnica pequena e explícita.
 - `tests/e2e`: fluxos ponta a ponta com Playwright.
 
-Use `kebab-case` para pastas e arquivos, como no backend NestJS. Componentes e tipos exportados usam `PascalCase`; funções e variáveis usam `camelCase`.
+Use português para arquivos, pastas de domínio e identificadores próprios; preserve em inglês apenas APIs técnicas e nomes externos. Caminhos usam `kebab-case`, sem acentos. Componentes e tipos exportados usam `PascalCase`; funções e variáveis usam `camelCase`.
 
-Não crie pastas vazias, arquivos `index.ts` genéricos ou abstrações sem uso real. Uma feature pode ganhar `api`, `components`, `hooks`, `pages`, `schemas` e `types` somente quando precisar deles.
+Não crie `src/pages`, uma pasta paralela `routes`, pastas vazias, arquivos `index.ts` genéricos ou abstrações sem uso real.
 
 ## Integração
 

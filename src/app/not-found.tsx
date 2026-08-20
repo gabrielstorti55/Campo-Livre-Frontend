@@ -1,5 +1,5 @@
-import { NotFoundPage } from '@/app/not-found-page';
+import { TelaPaginaNaoEncontrada } from '@/screens/publico/pagina-nao-encontrada';
 
 export default function NotFound() {
-  return <NotFoundPage />;
+  return <TelaPaginaNaoEncontrada />;
 }

@@ -1,5 +1,5 @@
-import { BuscarTimes } from '@/features/times/pages/buscar-times-page';
+import { TelaBuscarTimes } from '@/screens/atleta/buscar-times';
 
 export default function Page() {
-  return <BuscarTimes />;
+  return <TelaBuscarTimes />;
 }

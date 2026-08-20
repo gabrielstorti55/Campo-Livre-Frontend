@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { ExploreLayout } from '@/app/explore-layout';
+import { LayoutExploracao } from '@/layouts/exploracao-publica';
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
-  return <ExploreLayout>{children}</ExploreLayout>;
+  return <LayoutExploracao>{children}</LayoutExploracao>;
 }

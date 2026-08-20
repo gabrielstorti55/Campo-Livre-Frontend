@@ -56,6 +56,9 @@ test('rotas pessoais exigem sessão e gestão exige capitania do time', async ({
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
 
+  await page.goto('/times/criar');
+  await expect(page).toHaveURL(/\/login$/);
+
   await loginWithoutTeam(page);
   await page.goto('/atleta/time/1');
   await expect(

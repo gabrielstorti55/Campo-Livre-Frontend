@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import { Providers } from '@/app/providers';
+import { ProvedoresAplicacao } from '@/layouts/provedores-aplicacao';
 
 import './styles.css';
 
@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
       <body>
-        <Providers>{children}</Providers>
+        <ProvedoresAplicacao>{children}</ProvedoresAplicacao>
       </body>
     </html>
   );

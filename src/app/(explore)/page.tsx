@@ -1,5 +1,5 @@
-import { HomePage } from '@/features/home/pages/home-page';
+import { TelaInicioPublico } from '@/screens/publico/inicio';
 
 export default function Page() {
-  return <HomePage />;
+  return <TelaInicioPublico />;
 }

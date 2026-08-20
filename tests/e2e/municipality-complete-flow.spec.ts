@@ -182,6 +182,7 @@ test('campo com reserva aprovada não entra em manutenção', async ({ page }) =
 test('campo em manutenção bloqueia aprovação sem consumir a solicitação', async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date('2026-08-20T12:00:00'));
   await loginAsMunicipality(page);
   await page.goto('/prefeitura/campos');
   const field = page.getByRole('article', { name: 'Campo Aeroporto' });
@@ -228,6 +229,56 @@ test('recusa exige motivo persistente e não ocupa o calendário', async ({
   const day = page.getByRole('region', { name: 'Reservas de 24/08/2026' });
   await expect(day).toContainText('Nenhuma reserva aprovada nesta data.');
   await expect(day).not.toContainText('Liga Bairro Norte');
+});
+
+test('recusa restaura o foco ao cancelar e o move para o retorno ao confirmar', async ({
+  page,
+}) => {
+  await loginAsMunicipality(page);
+  await page.goto('/prefeitura/aprovacoes');
+  const request = page.getByRole('article', { name: /Liga Bairro Norte/ });
+  const rejectButton = request.getByRole('button', {
+    name: 'Reprovar solicitação',
+  });
+
+  await rejectButton.click();
+  await request.getByRole('button', { name: 'Cancelar' }).click();
+  await expect(rejectButton).toBeFocused();
+
+  await rejectButton.click();
+  await request
+    .getByLabel('Motivo da recusa')
+    .fill('Agenda municipal indisponível.');
+  await request.getByRole('button', { name: 'Confirmar recusa' }).click();
+  await expect(page.getByRole('status')).toBeFocused();
+});
+
+test('aprovação revalida a antecedência mínima de 24 horas', async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date('2026-08-20T10:00:00'));
+  await login(page, 'pessoa@campolivre.test');
+  await page.goto('/organizador/campeonato/1/reservas');
+  await page
+    .getByRole('combobox', { name: 'Campo', exact: true })
+    .selectOption({ label: 'Campo São José' });
+  await page.getByLabel('Data da reserva').fill('2026-08-22');
+  await page.getByLabel('Hora inicial').fill('12:00');
+  await page.getByLabel('Hora final').fill('14:00');
+  await page.getByRole('button', { name: 'Solicitar reserva' }).click();
+
+  await page.clock.setFixedTime(new Date('2026-08-21T13:00:00'));
+  await loginAsMunicipality(page);
+  await page.goto('/prefeitura/aprovacoes');
+  const request = page.getByRole('article', {
+    name: /Copa Franca 2026.*Campo São José.*22\/08\/2026.*12:00.*14:00/,
+  });
+  await request.getByRole('button', { name: 'Aprovar solicitação' }).click();
+
+  await expect(page.getByRole('status')).toHaveText(
+    'Aprovação bloqueada: a reserva não possui mais 24 horas de antecedência.',
+  );
+  await expect(request).toContainText('Pendente');
 });
 
 test('prefeitura suspende e reativa credenciamento do organizador', async ({

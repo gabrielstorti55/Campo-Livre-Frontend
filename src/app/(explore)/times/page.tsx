@@ -1,5 +1,5 @@
-import { TimesPage } from '@/features/times/pages/times-page';
+import { TelaTimes } from '@/screens/publico/times';
 
 export default function Page() {
-  return <TimesPage />;
+  return <TelaTimes />;
 }

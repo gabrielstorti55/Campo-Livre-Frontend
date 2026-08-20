@@ -1,5 +1,5 @@
-import { MinhaAreaPage } from '@/features/perfis/pages/minha-area-page';
+import { TelaMinhaArea } from '@/screens/conta/minha-area';
 
 export default function Page() {
-  return <MinhaAreaPage />;
+  return <TelaMinhaArea />;
 }

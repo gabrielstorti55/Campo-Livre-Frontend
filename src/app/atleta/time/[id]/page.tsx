@@ -1,5 +1,5 @@
-import { GerenciarTime } from '@/features/times/pages/gerenciar-time-page';
+import { TelaGerenciarTime } from '@/screens/atleta/gerenciar-time';
 
 export default function Page() {
-  return <GerenciarTime />;
+  return <TelaGerenciarTime />;
 }

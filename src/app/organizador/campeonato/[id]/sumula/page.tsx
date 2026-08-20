@@ -1,4 +1,4 @@
-import { Sumula } from '@/features/partidas/pages/sumula-page';
+import { TelaSumula } from '@/screens/organizador/sumula';
 
 export default async function Page({
   params,
@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <Sumula campeonatoId={id} />;
+  return <TelaSumula campeonatoId={id} />;
 }

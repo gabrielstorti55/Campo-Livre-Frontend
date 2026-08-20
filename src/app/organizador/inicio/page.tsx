@@ -1,5 +1,5 @@
-import { OrganizadorInicio } from '@/features/dashboard/pages/organizador-inicio-page';
+import { TelaInicioOrganizador } from '@/screens/organizador/inicio';
 
 export default function Page() {
-  return <OrganizadorInicio />;
+  return <TelaInicioOrganizador />;
 }

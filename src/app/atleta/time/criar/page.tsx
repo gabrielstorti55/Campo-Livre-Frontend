@@ -1,5 +1,5 @@
-import { CriarTime } from '@/features/times/pages/criar-time-page';
+import { TelaCriarTime } from '@/screens/atleta/criar-time';
 
 export default function Page() {
-  return <CriarTime />;
+  return <TelaCriarTime />;
 }

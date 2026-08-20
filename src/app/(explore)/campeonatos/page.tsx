@@ -1,5 +1,5 @@
-import { CampeonatosPage } from '@/features/campeonatos/pages/campeonatos-page';
+import { TelaCampeonatos } from '@/screens/publico/campeonatos';
 
 export default function Page() {
-  return <CampeonatosPage />;
+  return <TelaCampeonatos />;
 }

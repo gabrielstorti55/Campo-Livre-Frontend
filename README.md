@@ -54,37 +54,35 @@ npm run check
 
 ```text
 src/
-├── app/                    # App Router, layouts, providers e estilos globais
+├── app/                    # App Router: rotas, layouts e entrypoints
 │   ├── (explore)/          # consulta pública sem alterar as URLs
 │   ├── atleta/
 │   ├── organizador/
 │   └── prefeitura/
-├── features/               # capacidades e telas do produto
-│   ├── auth/
-│   ├── campeonatos/
-│   ├── dashboard/
-│   ├── partidas/
-│   ├── perfis/
-│   ├── prefeitura/
-│   └── times/
+├── screens/                # telas por público, conta e persona
+├── components/             # ui, layout e módulos visuais de domínio
+├── hooks/                  # hooks React compartilhados
+├── services/               # consultas, adapters e regras locais
+├── stores/                 # estado reativo e persistência no navegador
+├── types/                  # contratos internos
 ├── mocks/                  # dados simulados isolados
-└── shared/                 # UI e utilitários reutilizáveis
-    ├── components/
-    └── lib/
+├── layouts/                # shells das áreas
+├── utils/                  # utilitários técnicos
+└── constants/              # constantes compartilhadas
 
 tests/
 └── e2e/
 ```
 
-O App Router é a única fonte das rotas. Os arquivos `page.tsx` e `layout.tsx` são adaptadores pequenos que compõem as páginas das features. Todos os componentes de navegação usam diretamente `next/link` e `next/navigation`; não há React Router nem camada de compatibilidade.
+O App Router é a única fonte das rotas. Os arquivos `page.tsx` e `layout.tsx` são adaptadores pequenos que compõem telas de `screens`. Todos os componentes de navegação usam diretamente `next/link` e `next/navigation`; não há React Router, Pages Router nem camada paralela de rotas.
 
-As pastas e arquivos usam `kebab-case`, seguindo a convenção do backend NestJS. Código específico de uma capacidade fica em `features`; somente elementos reutilizados por diferentes capacidades ficam em `shared`.
+Pastas técnicas permanecem em inglês. Arquivos, pastas de persona/domínio e identificadores próprios usam português, com caminhos em `kebab-case` e sem acentos.
 
 ## Componentes
 
-As primitivas de interface ficam em `src/shared/components/ui` e seguem o padrão shadcn/ui sobre Radix UI. Como o shadcn distribui o código-fonte dos componentes para o próprio projeto, esses arquivos pertencem ao repositório, mas não são implementações improvisadas.
+As primitivas ficam em `src/components/ui` e seguem o padrão shadcn/ui sobre Radix UI. Como o shadcn distribui seu código-fonte para o projeto, esses arquivos pertencem ao repositório, mas preservam os nomes técnicos da biblioteca.
 
-Componentes como cabeçalhos, cartões de campeonato e linhas de lista continuam sendo componentes próprios do CampoLivre: eles compõem as primitivas shadcn para representar conceitos do produto. O projeto mantém somente as primitivas efetivamente utilizadas; `npm run deadcode` verifica arquivos e dependências sem consumidores.
+Padrões reutilizáveis ficam em `components/layout`; composições reais de domínio ficam em `components/modules/<dominio>`. O projeto mantém somente componentes e primitivas com consumidores comprovados; `npm run deadcode` verifica arquivos e dependências sem uso.
 
 ## Backend
 

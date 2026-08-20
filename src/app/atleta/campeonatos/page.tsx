@@ -1,5 +1,5 @@
-import { AtletaCampeonatos } from '@/features/campeonatos/pages/atleta-campeonatos-page';
+import { TelaCampeonatosAtleta } from '@/screens/atleta/campeonatos';
 
 export default function Page() {
-  return <AtletaCampeonatos />;
+  return <TelaCampeonatosAtleta />;
 }

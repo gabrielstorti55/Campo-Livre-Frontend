@@ -1,5 +1,5 @@
-import { AtletaPerfil } from '@/features/perfis/pages/atleta-perfil-page';
+import { TelaPerfilAtletaAutenticado } from '@/screens/atleta/perfil';
 
 export default function Page() {
-  return <AtletaPerfil />;
+  return <TelaPerfilAtletaAutenticado />;
 }

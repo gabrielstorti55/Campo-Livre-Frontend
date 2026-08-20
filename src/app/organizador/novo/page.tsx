@@ -1,5 +1,5 @@
-import { NovoCampeonato } from '@/features/campeonatos/pages/novo-campeonato-page';
+import { TelaCriarCampeonato } from '@/screens/organizador/criar-campeonato';
 
 export default function Page() {
-  return <NovoCampeonato />;
+  return <TelaCriarCampeonato />;
 }

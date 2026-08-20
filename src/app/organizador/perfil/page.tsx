@@ -1,5 +1,5 @@
-import { OrganizadorPerfil } from '@/features/perfis/pages/organizador-perfil-page';
+import { TelaPerfilOrganizador } from '@/screens/organizador/perfil';
 
 export default function Page() {
-  return <OrganizadorPerfil />;
+  return <TelaPerfilOrganizador />;
 }

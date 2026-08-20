@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { respeitaAntecedenciaMinima } from '@/features/organizador/services/reservation-clock';
+import { respeitaAntecedenciaMinima } from '@/services/reservas/regras-horario-reserva';
 
 test('regra de reserva usa relógio injetável na fronteira de 24 horas', () => {
   const clock = { now: () => new Date('2026-08-19T12:00:00') };

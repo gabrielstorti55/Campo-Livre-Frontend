@@ -1,0 +1,180 @@
+import type {
+  CampeonatoOrganizador,
+  ConviteColaborador,
+  ReservaCampeonatoOrganizador,
+  SituacaoComercialOrganizador,
+  VinculoCampeonatoOrganizador,
+} from '@/types/organizador';
+
+export const campeonatosOrganizadorMock: CampeonatoOrganizador[] = [
+  {
+    id: 1,
+    nome: 'Copa Franca 2026',
+    modalidade: 'Fut Society',
+    formato: 'PONTOS_CORRIDOS',
+    municipio: 'Franca',
+    uf: 'SP',
+    inicio: '2026-07-10',
+    visibilidade: 'PUBLICO',
+    estado: 'EM_ANDAMENTO',
+    contexto: { tipo: 'PESSOAL', nome: 'Marcos Oliveira' },
+    responsavel: 'Marcos Oliveira',
+    timeIds: [1, 2, 5, 6],
+    partidaIds: [1, 3, 4, 5, 6, 7],
+    pendencias: [],
+    convitesPendentes: 0,
+  },
+  {
+    id: 2,
+    nome: 'Liga Bairro Sul',
+    modalidade: 'Futebol de Campo',
+    formato: 'PONTOS_CORRIDOS',
+    municipio: 'Franca',
+    uf: 'SP',
+    inicio: '2026-06-01',
+    visibilidade: 'PUBLICO',
+    estado: 'EM_ANDAMENTO',
+    contexto: {
+      tipo: 'PREFEITURA',
+      nome: 'Prefeitura de Franca',
+      prefeituraId: 'prefeitura-franca',
+    },
+    responsavel: 'Carlos Mendes',
+    timeIds: [3, 4],
+    partidaIds: [2, 8],
+    pendencias: [],
+    convitesPendentes: 0,
+  },
+  {
+    id: 4,
+    nome: 'Copa Verão 2026',
+    modalidade: 'Society',
+    formato: 'GRUPOS_MATA_MATA',
+    municipio: 'Franca',
+    uf: 'SP',
+    inicio: '2026-12-01',
+    visibilidade: 'PUBLICO',
+    estado: 'EM_CONFIGURACAO',
+    contexto: { tipo: 'PESSOAL', nome: 'Marcos Oliveira' },
+    responsavel: 'Marcos Oliveira',
+    timeIds: [1, 2],
+    partidaIds: [],
+    pendencias: [
+      'Publicar regulamento',
+      'Configurar critérios de desempate',
+      'Validar elencos inscritos',
+      'Distribuir times nos grupos',
+      'Gerar programação completa',
+      'Resolver convites pendentes',
+    ],
+    convitesPendentes: 1,
+  },
+  {
+    id: 5,
+    nome: 'Copa Franca 2025',
+    modalidade: 'Fut Society',
+    formato: 'PONTOS_CORRIDOS',
+    municipio: 'Franca',
+    uf: 'SP',
+    inicio: '2025-06-10',
+    visibilidade: 'PUBLICO',
+    estado: 'ENCERRADO',
+    contexto: { tipo: 'PESSOAL', nome: 'Marcos Oliveira' },
+    responsavel: 'Marcos Oliveira',
+    timeIds: [1, 2],
+    partidaIds: [3],
+    pendencias: [],
+    convitesPendentes: 0,
+  },
+  {
+    id: 7,
+    nome: 'Torneio Municipal 2025',
+    modalidade: 'Futebol de Campo',
+    formato: 'MATA_MATA',
+    municipio: 'Franca',
+    uf: 'SP',
+    inicio: '2025-03-12',
+    visibilidade: 'PUBLICO',
+    estado: 'CANCELADO',
+    contexto: { tipo: 'PESSOAL', nome: 'Marcos Oliveira' },
+    responsavel: 'Marcos Oliveira',
+    timeIds: [5, 6],
+    partidaIds: [],
+    pendencias: [],
+    convitesPendentes: 0,
+  },
+];
+
+export const vinculosCampeonatoOrganizadorMock: VinculoCampeonatoOrganizador[] =
+  [
+    { contaId: 'mock-person-1', campeonatoId: 1, papel: 'RESPONSAVEL' },
+    { contaId: 'mock-person-1', campeonatoId: 2, papel: 'ORGANIZADOR' },
+    { contaId: 'mock-person-1', campeonatoId: 4, papel: 'RESPONSAVEL' },
+    { contaId: 'mock-person-1', campeonatoId: 5, papel: 'RESPONSAVEL' },
+    { contaId: 'mock-person-1', campeonatoId: 7, papel: 'RESPONSAVEL' },
+    {
+      contaId: 'mock-person-collaborator-1',
+      campeonatoId: 4,
+      papel: 'ORGANIZADOR',
+    },
+  ];
+
+export const situacoesComerciaisPorContaMock: Record<
+  string,
+  SituacaoComercialOrganizador
+> = {
+  'mock-person-1': {
+    primeiroCampeonatoUtilizado: true,
+    direitosAdicionaisDisponiveis: 1,
+    contextoPrefeituraIsento: true,
+    compras: [
+      {
+        id: 'compra-1',
+        campeonato: 'Copa Verão 2026',
+        estado: 'PAGO',
+        meio: 'PIX',
+        valor: 'Valor registrado no momento da compra',
+        data: '10/08/2026',
+      },
+    ],
+  },
+};
+
+export const convitesColaboradorMock: ConviteColaborador[] = [
+  {
+    id: 1,
+    campeonatoId: 4,
+    conta: 'ana.organiza@campolivre.test',
+    contexto: 'Pessoal',
+    estado: 'PENDENTE',
+  },
+  {
+    id: 2,
+    campeonatoId: 4,
+    conta: 'Juliana Lopes',
+    contaId: 'mock-person-collaborator-1',
+    contexto: 'Pessoal',
+    estado: 'ACEITO',
+  },
+];
+
+export const reservasOrganizadorMock: ReservaCampeonatoOrganizador[] = [
+  {
+    id: 1,
+    campeonatoId: 1,
+    campo: 'Campo Vera Cruz',
+    data: '2026-08-28',
+    inicio: '14:00',
+    fim: '18:00',
+    estado: 'APROVADA',
+  },
+  {
+    id: 2,
+    campeonatoId: 4,
+    campo: 'Campo Santa Rita',
+    data: '2026-12-01',
+    inicio: '14:00',
+    fim: '18:00',
+    estado: 'PENDENTE',
+  },
+];

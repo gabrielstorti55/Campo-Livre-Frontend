@@ -1,5 +1,5 @@
-import { Painel } from '@/features/prefeitura/pages/painel-page';
+import { TelaPainelPrefeitura } from '@/screens/prefeitura/painel';
 
 export default function Page() {
-  return <Painel />;
+  return <TelaPainelPrefeitura />;
 }

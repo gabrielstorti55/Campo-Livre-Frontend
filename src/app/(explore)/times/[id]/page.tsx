@@ -1,5 +1,5 @@
-import { TimeDetailPage } from '@/features/times/pages/time-detail-page';
+import { TelaDetalhesTime } from '@/screens/publico/detalhes-time';
 
 export default function Page() {
-  return <TimeDetailPage />;
+  return <TelaDetalhesTime />;
 }

@@ -1,5 +1,5 @@
-import { Campos } from '@/features/prefeitura/pages/campos-page';
+import { TelaCamposPrefeitura } from '@/screens/prefeitura/campos';
 
 export default function Page() {
-  return <Campos />;
+  return <TelaCamposPrefeitura />;
 }

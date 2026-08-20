@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 
-import { PrefeituraLayout } from '@/app/layouts';
-import { MunicipalityAccessGate } from '@/features/auth/components/municipality-access-gate';
+import { LayoutPrefeitura } from '@/layouts/areas-personas';
+import { ControleAcessoPrefeitura } from '@/components/layout/controle-acesso-prefeitura';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <MunicipalityAccessGate>
-      <PrefeituraLayout>{children}</PrefeituraLayout>
-    </MunicipalityAccessGate>
+    <ControleAcessoPrefeitura>
+      <LayoutPrefeitura>{children}</LayoutPrefeitura>
+    </ControleAcessoPrefeitura>
   );
 }

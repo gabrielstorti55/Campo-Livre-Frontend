@@ -1,5 +1,5 @@
-import { RecuperarSenhaPage } from '@/features/auth/pages/recuperar-senha-page';
+import { TelaRecuperarSenha } from '@/screens/publico/recuperar-senha';
 
 export default function Page() {
-  return <RecuperarSenhaPage />;
+  return <TelaRecuperarSenha />;
 }

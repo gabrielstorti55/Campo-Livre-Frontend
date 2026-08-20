@@ -2,131 +2,128 @@
 
 ## Objetivo
 
-Usar Next.js com App Router como base web do CampoLivre, preservando as telas validadas do protótipo e mantendo as regras de negócio fora da camada de apresentação. A organização continua orientada por capacidade de negócio, com infraestrutura compartilhada pequena e explícita.
+Usar Next.js com App Router como base web do CampoLivre, mantendo rotas, apresentação, estado, regras locais e dados simulados em limites previsíveis. O projeto ainda é um frontend demonstrável: autorização canônica e persistência definitiva pertencem ao backend.
+
+## Estrutura
+
+```text
+src/
+├── app/          # rotas, layouts e entrypoints do Next.js
+├── screens/      # composição das telas por contexto de uso
+├── components/   # primitivas, padrões de layout e módulos de domínio
+├── hooks/        # hooks React compartilhados
+├── services/     # consultas, adapters e regras locais
+├── stores/       # estado reativo e persistência no navegador
+├── types/        # contratos internos estáveis
+├── mocks/        # fixtures e cenários simulados
+├── layouts/      # shells e composição estrutural das áreas
+├── utils/        # utilitários técnicos
+└── constants/    # constantes compartilhadas
+```
+
+Diretórios vazios não são mantidos. Uma camada aparece apenas quando possui responsabilidade real.
 
 ## Limites
 
 ### `app`
 
-`src/app` é a camada de composição do Next.js. Contém:
+`src/app` é a única fonte de rotas. Contém apenas arquivos reconhecidos pelo App Router, estilos globais e adaptadores pequenos que renderizam telas de `screens`. O grupo `(explore)` organiza a consulta pública sem alterar as URLs.
 
-- layout raiz, metadata, providers e estilos globais;
-- grupos de rotas, segmentos dinâmicos e layouts por contexto;
-- adaptadores `page.tsx` pequenos que renderizam páginas de `features`;
-- a página de recurso não encontrado.
+Arquivos de rota não concentram regras de negócio. Rotas autenticadas passam pelos layouts de atleta, organizador ou Prefeitura. A URL legada `/times/criar` apenas redireciona para `/atleta/time/criar`, evitando uma segunda implementação sem gate.
 
-Arquivos de rota não devem concentrar regras de negócio. O grupo `(explore)` organiza a consulta pública sem acrescentar um segmento à URL.
+Não existe `src/pages` nem uma pasta paralela `routes`.
 
-### `features`
+### `screens`
 
-Cada diretório representa uma capacidade do produto:
+As telas são separadas pelo contexto que as apresenta:
 
-- `auth`: entrada, cadastro, recuperação e sessão temporária;
-- `atletas`: consulta pública de perfis esportivos e estatísticas autorizadas;
-- `campeonatos`: listagem, criação, visão geral, chaveamento e artilharia contextual;
-- `dashboard`: páginas iniciais por contexto;
-- `partidas`: consulta, agendamento, súmula e resumo publicado;
-- `organizador`: modelos operacionais, fixtures relacionais e consultas mock do painel administrativo;
-- `perfis`: visualização e configuração dos perfis;
-- `prefeitura`: campos, calendário, aprovações e organizadores;
-- `publico`: modelos de apresentação, fixtures relacionais e porta de consultas da projeção pública;
-- `times`: busca, criação e gestão de equipes.
+- `publico`: consulta sem sessão;
+- `conta`: área pessoal autenticada comum;
+- `atleta`: jornadas e operações do atleta;
+- `organizador`: administração de campeonatos;
+- `prefeitura`: campos, reservas e credenciamento municipal.
 
-Páginas e componentes exclusivos ficam próximos da feature que os utiliza.
+Telas compõem hooks, serviços, stores e componentes. Elas não definem URLs; essa responsabilidade permanece em `app`.
 
-### `shared`
+### `components`
 
-Recebe somente código utilizado por mais de uma feature:
+- `ui`: primitivas shadcn/ui e Radix, mantidas com seus nomes técnicos;
+- `layout`: padrões visuais reutilizáveis do CampoLivre;
+- `modules/<dominio>`: composições reais de campeonatos, partidas e outros domínios.
 
-- `components/ui`: primitivas visuais;
-- `components`: padrões visuais compartilhados do CampoLivre;
-- `lib`: utilitários técnicos pequenos.
+Componentes de apresentação devem preferir props e tipos estáveis. Consulta e seleção de dados pertencem às telas ou aos serviços; dependências diretas de fixtures devem ser reduzidas quando esses módulos forem alterados.
 
-Navegação, parâmetros e estado de rota usam diretamente `next/link` e `next/navigation`. A ponte transitória da migração foi removida após todos os consumidores adotarem as APIs nativas do Next.js.
+### Estado, regras e dados
 
-`shared` não deve depender de páginas de `features`.
+- `hooks`: integração React reutilizável, como `use-sessao`;
+- `services`: portas de consulta, adapters mock e regras sem estado visual;
+- `stores`: estado observável e persistência temporária no navegador;
+- `types`: contratos internos sem dependência de fixtures;
+- `mocks`: dados simulados e cenários relacionais;
+- `constants`: chaves e eventos compartilhados;
+- `utils`: utilitários técnicos pequenos.
 
-### Mocks e projeções públicas
+A sessão está deliberadamente separada entre `types/sessao.ts`, `constants/sessao.ts`, `hooks/use-sessao.ts`, `services/autenticacao/navegacao-sessao.ts` e `stores/sessao.tsx`.
 
-Os mocks antigos ainda usados pelos fluxos autenticados ficam em `src/mocks`. O fluxo público reconciliado possui uma fronteira explícita em `src/features/publico`:
+## Projeções e regras atuais
 
-- `model/public-models.ts`: modelos orientados às consultas públicas confirmadas;
-- `mocks/public-fixtures.ts`: cenários relacionais por ID, ciclo de vida, publicação e privacidade;
-- `services/public-catalog.ts`: porta de consultas sem URL, `fetch` ou DTO HTTP;
-- `services/public-catalog.mock.ts`: adapter local e seletores das projeções.
+Campeonatos, times, partidas e atletas usam relações por ID. Rascunhos, perfis privados e resultados não publicados continuam nos mocks sem vazar na projeção pública. Campos não formam uma jornada pública independente: aparecem publicamente apenas como contexto da partida.
 
-Campeonatos, times, partidas e atletas usam relações por ID. Um rascunho não publicado, um perfil privado ou um resultado não publicado continuam presentes como cenários mock sem vazar na projeção pública. O ciclo principal do campeonato é `EM_CONFIGURACAO → EM_ANDAMENTO → ENCERRADO`, com `CANCELADO` como saída alternativa; inscrições abertas são uma condição separada, não outro estado esportivo. A agenda omite partidas canceladas por padrão e partidas adiadas não mantêm horário vigente. A artilharia é uma projeção contextual do detalhe do campeonato, nunca uma jornada ou ranking global.
+Ativar a capacidade de organizador não atribui campeonatos. O namespace `/organizador` consulta somente vínculos da sessão. O gate cliente evita navegação visual indevida, mas não representa autorização segura.
 
-Campos não formam uma jornada pública independente: a projeção da partida mantém apenas a referência necessária ao local. Cadastro, infraestrutura, disponibilidade, calendário e reservas permanecem nos fluxos operacionais da Prefeitura. Por isso não existem rotas públicas `/campos` ou `/rankings`.
-
-Os mocks não decidem silenciosamente políticas ainda em definição: a exposição exata de campeonatos em configuração, detalhes de times desativados, estados não aprovados da agenda de reservas, o efeito de `perfil_publico = false` sobre fatos históricos e conquistas cuja definição ficou inativa permanecem decisões de produto/backend. Quando o OpenAPI existir, um adapter HTTP deverá traduzir DTOs para os modelos de apresentação; não se deve transformar estes tipos em contratos do backend por conveniência.
-
-### Projeção operacional do organizador
-
-O fluxo administrativo reconciliado possui uma fronteira local em `src/features/organizador`:
-
-- `model/organizer-models.ts`: modelos de apresentação para papel contextual, contexto pessoal/Prefeitura, lifecycle, situação comercial, convites e reservas;
-- `mocks/organizer-fixtures.ts`: cenários relacionais de campeonatos explicitamente administráveis;
-- `services/organizer-catalog.mock.ts`: consultas locais filtradas pelos vínculos da sessão;
-- `state/organizer-operational-store.ts`: projeção operacional substituível por API, observada com `useSyncExternalStore` e persistida apenas durante a sessão do navegador.
-
-Ativar a capacidade de organizador na conta não atribui campeonatos. O painel e cada página contextual consultam somente IDs presentes em `organizedChampionshipIds`; `RESPONSAVEL` e `ORGANIZADOR` possuem ações distintas. O gate cliente do namespace `/organizador` evita a navegação visual sem capacidade ativada, mas não é autorização segura: guards, transações, auditoria e verificação de vínculo pertencem à API.
-
-O estado esportivo (`EM_CONFIGURACAO`, `EM_ANDAMENTO`, `ENCERRADO` ou `CANCELADO`) permanece separado de inscrições abertas e da situação comercial. Configuração, convites, partidas, fatos definitivos, reservas, transferência, finalização e cancelamento alteram somente o store mock nesta fase. A persistência usa um envelope identificado pela conta e contém apenas campeonatos vinculados à sessão ativa; responsabilidade compartilhada é registrada separadamente para que a transferência seja visível ao novo titular. Isso evita herança acidental na troca de conta, mas continua sem segurança de servidor.
-
-Fatos definitivos são registros discriminados e idempotentes: WO preserva vencedor e justificativa; súmula preserva placar, arbitragem, gols, cartões, substituições e relatório. A finalização considera esses fatos, resultados publicados e cancelamentos. Súmula aguardando publicação é somente leitura; uma nova súmula exige partida agendada com data/horário já ocorridos, confere gols por equipe e congela o snapshot revisado antes da confirmação. WO não inventa placar; solicitar reserva não equivale à aprovação municipal; preço, endpoint e DTO não são inferidos antes do contrato aprovado.
+Solicitar reserva não equivale à aprovação municipal. A Prefeitura revalida disponibilidade, conflitos e antecedência mínima no momento da decisão. O estado local é isolado por conta, mas continua sem segurança de servidor.
 
 ## Server e Client Components
 
-- `page.tsx` e `layout.tsx` permanecem Server Components quando não precisam de estado ou APIs do navegador;
-- componentes com estado, contexto, eventos ou `sessionStorage` declaram `use client`;
-- a sessão mock é hidratada somente no navegador, sem acessar `sessionStorage` durante a pré-renderização;
-- dados públicos poderão ser buscados no servidor quando o contrato HTTP estiver disponível;
+- `page.tsx` e `layout.tsx` permanecem Server Components quando possível;
+- estado, contexto, eventos e `sessionStorage` exigem `use client`;
+- a sessão mock é hidratada apenas no navegador;
 - segredos nunca devem ser expostos em variáveis `NEXT_PUBLIC_*`.
-
-A primeira migração manteve limites de cliente amplos para preservar o comportamento do protótipo. A redução desses limites deve ser incremental e acompanhada por testes, não uma refatoração ampla sem benefício observado.
 
 ## Dependências permitidas
 
 ```text
-app -> features -> shared
-  \-------> mocks <---/
-          publico/model <- publico/services <- publico/mocks
-          organizador/model <- organizador/services <- organizador/mocks
+app -> screens, layouts, components
+screens -> components, hooks, services, stores, mocks, layouts, types, utils
+components -> hooks, types, utils
+hooks -> stores
+services -> mocks, types
+layouts -> components, hooks, services, stores, utils
+stores -> types, constants, services, mocks
+mocks -> types
 ```
 
-- `app` pode compor features e shared;
-- features podem usar shared e, temporariamente, mocks;
-- shared não deve importar features;
-- uma feature não deve acessar detalhes internos de outra sem contrato explícito.
+Camadas inferiores não importam `screens` ou `app`. Componentes não consultam serviços nem fixtures: recebem dados por props e dependem apenas de hooks, tipos e utilitários técnicos. Durante a fase demonstrável, telas podem consumir fixtures diretamente quando ainda não existe uma porta de consulta; stores também podem usar mocks como estado inicial. Mocks nunca exportam contratos: seus formatos estáveis ficam em `types`. Quando um fluxo receber integração real, o acesso direto da tela ao mock deve ser substituído pelo serviço correspondente. Dependências entre domínios passam por tipos ou serviços explícitos.
 
 ## Integração com o backend
 
-Next.js não substitui NestJS. O frontend pode realizar renderização e composição web, mas regras canônicas, autorização definitiva, pagamentos e persistência pertencem à API NestJS/PostgreSQL.
+Next.js não substitui NestJS. Regras canônicas, autorização, pagamentos, auditoria e persistência pertencem à API NestJS/PostgreSQL.
 
-A evolução prevista é:
+Evolução prevista:
 
-1. aprovar o contrato OpenAPI do fluxo;
-2. criar um serviço tipado na feature;
-3. manter adapter mock e adapter HTTP sob a mesma interface quando necessário;
+1. aprovar o contrato OpenAPI;
+2. criar serviços tipados;
+3. manter adapter mock e HTTP sob a mesma porta quando necessário;
 4. tratar loading, vazio, erro, sucesso e permissão;
-5. verificar o fluxo no Playwright e, quando houver API, ponta a ponta.
+5. substituir uma fatia vertical por vez e validar no Playwright.
 
-Não criar Route Handlers do Next.js para duplicar endpoints ou regras do backend sem uma decisão arquitetural explícita.
+Não criar Route Handlers do Next.js para duplicar a API sem decisão arquitetural explícita.
 
 ## Nomenclatura
 
-- arquivos e diretórios: `kebab-case`;
+- arquivos e diretórios próprios: português, `kebab-case`, sem acentos;
+- personas e domínios: português;
 - componentes e tipos: `PascalCase`;
 - funções, hooks e variáveis: `camelCase`;
-- testes: `*.spec.ts` ou `*.spec.tsx`;
-- páginas de feature: `*-page.tsx`;
-- entradas do App Router: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx` e `not-found.tsx` quando necessárias.
+- hooks preservam o prefixo técnico `use-`;
+- APIs de React, Next.js, shadcn, Radix e bibliotecas permanecem em inglês;
+- entradas do App Router usam os nomes técnicos exigidos (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`);
+- telas não usam o sufixo redundante `-page`.
 
 ## Próxima evolução
 
-1. Consolidar o contrato OpenAPI com o backend.
-2. Criar o cliente HTTP e o tratamento comum de erros.
-3. Migrar uma fatia vertical por vez de mock para serviço real.
-4. Adicionar estados do App Router (`loading.tsx` e `error.tsx`) somente onde houver operação assíncrona real.
-5. Reduzir gradualmente os limites `use client` conforme as features forem alteradas e dados reais puderem ser buscados no servidor.
+1. Consolidar o OpenAPI com o backend.
+2. Criar cliente HTTP e tratamento comum de erros.
+3. Migrar uma fatia vertical por vez dos mocks para serviços reais.
+4. Substituir acessos diretos das telas aos mocks por serviços quando cada fluxo for integrado.
+5. Reduzir gradualmente os limites `use client` conforme dados reais puderem ser buscados no servidor.

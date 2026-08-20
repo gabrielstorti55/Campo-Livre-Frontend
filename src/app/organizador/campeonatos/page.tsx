@@ -1,5 +1,5 @@
-import { OrganizadorCampeonatos } from '@/features/campeonatos/pages/organizador-campeonatos-page';
+import { TelaCampeonatosOrganizador } from '@/screens/organizador/campeonatos';
 
 export default function Page() {
-  return <OrganizadorCampeonatos />;
+  return <TelaCampeonatosOrganizador />;
 }

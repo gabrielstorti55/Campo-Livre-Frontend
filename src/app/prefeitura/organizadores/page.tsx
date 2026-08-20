@@ -1,5 +1,5 @@
-import { Organizadores } from '@/features/prefeitura/pages/organizadores-page';
+import { TelaOrganizadoresPrefeitura } from '@/screens/prefeitura/organizadores';
 
 export default function Page() {
-  return <Organizadores />;
+  return <TelaOrganizadoresPrefeitura />;
 }

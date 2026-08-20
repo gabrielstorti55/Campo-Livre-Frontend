@@ -1,5 +1,5 @@
-import { PartidaDetailPage } from '@/features/partidas/pages/partida-detail-page';
+import { TelaDetalhesPartida } from '@/screens/publico/detalhes-partida';
 
 export default function Page() {
-  return <PartidaDetailPage />;
+  return <TelaDetalhesPartida />;
 }

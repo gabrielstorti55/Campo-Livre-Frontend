@@ -1,5 +1,5 @@
-import { Calendario } from '@/features/prefeitura/pages/calendario-page';
+import { TelaCalendarioReservas } from '@/screens/prefeitura/calendario-reservas';
 
 export default function Page() {
-  return <Calendario />;
+  return <TelaCalendarioReservas />;
 }

@@ -1,4 +1,4 @@
-import { VisaoGeral } from '@/features/campeonatos/pages/visao-geral-page';
+import { TelaVisaoGeralCampeonato } from '@/screens/organizador/visao-geral-campeonato';
 
 export default async function Page({
   params,
@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <VisaoGeral key={id} campeonatoId={id} />;
+  return <TelaVisaoGeralCampeonato key={id} campeonatoId={id} />;
 }

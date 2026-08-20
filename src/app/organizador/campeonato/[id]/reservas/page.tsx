@@ -1,4 +1,4 @@
-import { ReservasCampeonatoPage } from '@/features/organizador/pages/reservas-campeonato-page';
+import { TelaReservasCampeonato } from '@/screens/organizador/reservas';
 
 export default async function Page({
   params,
@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ReservasCampeonatoPage campeonatoId={id} />;
+  return <TelaReservasCampeonato campeonatoId={id} />;
 }

@@ -1,5 +1,5 @@
-import { LoginPage } from '@/features/auth/pages/login-page';
+import { TelaLogin } from '@/screens/publico/login';
 
 export default function Page() {
-  return <LoginPage />;
+  return <TelaLogin />;
 }

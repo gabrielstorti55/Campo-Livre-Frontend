@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 
-import { AtletaLayout } from '@/app/layouts';
-import { AthleteAccessGate } from '@/features/auth/components/athlete-access-gate';
+import { LayoutAtleta } from '@/layouts/areas-personas';
+import { ControleAcessoAtleta } from '@/components/layout/controle-acesso-atleta';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <AthleteAccessGate>
-      <AtletaLayout>{children}</AtletaLayout>
-    </AthleteAccessGate>
+    <ControleAcessoAtleta>
+      <LayoutAtleta>{children}</LayoutAtleta>
+    </ControleAcessoAtleta>
   );
 }

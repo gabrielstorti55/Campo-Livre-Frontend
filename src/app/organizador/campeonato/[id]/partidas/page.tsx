@@ -1,4 +1,4 @@
-import { AgendarPartidas } from '@/features/partidas/pages/agendar-partidas-page';
+import { TelaGerenciarPartidas } from '@/screens/organizador/gerenciar-partidas';
 
 export default async function Page({
   params,
@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <AgendarPartidas campeonatoId={id} />;
+  return <TelaGerenciarPartidas campeonatoId={id} />;
 }

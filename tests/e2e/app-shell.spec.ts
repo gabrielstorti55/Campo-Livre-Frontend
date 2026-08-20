@@ -46,6 +46,9 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
   await expect(
     page.getByRole('navigation', { name: 'Navegação principal' }),
   ).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Abrir menu' })).toBeFocused();
 });
 
 test('oferece atalho de teclado para o conteúdo principal', async ({

@@ -1,5 +1,5 @@
-import { CriarTime } from '@/features/times/pages/criar-time-page';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  return <CriarTime />;
+  redirect('/atleta/time/criar');
 }

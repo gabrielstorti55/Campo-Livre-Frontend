@@ -1,5 +1,5 @@
-import { MeusEventos } from '@/features/campeonatos/pages/meus-eventos-page';
+import { TelaMeusEventos } from '@/screens/atleta/meus-eventos';
 
 export default function Page() {
-  return <MeusEventos />;
+  return <TelaMeusEventos />;
 }

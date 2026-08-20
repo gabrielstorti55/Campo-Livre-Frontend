@@ -1,5 +1,5 @@
-import { CampeonatoDetailPage } from '@/features/campeonatos/pages/campeonato-detail-page';
+import { TelaDetalhesCampeonato } from '@/screens/publico/detalhes-campeonato';
 
 export default function Page() {
-  return <CampeonatoDetailPage />;
+  return <TelaDetalhesCampeonato />;
 }
