@@ -3,6 +3,11 @@
 import { useState } from 'react';
 
 import {
+  formatMunicipalDate,
+  useMunicipalOperationalState,
+  type MunicipalReservation,
+} from '@/features/prefeitura/state/municipal-operational-store';
+import {
   PageHeader,
   Section,
   StatCard,
@@ -10,44 +15,43 @@ import {
 import { StatusBadge } from '@/shared/components/status-badge';
 import { Button } from '@/shared/components/ui/button';
 import { Textarea } from '@/shared/components/ui/textarea';
-import {
-  aprovacoesPendentes,
-  aprovacoesRecentes,
-  prefeituraStats,
-} from '@/mocks/data';
 
-type Decisao = {
-  id: number;
-  campeonato: string;
-  estado: 'Aprovado' | 'Reprovado';
-  motivo?: string;
-};
+function statusLabel(status: MunicipalReservation['status']) {
+  if (status === 'APPROVED') return 'Aprovado' as const;
+  if (status === 'REJECTED') return 'Reprovado' as const;
+  if (status === 'PENDING') return 'Pendente' as const;
+  return 'Encerrado' as const;
+}
 
 export function Aprovacoes() {
-  const [decisoes, setDecisoes] = useState<Decisao[]>([]);
-  const [rejeitandoId, setRejeitandoId] = useState<number | null>(null);
-  const [motivo, setMotivo] = useState('');
-  const decididos = new Set(decisoes.map((item) => item.id));
-  const pendentes = aprovacoesPendentes.filter(
-    (item) => !decididos.has(item.id),
+  const { state, decideReservation } = useMunicipalOperationalState();
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [reason, setReason] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const visible = state.reservations.filter(
+    (item) => item.status !== 'CANCELLED',
   );
+  const pending = visible.filter((item) => item.status === 'PENDING');
+  const rejected = visible.filter((item) => item.status === 'REJECTED');
+  const approved = visible.filter((item) => item.status === 'APPROVED');
 
-  function aprovar(id: number, campeonato: string) {
-    setDecisoes((atuais) => [
-      { id, campeonato, estado: 'Aprovado' },
-      ...atuais,
-    ]);
+  function approve(id: string) {
+    const result = decideReservation(id, 'APPROVED');
+    if (result === 'FIELD_UNAVAILABLE') {
+      setFeedback('Aprovação bloqueada: o campo está em manutenção.');
+    } else if (result === 'CONFLICT') {
+      setFeedback('Aprovação bloqueada: existe conflito de horário no campo.');
+    } else if (result === 'OK') {
+      setFeedback('Reserva aprovada e incluída no calendário municipal.');
+    }
   }
 
-  function confirmarRecusa(id: number, campeonato: string) {
-    const justificativa = motivo.trim();
-    if (!justificativa) return;
-    setDecisoes((atuais) => [
-      { id, campeonato, estado: 'Reprovado', motivo: justificativa },
-      ...atuais,
-    ]);
-    setRejeitandoId(null);
-    setMotivo('');
+  function reject(id: string) {
+    const result = decideReservation(id, 'REJECTED', reason);
+    if (result !== 'OK') return;
+    setRejectingId(null);
+    setReason('');
+    setFeedback('Reserva recusada com justificativa registrada.');
   }
 
   return (
@@ -58,92 +62,102 @@ export function Aprovacoes() {
       />
 
       <div className="grid grid-cols-3 gap-x-4 sm:gap-x-6">
-        <StatCard label="Pendentes" value={pendentes.length} tone="navy" />
-        <StatCard
-          label="Aguardando análise"
-          value={prefeituraStats.eventosAgendados}
-          tone="navy"
-        />
-        <StatCard
-          label="Reprovados"
-          value={prefeituraStats.reprovados}
-          tone="navy"
-        />
+        <StatCard label="Pendentes" value={pending.length} tone="navy" />
+        <StatCard label="Aprovados" value={approved.length} tone="navy" />
+        <StatCard label="Reprovados" value={rejected.length} tone="navy" />
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
-        <Section title="Aguardando análise">
-          <div className="border-t border-border">
-            {pendentes.map((item) => (
+      {feedback ? (
+        <p
+          role="status"
+          className="rounded-xl bg-blue-50 p-3 text-sm font-semibold text-navy-mid"
+        >
+          {feedback}
+        </p>
+      ) : null}
+
+      <Section title="Solicitações e decisões">
+        <div className="border-t border-border">
+          {visible.map((item) => {
+            const date = formatMunicipalDate(item.date);
+            const label = `${item.championship} · ${item.organizer} · ${item.field} · ${date} · ${item.start}–${item.end}`;
+            const isPending = item.status === 'PENDING';
+            return (
               <article
                 key={item.id}
+                aria-label={label}
                 className="space-y-4 border-b border-border py-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h3 className="truncate font-semibold text-foreground">
-                      {item.campeonato}
+                    <h3 className="font-semibold text-foreground">
+                      {item.championship}
                     </h3>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      {item.organizador} · {item.campo} · {item.horario} ·{' '}
-                      {item.vagas} vagas
+                      {item.organizer} · {item.field} · {date} · {item.start}–
+                      {item.end}
                     </p>
                   </div>
-                  <StatusBadge status="Pendente" />
+                  <StatusBadge status={statusLabel(item.status)} />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  A aprovação deve respeitar estado do campo,
-                  indisponibilidades, antecedência mínima de 24 horas e ausência
-                  de conflito.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="campo"
-                    aria-label={`Aprovar solicitação de ${item.campeonato}`}
-                    onClick={() => aprovar(item.id, item.campeonato)}
+
+                {item.reason ? <p className="text-sm">{item.reason}</p> : null}
+
+                {isPending ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="campo"
+                      aria-label={`Aprovar solicitação de ${item.championship} para ${item.field}`}
+                      onClick={() => approve(item.id)}
+                    >
+                      Aprovar
+                    </Button>
+                    <Button
+                      variant="campoOutline"
+                      tone="danger"
+                      aria-label={`Reprovar solicitação de ${item.championship} para ${item.field}`}
+                      aria-expanded={rejectingId === item.id}
+                      aria-controls={`rejection-${item.id}`}
+                      onClick={() => {
+                        setRejectingId(item.id);
+                        setReason('');
+                      }}
+                    >
+                      Reprovar
+                    </Button>
+                  </div>
+                ) : null}
+
+                {rejectingId === item.id ? (
+                  <div
+                    id={`rejection-${item.id}`}
+                    className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4"
                   >
-                    Aprovar
-                  </Button>
-                  <Button
-                    variant="campoOutline"
-                    tone="danger"
-                    aria-label={`Reprovar solicitação de ${item.campeonato}`}
-                    onClick={() => {
-                      setRejeitandoId(item.id);
-                      setMotivo('');
-                    }}
-                  >
-                    Reprovar
-                  </Button>
-                </div>
-                {rejeitandoId === item.id ? (
-                  <div className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
                     <label
-                      htmlFor={`motivo-recusa-${item.id}`}
+                      htmlFor={`reason-${item.id}`}
                       className="block text-sm font-semibold text-red-950"
                     >
                       Motivo da recusa
                     </label>
                     <Textarea
-                      id={`motivo-recusa-${item.id}`}
-                      value={motivo}
-                      onChange={(event) => setMotivo(event.target.value)}
+                      autoFocus
+                      id={`reason-${item.id}`}
+                      value={reason}
+                      onChange={(event) => setReason(event.target.value)}
                       placeholder="Informe uma justificativa objetiva"
                     />
                     <div className="flex gap-2">
                       <Button
                         variant="campo"
                         tone="danger"
-                        disabled={!motivo.trim()}
-                        onClick={() =>
-                          confirmarRecusa(item.id, item.campeonato)
-                        }
+                        disabled={!reason.trim()}
+                        onClick={() => reject(item.id)}
                       >
                         Confirmar recusa
                       </Button>
                       <Button
                         variant="campoOutline"
-                        onClick={() => setRejeitandoId(null)}
+                        onClick={() => setRejectingId(null)}
                       >
                         Cancelar
                       </Button>
@@ -151,63 +165,15 @@ export function Aprovacoes() {
                   </div>
                 ) : null}
               </article>
-            ))}
-            {pendentes.length === 0 ? (
-              <p className="py-6 text-sm text-muted-foreground">
-                Nenhuma solicitação pendente.
-              </p>
-            ) : null}
-          </div>
-        </Section>
-
-        <Section title="Aprovados anteriormente">
-          <div className="border-t border-border">
-            {aprovacoesRecentes.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between gap-3 border-b border-border py-4"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {item.campeonato}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {item.organizador}
-                  </p>
-                </div>
-                <StatusBadge status="Aprovado" />
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-
-      <section className="mt-10" aria-label="Histórico de decisões">
-        <Section title="Histórico de decisões">
-          {decisoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nenhuma decisão nesta sessão.
+            );
+          })}
+          {visible.length === 0 ? (
+            <p className="py-6 text-sm text-muted-foreground">
+              Nenhuma solicitação encontrada.
             </p>
-          ) : (
-            <div className="space-y-3">
-              {decisoes.map((item) => (
-                <article
-                  key={`${item.id}-${item.estado}`}
-                  className="rounded-xl border border-border p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold">{item.campeonato}</p>
-                    <StatusBadge status={item.estado} />
-                  </div>
-                  {item.motivo ? (
-                    <p className="mt-2 text-sm">{item.motivo}</p>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          )}
-        </Section>
-      </section>
+          ) : null}
+        </div>
+      </Section>
     </>
   );
 }

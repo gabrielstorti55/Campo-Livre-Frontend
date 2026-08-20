@@ -2,46 +2,78 @@
 
 import { useState } from 'react';
 
+import { useMunicipalOperationalState } from '@/features/prefeitura/state/municipal-operational-store';
 import {
   Card,
   Initials,
   PageHeader,
   SearchBar,
 } from '@/shared/components/campo-livre-ui';
-import { organizadores } from '@/mocks/data';
+import { Button } from '@/shared/components/ui/button';
 
 export function Organizadores() {
-  const [busca, setBusca] = useState('');
-  const lista = organizadores.filter((o) =>
-    o.nome.toLowerCase().includes(busca.toLowerCase()),
+  const [search, setSearch] = useState('');
+  const { state, toggleOrganizer } = useMunicipalOperationalState();
+  const organizers = state.organizers.filter((organizer) =>
+    organizer.name.toLowerCase().includes(search.toLowerCase()),
   );
+  const activeCount = state.organizers.filter(
+    (organizer) => organizer.status === 'ACTIVE',
+  ).length;
 
   return (
     <>
       <PageHeader
         title="Organizadores cadastrados"
-        subtitle={`${organizadores.length} organizadores`}
+        subtitle={`${activeCount} organizadores ativos`}
       />
       <SearchBar
         placeholder="Buscar organizador"
-        value={busca}
-        onChange={setBusca}
+        value={search}
+        onChange={setSearch}
       />
 
       <div className="space-y-3">
-        {lista.map((o) => (
-          <Card key={o.id} className="flex items-center gap-3">
-            <Initials name={o.nome} tone="navy" className="h-10 w-10 text-xs" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-display font-semibold text-foreground">
-                {o.nome}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {o.eventos} eventos organizados
-              </p>
-            </div>
-          </Card>
-        ))}
+        {organizers.map((organizer) => {
+          const active = organizer.status === 'ACTIVE';
+          return (
+            <article key={organizer.id} aria-label={organizer.name}>
+              <Card className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Initials
+                  name={organizer.name}
+                  tone="navy"
+                  className="h-10 w-10 text-xs"
+                />
+                <div className="min-w-0 flex-1">
+                  <h2 className="truncate font-display font-semibold text-foreground">
+                    {organizer.name}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    {organizer.events} eventos organizados ·{' '}
+                    <strong>{active ? 'Ativo' : 'Suspenso'}</strong>
+                  </p>
+                </div>
+                <Button
+                  variant="campoOutline"
+                  tone={active ? 'danger' : 'navy'}
+                  aria-label={
+                    active
+                      ? `Suspender ${organizer.name}`
+                      : `Reativar ${organizer.name}`
+                  }
+                  onClick={() => toggleOrganizer(organizer.id)}
+                >
+                  {active ? 'Suspender' : 'Reativar'}
+                </Button>
+              </Card>
+            </article>
+          );
+        })}
+        {organizers.length === 0 ? (
+          <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
+            Nenhum organizador encontrado.
+          </p>
+        ) : null}
       </div>
     </>
   );

@@ -8,6 +8,13 @@ async function loginAsAthlete(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/atleta\/inicio$/);
 }
 
+async function loginAsMunicipality(page: import('@playwright/test').Page) {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('prefeitura@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+}
+
 test('usa um cabeçalho de página semântico nas áreas autenticadas', async ({
   page,
 }) => {
@@ -34,6 +41,9 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
 
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   await expect(
+    page.getByRole('dialog', { name: 'Menu principal' }),
+  ).toBeVisible();
+  await expect(
     page.getByRole('navigation', { name: 'Navegação principal' }),
   ).toBeVisible();
 });
@@ -41,6 +51,7 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
 test('oferece atalho de teclado para o conteúdo principal', async ({
   page,
 }) => {
+  await loginAsMunicipality(page);
   await page.goto('/prefeitura/painel');
   await page.keyboard.press('Tab');
 
@@ -56,6 +67,7 @@ test('mantém títulos completos quando o cabeçalho móvel possui ação', asyn
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await loginAsMunicipality(page);
   await page.goto('/prefeitura/campos');
 
   const title = page.getByRole('heading', {

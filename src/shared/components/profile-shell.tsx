@@ -1,6 +1,7 @@
 'use client';
 
 import { LogOut, Menu, X } from 'lucide-react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -124,20 +125,17 @@ export function ProfileShell({
         </div>
       </header>
 
-      {menuOpen ? (
-        <div className="fixed inset-0 z-[70]" role="presentation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/45 backdrop-blur-[2px] motion-reduce:backdrop-blur-none"
-            onClick={() => setMenuOpen(false)}
-            aria-label="Fechar menu"
-          />
-
-          <aside
+      <DialogPrimitive.Root open={menuOpen} onOpenChange={setMenuOpen}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-[70] bg-black/45 backdrop-blur-[2px] motion-reduce:backdrop-blur-none" />
+          <DialogPrimitive.Content
             id="profile-sidebar"
-            className="relative flex h-full w-[min(88vw,360px)] flex-col overflow-hidden text-white shadow-2xl"
+            className="fixed inset-y-0 left-0 z-[71] flex h-full w-[min(88vw,360px)] flex-col overflow-hidden text-white shadow-2xl outline-none"
             aria-label="Menu principal"
           >
+            <DialogPrimitive.Title className="sr-only">
+              Menu principal
+            </DialogPrimitive.Title>
             <img
               src="/soccer-field.jpg"
               alt=""
@@ -228,9 +226,9 @@ export function ProfileShell({
                 ) : null}
               </div>
             </div>
-          </aside>
-        </div>
-      ) : null}
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
 
       <main id="conteudo-principal" tabIndex={-1} className="outline-none">
         <div className="mx-auto w-full max-w-[1380px] space-y-10 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">

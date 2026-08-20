@@ -8,6 +8,14 @@ async function loginAsOrganizer(page: Page) {
   await expect(page).toHaveURL(/\/atleta\/inicio$/);
 }
 
+async function loginAsMunicipality(page: Page) {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill('prefeitura@campolivre.test');
+  await page.getByLabel('Senha').fill('senha-mock');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await page.goto('/prefeitura/painel');
+}
+
 test('entrada em time ocorre por convite nominal, sem solicitação aberta', async ({
   page,
 }) => {
@@ -263,35 +271,35 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
 test('recusa de reserva exige motivo e aparece no histórico local', async ({
   page,
 }) => {
+  await loginAsMunicipality(page);
   await page.goto('/prefeitura/aprovacoes');
 
-  await page
-    .getByRole('button', { name: 'Reprovar solicitação de Copa Verão 2026' })
-    .click();
-  await expect(page.getByLabel('Motivo da recusa')).toBeVisible();
+  const request = page.getByRole('article', { name: /Copa Verão 2026/ });
+  await request.getByRole('button', { name: 'Reprovar solicitação' }).click();
+  await expect(request.getByLabel('Motivo da recusa')).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Confirmar recusa' }),
+    request.getByRole('button', { name: 'Confirmar recusa' }),
   ).toBeDisabled();
-  await page
+  await request
     .getByLabel('Motivo da recusa')
     .fill('Conflito com manutenção programada.');
-  await page.getByRole('button', { name: 'Confirmar recusa' }).click();
+  await request.getByRole('button', { name: 'Confirmar recusa' }).click();
 
-  const history = page.getByRole('region', { name: 'Histórico de decisões' });
-  await expect(history.getByText('Copa Verão 2026')).toBeVisible();
-  await expect(
-    history.getByText('Conflito com manutenção programada.'),
-  ).toBeVisible();
+  await expect(request).toContainText('Reprovado');
+  await expect(request).toContainText('Conflito com manutenção programada.');
 });
 
 test('agenda municipal filtra reservas pela data selecionada', async ({
   page,
 }) => {
+  await loginAsMunicipality(page);
   await page.goto('/prefeitura/calendario');
   const calendar = page.getByRole('grid', { name: /agosto 2026/i });
 
   await calendar.getByRole('button', { name: /21 de agosto de 2026/i }).click();
-  await expect(page.getByText('Nenhuma reserva nesta data.')).toBeVisible();
+  await expect(
+    page.getByText('Nenhuma reserva aprovada nesta data.'),
+  ).toBeVisible();
 
   await calendar
     .getByRole('button', { name: /sexta-feira, 7 de agosto de 2026/i })

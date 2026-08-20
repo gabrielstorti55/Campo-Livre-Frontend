@@ -69,6 +69,8 @@ export function OrganizadorLayout({ children }: { children: ReactNode }) {
 }
 
 export function PrefeituraLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const { session, signOut } = useSession();
   const items = [
     { label: 'Início', to: '/prefeitura/painel', icon: Home },
     { label: 'Campos', to: '/prefeitura/campos', icon: MapPinned },
@@ -81,8 +83,12 @@ export function PrefeituraLayout({ children }: { children: ReactNode }) {
     <ProfileShell
       items={items}
       tone="navy"
-      userName="Prefeitura Franca"
-      userRole="Gestão pública"
+      userName={session?.account.name ?? 'Prefeitura de Franca'}
+      userRole="Gestão pública municipal"
+      onSignOut={() => {
+        signOut();
+        router.replace('/login');
+      }}
     >
       {children}
     </ProfileShell>

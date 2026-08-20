@@ -381,7 +381,9 @@ test('solicita e cancela reserva no contexto do campeonato administrado', async 
     'Reserva cancelada localmente.',
   );
 
-  await page.getByLabel('Campo').selectOption('Campo Santa Rita');
+  await page
+    .getByRole('combobox', { name: 'Campo', exact: true })
+    .selectOption('Campo Santa Rita');
   await page.getByLabel('Data da reserva').fill('2026-09-05');
   await page.getByLabel('Hora inicial').fill('09:00');
   await page.getByLabel('Hora final').fill('11:00');

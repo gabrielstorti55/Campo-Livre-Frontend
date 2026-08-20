@@ -80,7 +80,7 @@ const mockPersonalSession: PersonalSession = {
     captainTeamIds: ['1'],
     createdTeams: [],
     organizedChampionshipIds: ['1', '2', '4', '5', '7'],
-    institutionalOrganizationIds: ['prefeitura-franca'],
+    institutionalOrganizationIds: [],
   },
 };
 
@@ -120,6 +120,25 @@ const mockCollaboratorSession: PersonalSession = {
     createdTeams: [],
     organizedChampionshipIds: ['4'],
     institutionalOrganizationIds: [],
+  },
+};
+
+const mockMunicipalSession: PersonalSession = {
+  sessionId: 'mock-session-municipal-1',
+  account: {
+    id: 'mock-municipal-manager-1',
+    name: 'Gestora Municipal',
+    city: 'Franca, SP',
+    type: 'pessoa',
+  },
+  capabilities: [],
+  activeContext: null,
+  links: {
+    teamIds: [],
+    captainTeamIds: [],
+    createdTeams: [],
+    organizedChampionshipIds: [],
+    institutionalOrganizationIds: ['prefeitura-franca'],
   },
 };
 
@@ -251,11 +270,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             city: registeredAccount.city,
           },
         }
-      : normalizedEmail === 'sem-time@campolivre.test'
-        ? mockUnlinkedPersonalSession
-        : normalizedEmail === 'colaborador@campolivre.test'
-          ? mockCollaboratorSession
-          : mockPersonalSession;
+      : normalizedEmail === 'prefeitura@campolivre.test'
+        ? mockMunicipalSession
+        : normalizedEmail === 'sem-time@campolivre.test'
+          ? mockUnlinkedPersonalSession
+          : normalizedEmail === 'colaborador@campolivre.test'
+            ? mockCollaboratorSession
+            : mockPersonalSession;
 
     setActiveMockSession(nextSession);
     setSession(nextSession);
