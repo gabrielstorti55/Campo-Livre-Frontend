@@ -17,7 +17,7 @@ export function ResumoPartida({
   return (
     <section
       aria-labelledby="resumo-partida-title"
-      className="mt-6 rounded-[28px] border border-border/70 bg-card p-5 shadow-[0_12px_34px_rgba(30,54,43,0.06)] sm:p-6"
+      className="mt-8 border-t-2 border-navy-dark bg-card/70 p-5 sm:p-6"
     >
       <div className="flex flex-col gap-3 border-b border-border/70 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -26,18 +26,18 @@ export function ResumoPartida({
           </p>
           <h2
             id="resumo-partida-title"
-            className="mt-1 font-display text-2xl font-semibold tracking-[-0.03em]"
+            className="mt-1 font-display text-3xl font-bold tracking-[-0.01em] uppercase"
           >
             Resumo da partida
           </h2>
         </div>
-        <div className="rounded-2xl bg-green-dark px-4 py-2 font-display text-lg font-bold text-white">
+        <div className="border-x-2 border-accent bg-green-dark px-5 py-2 font-display text-2xl font-extrabold text-accent">
           {placar}
         </div>
       </div>
 
       {sumula.wo ? (
-        <div className="mt-5 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+        <div className="mt-5 border-l-2 border-warning bg-warning/10 px-4 py-3 text-sm">
           Partida encerrada por W.O. Vitória de{' '}
           <strong>{sumula.wo.vencedor}</strong>.
         </div>
@@ -51,7 +51,7 @@ export function ResumoPartida({
               Gols
             </h3>
           </div>
-          <div className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/70">
+          <div className="divide-y divide-border/70 overflow-hidden border-y border-border/70">
             {sumula.gols.map((gol, index) => (
               <div
                 key={`${gol.autor}-${gol.minuto}-${index}`}
@@ -90,7 +90,7 @@ export function ResumoPartida({
             {cartoes.map((cartao, index) => (
               <div
                 key={`${cartao.jogador}-${cartao.minuto}-${index}`}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-muted/35 px-4 py-3"
+                className="flex items-center justify-between gap-4 border-t border-border/70 bg-muted/35 px-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
@@ -137,7 +137,7 @@ export function ResumoPartida({
             {substituicoes.map((substituicao, index) => (
               <div
                 key={`${substituicao.entra}-${substituicao.minuto}-${index}`}
-                className="rounded-2xl border border-border/70 px-4 py-3"
+                className="border-t border-border/70 px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">

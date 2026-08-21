@@ -67,7 +67,7 @@ export function TelaPerfilOrganizador() {
         </p>
         <div className="mt-4 space-y-3">
           {comercial.compras.length === 0 ? (
-            <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+            <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
               Nenhuma compra vinculada a esta conta.
             </p>
           ) : null}

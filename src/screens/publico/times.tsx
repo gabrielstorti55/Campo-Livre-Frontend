@@ -23,7 +23,7 @@ export function TelaTimes() {
         title="Times"
         description="Consulte equipes, histórico e sua projeção esportiva autorizada, preservando dados pessoais."
       />
-      <div className="mb-7 grid gap-4 rounded-2xl border border-border/70 bg-card p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5">
+      <div className="mb-7 grid gap-4 rounded-md border border-border/70 bg-card p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5">
         <div className="max-w-xl">
           <BarraBusca
             placeholder="Buscar times..."
@@ -49,13 +49,13 @@ export function TelaTimes() {
               key={time.id}
               href={`/times/${time.id}`}
               className={cn(
-                'group rounded-[24px] border border-border/70 bg-card p-5 shadow-sm transition hover:border-green-light hover:shadow-md sm:p-6',
+                'group rounded-md border border-border/70 bg-card p-5 shadow-none transition hover:border-green-light hover:shadow-none sm:p-6',
                 focusRing,
               )}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-dark font-display text-lg font-bold text-white">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-md bg-green-dark font-display text-lg font-bold text-white">
                     {time.escudo}
                   </div>
                   <h2 className="font-display text-xl font-semibold sm:text-2xl">

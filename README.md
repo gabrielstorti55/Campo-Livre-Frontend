@@ -1,6 +1,6 @@
 # CampoLivre — Frontend
 
-Frontend web do CampoLivre/LigaPro, sistema de gestão de campeonatos esportivos municipais desenvolvido como TCC da Uni-FACEF.
+Frontend web do CampoLivre, sistema de gestão de campeonatos esportivos municipais desenvolvido como TCC da Uni-FACEF.
 
 ## Tecnologias
 
@@ -83,6 +83,12 @@ Pastas técnicas permanecem em inglês. Arquivos, pastas de persona/domínio e i
 As primitivas ficam em `src/components/ui` e seguem o padrão shadcn/ui sobre Radix UI. Como o shadcn distribui seu código-fonte para o projeto, esses arquivos pertencem ao repositório, mas preservam os nomes técnicos da biblioteca.
 
 Padrões reutilizáveis ficam em `components/layout`; composições reais de domínio ficam em `components/modules/<dominio>`. O projeto mantém somente componentes e primitivas com consumidores comprovados; `npm run deadcode` verifica arquivos e dependências sem uso.
+
+## Identidade visual
+
+O sistema visual aprovado está documentado em [DESIGN.md](DESIGN.md). Ele combina **Campo Editorial + Estádio Municipal** e é obrigatório para áreas públicas, conta, atleta, organizador, Prefeitura e estados futuros da integração com a API.
+
+As fontes Barlow Condensed e IBM Plex Sans são empacotadas localmente por `@fontsource`; a produção não depende de fontes remotas.
 
 ## Backend
 

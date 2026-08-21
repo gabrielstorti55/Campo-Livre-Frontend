@@ -26,7 +26,7 @@ export function Secao({
     >
       <h2
         id={titleId}
-        className="font-display text-lg font-semibold tracking-[-0.02em] text-foreground sm:text-xl"
+        className="font-display text-xl font-bold tracking-[0.01em] text-foreground sm:text-2xl"
       >
         {title}
       </h2>

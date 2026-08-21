@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useSessao } from '@/hooks/use-sessao';
 import { catalogoOrganizadorMock } from '@/services/organizador/catalogo-organizador.mock';
@@ -18,6 +18,13 @@ import { CampoFormulario } from '@/components/layout/campo-formulario';
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Secao } from '@/components/layout/secao';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -107,6 +114,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
   const [confirmacao, setConfirmacao] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [enviada, setEnviada] = useState(false);
+  const abrirConfirmacaoRef = useRef<HTMLButtonElement>(null);
   const [sumulaRevisada, setSumulaRevisada] = useState<{
     partidaId: number;
     fato: FatoDefinitivoPartida;
@@ -727,6 +735,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
               Revisei os dados e confirmo o envio definitivo.
             </label>
             <Button
+              ref={abrirConfirmacaoRef}
               type="submit"
               variant="campo"
               className="w-full"
@@ -738,20 +747,27 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
         </fieldset>
       </form>
 
-      {confirmando && !enviada ? (
-        <div
-          className="mt-4 space-y-3 rounded-xl border border-amber-300 bg-white p-4"
+      <Dialog
+        open={confirmando && !enviada}
+        onOpenChange={(open) => setConfirmando(open)}
+      >
+        <DialogContent
           role="alertdialog"
           aria-label="Confirmar envio da súmula"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            abrirConfirmacaoRef.current?.focus();
+          }}
+          className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-md border-amber-300 bg-card sm:max-w-lg"
         >
-          <p className="font-semibold text-amber-950">
+          <DialogTitle className="font-display text-2xl text-amber-950">
             Confirma o envio definitivo?
-          </p>
-          <p className="text-sm text-amber-900">
+          </DialogTitle>
+          <DialogDescription className="text-amber-900">
             A operação publicará os fatos em conjunto e não permitirá correção
             ou reenvio.
-          </p>
-          <div className="flex flex-wrap gap-2">
+          </DialogDescription>
+          <DialogFooter className="gap-2 sm:space-x-0">
             <Button
               variant="campoOutline"
               onClick={() => setConfirmando(false)}
@@ -773,13 +789,13 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
             >
               Enviar súmula definitiva
             </Button>
-          </div>
-        </div>
-      ) : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {enviada ? (
         <p
           role="status"
-          className="mt-4 rounded-xl bg-green-pale p-4 text-sm font-semibold text-green-dark"
+          className="mt-4 rounded-md bg-green-pale p-4 text-sm font-semibold text-green-dark"
         >
           Súmula confirmada. PDF oficial com geração pendente e idempotente pela
           API.

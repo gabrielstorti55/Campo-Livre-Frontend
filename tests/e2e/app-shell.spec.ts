@@ -26,6 +26,36 @@ test('usa um cabeçalho de página semântico nas áreas autenticadas', async ({
   ).toBeVisible();
 });
 
+test('propaga a identidade editorial para o shell autenticado', async ({
+  page,
+}) => {
+  await loginAsAthlete(page);
+
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator('body')).toHaveCSS('font-family', /IBM Plex Sans/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCSS(
+    'font-family',
+    /Barlow Condensed/,
+  );
+  await expect(page.locator('body')).toHaveCSS(
+    'background-color',
+    'rgb(245, 241, 230)',
+  );
+
+  const menuButton = page.getByRole('button', { name: 'Abrir menu' });
+  const radius = Number.parseFloat(
+    await menuButton.evaluate(
+      (element) => getComputedStyle(element).borderRadius,
+    ),
+  );
+  expect(radius).toBeLessThanOrEqual(8);
+  await menuButton.click();
+
+  const dialog = page.getByRole('dialog', { name: 'Menu principal' });
+  await expect(dialog.locator('img[src="/soccer-field.jpg"]')).toHaveCount(0);
+  await expect(dialog.getByText('LigaPro', { exact: true })).toHaveCount(0);
+});
+
 test('libera toda a largura e oferece o menu principal no cabeçalho móvel', async ({
   page,
 }) => {

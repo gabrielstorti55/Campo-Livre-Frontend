@@ -41,7 +41,7 @@ export function TelaCamposPrefeitura() {
       {feedback ? (
         <p
           role="status"
-          className="rounded-xl bg-blue-50 p-3 text-sm font-semibold text-navy-mid"
+          className="rounded-md bg-blue-50 p-3 text-sm font-semibold text-navy-mid"
         >
           {feedback}
         </p>
@@ -90,7 +90,7 @@ export function TelaCamposPrefeitura() {
           );
         })}
         {fields.length === 0 ? (
-          <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
+          <p className="rounded-md border border-dashed p-5 text-sm text-muted-foreground">
             Nenhum campo encontrado.
           </p>
         ) : null}

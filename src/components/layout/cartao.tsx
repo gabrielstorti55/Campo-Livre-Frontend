@@ -12,7 +12,7 @@ export function Cartao({
   return (
     <UICard
       className={cn(
-        'rounded-md border-border/80 bg-white p-4 shadow-none',
+        'rounded-md border-border/80 bg-card p-4 shadow-none',
         className,
       )}
     >

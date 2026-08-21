@@ -11,7 +11,7 @@ import type {
 import { catalogoPublicoMock } from '@/services/publico/catalogo-publico.mock';
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Secao } from '@/components/layout/secao';
-import { Abas } from '@/components/layout/abas';
+import { Abas, obterIdAba } from '@/components/layout/abas';
 import { IndicadorAvanco, ItemLista } from '@/components/layout/item-lista';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { IndicadorSituacao } from '@/components/layout/indicador-situacao';
@@ -74,7 +74,7 @@ export function TelaMeusEventos() {
         title={`Eventos ${tab}`}
         id="athlete-events-panel"
         role="tabpanel"
-        labelledBy={`athlete-events-panel-tab-${tab}`}
+        labelledBy={obterIdAba('athlete-events-panel', tab)}
       >
         {events.length === 0 ? (
           <EstadoRecurso

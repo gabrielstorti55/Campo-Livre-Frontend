@@ -19,7 +19,7 @@ export function TelaAtletas() {
         title="Atletas"
         description="Perfis autorizados com fatos derivados somente de resultados publicados."
       />
-      <div className="mb-7 max-w-xl rounded-2xl border border-border/70 bg-card p-4">
+      <div className="mb-7 max-w-xl rounded-md border border-border/70 bg-card p-4">
         <BarraBusca
           placeholder="Buscar atletas..."
           value={busca}
@@ -38,7 +38,7 @@ export function TelaAtletas() {
             <Link
               key={atleta.id}
               href={`/atletas/${atleta.id}`}
-              className="flex items-center gap-4 rounded-3xl border border-border/70 bg-card p-5 shadow-sm"
+              className="flex items-center gap-4 rounded-md border border-border/70 bg-card p-5 shadow-none"
             >
               <Iniciais name={atleta.nome} className="h-12 w-12" />
               <div>

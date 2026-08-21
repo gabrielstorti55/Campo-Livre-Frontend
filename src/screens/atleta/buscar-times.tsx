@@ -75,7 +75,7 @@ export function TelaBuscarTimes() {
 
       {decisao ? (
         <p
-          className="mb-6 rounded-xl bg-green-pale px-4 py-3 text-sm font-semibold text-green-dark"
+          className="mb-6 rounded-md bg-green-pale px-4 py-3 text-sm font-semibold text-green-dark"
           role="status"
         >
           {decisao}
@@ -84,7 +84,7 @@ export function TelaBuscarTimes() {
 
       <Secao title="Convites recebidos">
         {convitesVisiveis.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="rounded-md border border-border bg-card p-5 text-sm text-muted-foreground">
             Você não possui convites pendentes.
           </p>
         ) : (
@@ -92,7 +92,7 @@ export function TelaBuscarTimes() {
             {convitesVisiveis.map((convite) => (
               <article
                 key={convite.id}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+                className="rounded-md border border-border bg-card p-5 shadow-none"
               >
                 <h2 className="font-display text-lg font-semibold">
                   {convite.time}

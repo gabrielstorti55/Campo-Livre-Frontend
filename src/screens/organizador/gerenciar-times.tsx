@@ -78,7 +78,7 @@ export function TelaGerenciarTimes({ campeonatoId }: { campeonatoId: string }) {
           {convites.map((time) => (
             <div
               key={time}
-              className="mt-3 flex items-center justify-between rounded-xl bg-muted p-3"
+              className="mt-3 flex items-center justify-between rounded-md bg-muted p-3"
             >
               <p className="text-sm">{time} · Pendente</p>
               <Button
@@ -123,7 +123,7 @@ export function TelaGerenciarTimes({ campeonatoId }: { campeonatoId: string }) {
                 {elenco.map((atleta) => (
                   <li
                     key={atleta.id}
-                    className="rounded-xl bg-muted p-3 text-sm"
+                    className="rounded-md bg-muted p-3 text-sm"
                   >
                     {atleta.nome} · {atleta.posicao}
                   </li>
@@ -152,7 +152,7 @@ export function TelaGerenciarTimes({ campeonatoId }: { campeonatoId: string }) {
       {feedback ? (
         <p
           role="status"
-          className="mt-5 rounded-xl bg-green-pale p-3 text-sm font-semibold text-green-dark"
+          className="mt-5 rounded-md bg-green-pale p-3 text-sm font-semibold text-green-dark"
         >
           {feedback}
         </p>

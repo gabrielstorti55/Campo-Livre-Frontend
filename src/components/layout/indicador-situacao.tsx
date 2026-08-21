@@ -15,6 +15,13 @@ const styles: Record<string, string> = {
   Reprovado: 'bg-[oklch(0.94_0.04_25)] text-danger',
 };
 
+function formatarStatus(status: string) {
+  if (!/^[A-Z_]+$/.test(status)) return status;
+
+  const texto = status.replaceAll('_', ' ').toLocaleLowerCase('pt-BR');
+  return texto.charAt(0).toLocaleUpperCase('pt-BR') + texto.slice(1);
+}
+
 export function IndicadorSituacao({
   status,
   className,
@@ -22,16 +29,18 @@ export function IndicadorSituacao({
   status: string;
   className?: string;
 }) {
+  const label = formatarStatus(status);
+
   return (
     <Badge
       variant="secondary"
       className={cn(
         'shrink-0 rounded-full px-3 py-1 font-display text-xs font-semibold hover:bg-inherit',
-        styles[status] ?? 'bg-muted text-muted-foreground',
+        styles[label] ?? 'bg-muted text-muted-foreground',
         className,
       )}
     >
-      {status}
+      {label}
     </Badge>
   );
 }

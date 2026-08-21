@@ -13,7 +13,7 @@ import { Iniciais } from '@/components/layout/iniciais';
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Secao } from '@/components/layout/secao';
 import { CartaoEstatistica } from '@/components/layout/cartao-estatistica';
-import { Abas } from '@/components/layout/abas';
+import { Abas, obterIdAba } from '@/components/layout/abas';
 import {
   atletaLogado,
   getElencoDoTime,
@@ -130,7 +130,7 @@ export function TelaGerenciarTime() {
           title="Jogadores cadastrados"
           id="team-management-panel"
           role="tabpanel"
-          labelledBy="team-management-panel-tab-Elenco"
+          labelledBy={obterIdAba('team-management-panel', 'Elenco')}
         >
           <div className="border-t border-border">
             {teamRoster.map((jogador) => (
@@ -156,7 +156,7 @@ export function TelaGerenciarTime() {
             ))}
           </div>
           <form
-            className="mt-5 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[minmax(0,1fr)_13rem_auto] sm:items-end"
+            className="mt-5 grid gap-3 rounded-md border border-border bg-card p-4 sm:grid-cols-[minmax(0,1fr)_13rem_auto] sm:items-end"
             onSubmit={(event) => {
               event.preventDefault();
               const dados = new FormData(event.currentTarget);
@@ -192,7 +192,7 @@ export function TelaGerenciarTime() {
           </form>
           {convitePendente ? (
             <div
-              className="mt-3 space-y-3 rounded-xl border border-border p-4"
+              className="mt-3 space-y-3 rounded-md border border-border p-4"
               role="status"
             >
               <p className="text-sm font-semibold text-green-dark">
@@ -235,7 +235,7 @@ export function TelaGerenciarTime() {
           title="Próximos jogos"
           id="team-management-panel"
           role="tabpanel"
-          labelledBy="team-management-panel-tab-Jogos"
+          labelledBy={obterIdAba('team-management-panel', 'Jogos')}
         >
           {teamMatches.some((match) => !match.concluida) ? (
             <div className="border-t border-border">
@@ -262,7 +262,7 @@ export function TelaGerenciarTime() {
                 ))}
             </div>
           ) : (
-            <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            <p className="rounded-md border border-border bg-card p-5 text-sm text-muted-foreground">
               Nenhum próximo jogo cadastrado para este time.
             </p>
           )}
@@ -274,7 +274,7 @@ export function TelaGerenciarTime() {
           title="Artilharia do time"
           id="team-management-panel"
           role="tabpanel"
-          labelledBy="team-management-panel-tab-Estatísticas"
+          labelledBy={obterIdAba('team-management-panel', 'Estatísticas')}
         >
           <div className="border-t border-border">
             {teamRoster.map((jogador) => (
@@ -303,7 +303,7 @@ export function TelaGerenciarTime() {
             <IndicadorSituacao status="Em andamento" />
           </div>
         ) : (
-          <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="rounded-md border border-border bg-card p-5 text-sm text-muted-foreground">
             Nenhum campeonato inscrito.
           </p>
         )}

@@ -68,7 +68,7 @@ export function TelaOrganizadoresPrefeitura() {
           );
         })}
         {organizers.length === 0 ? (
-          <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
+          <p className="rounded-md border border-dashed p-5 text-sm text-muted-foreground">
             Nenhum organizador encontrado.
           </p>
         ) : null}

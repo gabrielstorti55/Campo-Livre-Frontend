@@ -431,7 +431,7 @@ export function TelaGerenciarPartidas({
       {feedback ? (
         <p
           role="status"
-          className="mt-5 rounded-xl bg-green-pale p-3 text-sm font-semibold text-green-dark"
+          className="mt-5 rounded-md bg-green-pale p-3 text-sm font-semibold text-green-dark"
         >
           {feedback}
         </p>

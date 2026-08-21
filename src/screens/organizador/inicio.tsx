@@ -40,13 +40,13 @@ export function TelaInicioOrganizador() {
 
       <section
         aria-label="Situação comercial"
-        className="mb-8 rounded-3xl border border-border/70 bg-card p-5"
+        className="mb-8 rounded-md border border-border/70 bg-card p-5"
       >
         <h2 className="font-display text-xl font-semibold">
           Situação comercial
         </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl bg-muted p-4 text-sm">
+          <div className="rounded-md bg-muted p-4 text-sm">
             <strong>
               {comercial.primeiroCampeonatoUtilizado
                 ? 'Primeiro campeonato gratuito utilizado'
@@ -56,7 +56,7 @@ export function TelaInicioOrganizador() {
               O benefício pessoal é consumido uma única vez.
             </p>
           </div>
-          <div className="rounded-2xl bg-muted p-4 text-sm">
+          <div className="rounded-md bg-muted p-4 text-sm">
             <strong>
               {comercial.direitosAdicionaisDisponiveis}{' '}
               {comercial.direitosAdicionaisDisponiveis === 1
@@ -76,7 +76,7 @@ export function TelaInicioOrganizador() {
           Meus campeonatos
         </h2>
         {campeonatos.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-card p-6">
+          <div className="rounded-md border border-dashed border-border bg-card p-6">
             <p className="font-semibold">Nenhum vínculo com campeonato</p>
             <p className="mt-2 text-sm text-muted-foreground">
               Ativar o painel não concede acesso a competições de terceiros.
@@ -89,7 +89,7 @@ export function TelaInicioOrganizador() {
               <Link
                 key={campeonato.id}
                 href={`/organizador/campeonato/${campeonato.id}`}
-                className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm transition hover:border-green-light"
+                className="rounded-md border border-border/70 bg-card p-5 shadow-none transition hover:border-green-light"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>

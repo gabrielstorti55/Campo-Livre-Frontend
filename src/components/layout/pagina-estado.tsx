@@ -17,7 +17,7 @@ export function PaginaEstado({
     <main className="grid min-h-screen place-items-center bg-surface px-6 py-12">
       <section className="w-full max-w-xl border-t-4 border-green-dark pt-8">
         <p className="mb-3 text-xs font-bold tracking-[0.16em] text-green-dark uppercase">
-          CampoLivre · LigaPro
+          CampoLivre · Futebol local, jogo aberto
         </p>
         {code ? (
           <p className="font-display text-7xl font-semibold tracking-[-0.06em] text-green-dark">

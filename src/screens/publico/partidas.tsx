@@ -31,7 +31,7 @@ function MatchCard({ partida }: { partida: PartidaPublica }) {
   return (
     <Link
       href={`/partidas/${partida.id}`}
-      className="group block rounded-[24px] border border-border/70 bg-card p-5 shadow-sm transition hover:border-green-light hover:shadow-md sm:p-6"
+      className="group block rounded-md border border-border/70 bg-card p-5 shadow-none transition hover:border-green-light hover:shadow-none sm:p-6"
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <span className="rounded-full bg-muted px-3 py-1.5 font-semibold uppercase">
@@ -48,7 +48,7 @@ function MatchCard({ partida }: { partida: PartidaPublica }) {
         <p className="font-display text-base font-semibold sm:text-xl">
           {obterNomeTimePublico(partida.timeCasaId)}
         </p>
-        <div className="rounded-2xl bg-green-dark px-3 py-2 font-display text-sm font-bold text-white">
+        <div className="rounded-md bg-green-dark px-3 py-2 font-display text-sm font-bold text-white">
           {placar}
         </div>
         <p className="text-right font-display text-base font-semibold sm:text-xl">

@@ -33,7 +33,7 @@ export function TelaDetalhesTime() {
         <section
           role="region"
           aria-label="Elenco público"
-          className="rounded-3xl border border-border/70 bg-card p-5 sm:p-6"
+          className="rounded-md border border-border/70 bg-card p-5 sm:p-6"
         >
           <h2 className="font-display text-xl font-semibold">Elenco público</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -44,7 +44,7 @@ export function TelaDetalhesTime() {
               <Link
                 key={atleta.id}
                 href={`/atletas/${atleta.id}`}
-                className="flex items-center gap-3 rounded-2xl border border-border/70 p-3"
+                className="flex items-center gap-3 rounded-md border border-border/70 p-3"
               >
                 <div role="img" aria-label={`Foto de ${atleta.nome}`}>
                   <Iniciais name={atleta.nome} className="h-10 w-10" />
@@ -66,7 +66,7 @@ export function TelaDetalhesTime() {
             ) : null}
           </div>
         </section>
-        <section className="rounded-3xl border border-border/70 bg-card p-5 sm:p-6">
+        <section className="rounded-md border border-border/70 bg-card p-5 sm:p-6">
           <h2 className="font-display text-xl font-semibold">
             Histórico competitivo
           </h2>
@@ -75,7 +75,7 @@ export function TelaDetalhesTime() {
               <Link
                 key={campeonato.id}
                 href={`/campeonatos/${campeonato.id}`}
-                className="block rounded-2xl bg-muted p-4"
+                className="block rounded-md bg-muted p-4"
               >
                 <strong>{campeonato.nome}</strong>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -88,7 +88,7 @@ export function TelaDetalhesTime() {
           </div>
         </section>
       </div>
-      <div className="mt-6 rounded-2xl border border-green-light/30 bg-green-pale px-5 py-4 text-sm text-foreground/75">
+      <div className="mt-6 rounded-md border border-green-light/30 bg-green-pale px-5 py-4 text-sm text-foreground/75">
         Dados pessoais, contatos e informações administrativas não fazem parte
         desta projeção.
       </div>

@@ -105,7 +105,7 @@ export function TelaInicioAtleta() {
 
       <Secao title="Meus Times">
         {meusTimes.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-md border border-border bg-card p-5">
             <p className="font-display font-semibold">
               Você ainda não participa de nenhum time
             </p>
@@ -116,13 +116,13 @@ export function TelaInicioAtleta() {
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
                 href="/atleta/time/buscar"
-                className="rounded-xl bg-green-dark px-4 py-2.5 text-sm font-semibold text-white"
+                className="rounded-md bg-green-dark px-4 py-2.5 text-sm font-semibold text-white"
               >
                 Ver convites
               </Link>
               <Link
                 href="/atleta/time/criar"
-                className="rounded-xl border border-green-dark px-4 py-2.5 text-sm font-semibold text-green-dark"
+                className="rounded-md border border-green-dark px-4 py-2.5 text-sm font-semibold text-green-dark"
               >
                 Criar time
               </Link>

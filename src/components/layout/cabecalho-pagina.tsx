@@ -14,7 +14,7 @@ export function CabecalhoPagina({
     <header className="pb-2">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-balance font-display text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-3xl">
+          <h1 className="text-balance font-display text-3xl leading-none font-bold tracking-[0.01em] text-foreground uppercase sm:text-4xl">
             {title}
           </h1>
           {subtitle ? (
@@ -25,7 +25,7 @@ export function CabecalhoPagina({
           <div className="flex items-center gap-2">{actions}</div>
         ) : null}
       </div>
-      <Separator className="mt-5" />
+      <Separator className="mt-5 h-0.5 bg-green-dark/70" />
     </header>
   );
 }

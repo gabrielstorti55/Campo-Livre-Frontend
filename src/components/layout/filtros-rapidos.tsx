@@ -32,7 +32,7 @@ export function FiltrosRapidos({
               ? variant === 'solid'
                 ? 'border-green-dark bg-green-dark text-white hover:bg-green-dark hover:text-white'
                 : 'border-green-mid bg-green-pale text-green-dark hover:bg-green-pale hover:text-green-dark'
-              : 'border-border bg-white text-muted-foreground hover:bg-muted',
+              : 'border-border bg-card text-muted-foreground hover:bg-muted',
           )}
         >
           {option}

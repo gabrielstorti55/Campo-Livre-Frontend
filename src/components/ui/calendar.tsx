@@ -12,11 +12,17 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   components,
+  labels,
   ...props
 }: CalendarProps) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      labels={{
+        labelPrevious: () => 'Mês anterior',
+        labelNext: () => 'Próximo mês',
+        ...labels,
+      }}
       className={cn('p-3', className)}
       classNames={{
         months: 'flex flex-col sm:flex-row gap-4',
@@ -26,21 +32,21 @@ function Calendar({
         nav: 'flex items-center gap-1',
         button_previous: cn(
           buttonVariants({ variant: 'outline', size: 'icon' }),
-          'absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',
+          'absolute left-1 h-11 w-11 bg-transparent p-0 opacity-70 hover:opacity-100',
         ),
         button_next: cn(
           buttonVariants({ variant: 'outline', size: 'icon' }),
-          'absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100',
+          'absolute right-1 h-11 w-11 bg-transparent p-0 opacity-70 hover:opacity-100',
         ),
         month_grid: 'w-full border-collapse space-y-1',
         weekdays: 'flex',
         weekday:
-          'text-muted-foreground rounded-md w-9 flex-1 font-normal text-[0.8rem] text-center',
+          'text-muted-foreground rounded-md w-11 flex-1 font-normal text-[0.8rem] text-center',
         week: 'flex w-full mt-2',
-        day: 'relative flex-1 h-9 p-0 text-center text-sm [&:has([aria-selected])]:bg-accent',
+        day: 'relative flex-1 h-11 p-0 text-center text-sm [&:has([aria-selected])]:bg-accent',
         day_button: cn(
           buttonVariants({ variant: 'ghost' }),
-          'h-9 w-full p-0 font-normal aria-selected:opacity-100',
+          'h-11 w-full p-0 font-normal aria-selected:opacity-100',
         ),
         selected:
           'bg-green-mid text-white hover:bg-green-mid hover:text-white focus:bg-green-mid focus:text-white rounded-md',

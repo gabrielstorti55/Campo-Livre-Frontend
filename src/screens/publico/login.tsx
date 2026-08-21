@@ -55,7 +55,7 @@ export function TelaLogin() {
           </CampoFormulario>
 
           <div>
-            <div className="flex items-end justify-between gap-4">
+            <div>
               <CampoFormulario label="Senha" htmlFor="senha-field">
                 <Input
                   id="senha-field"

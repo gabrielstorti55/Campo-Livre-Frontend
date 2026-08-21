@@ -15,13 +15,22 @@ import {
   obterNomeTimePublico,
   catalogoPublicoMock,
 } from '@/services/publico/catalogo-publico.mock';
-import { Abas } from '@/components/layout/abas';
+import { Abas, obterIdAba } from '@/components/layout/abas';
 import { DestaquePagina } from '@/components/layout/destaque-pagina';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { cn } from '@/utils/classes';
 
 const cardFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+const abasCampeonato = [
+  'Visão geral',
+  'Classificação',
+  'Artilharia',
+  'Partidas',
+  'Times',
+  'Estrutura',
+] as const;
 
 export function TelaDetalhesCampeonato() {
   const { id } = useParams<{ id: string }>();
@@ -47,207 +56,209 @@ export function TelaDetalhesCampeonato() {
     .toLocaleLowerCase('pt-BR');
 
   return (
-    <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <div className="mx-auto w-full max-w-[1380px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
       <DestaquePagina
         eyebrow={`${campeonato.modalidade} · ${campeonato.municipio}, ${campeonato.uf}`}
         title={campeonato.nome}
         description={`${campeonato.rodada} · início ${new Date(`${campeonato.inicio}T12:00:00`).toLocaleDateString('pt-BR')}`}
         action={
-          <span className="rounded-full bg-green-pale px-3 py-1 text-xs font-semibold text-green-dark capitalize">
+          <span className="inline-flex border border-accent bg-accent px-3 py-1.5 text-xs font-bold tracking-[0.08em] text-accent-foreground uppercase">
             {estado}
           </span>
         }
       />
 
-      <div className="mb-7 overflow-hidden rounded-2xl border border-border/70 bg-card px-2 pt-1 shadow-sm sm:px-4">
+      <div className="mb-8 overflow-hidden border-b-2 border-green-dark bg-transparent px-0">
         <Abas
-          tabs={[
-            'Visão geral',
-            'Classificação',
-            'Artilharia',
-            'Partidas',
-            'Times',
-            'Estrutura',
-          ]}
+          tabs={abasCampeonato}
           active={tab}
           onChange={setTab}
+          panelId="painel-campeonato"
+          mobileHint
         />
       </div>
 
-      {tab === 'Visão geral' ? (
-        <div className="space-y-6">
-          {session?.activeContext === 'atleta' ? (
-            <CartaoProximoJogo jogo={proximoJogo} />
-          ) : null}
-          <div className="grid gap-5 lg:grid-cols-2">
-            <section className="rounded-3xl border border-border/70 bg-card p-5">
-              <h2 className="font-display text-xl font-semibold">
-                Situação pública
-              </h2>
-              <dl className="mt-4 grid gap-3 text-sm">
-                <div>
-                  <dt className="text-muted-foreground">Responsável</dt>
-                  <dd className="font-semibold">
-                    {campeonato.responsavel.nome} ·{' '}
-                    {campeonato.responsavel.funcao}
-                  </dd>
-                </div>
-                {campeonato.responsavel.prefeitura ? (
+      <div
+        id="painel-campeonato"
+        role="tabpanel"
+        aria-labelledby={obterIdAba('painel-campeonato', tab)}
+        tabIndex={0}
+      >
+        {tab === 'Visão geral' ? (
+          <div className="space-y-6">
+            {session?.activeContext === 'atleta' ? (
+              <CartaoProximoJogo jogo={proximoJogo} />
+            ) : null}
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+              <section className="border-t-2 border-green-dark bg-card/60 p-5 sm:p-6">
+                <h2 className="font-display text-2xl font-bold uppercase">
+                  Situação pública
+                </h2>
+                <dl className="mt-4 grid gap-3 text-sm">
                   <div>
-                    <dt className="text-muted-foreground">Instituição</dt>
+                    <dt className="text-muted-foreground">Responsável</dt>
                     <dd className="font-semibold">
-                      {campeonato.responsavel.prefeitura}
+                      {campeonato.responsavel.nome} ·{' '}
+                      {campeonato.responsavel.funcao}
                     </dd>
                   </div>
-                ) : null}
-                <div>
-                  <dt className="text-muted-foreground">
-                    Participantes confirmados
-                  </dt>
-                  <dd className="font-semibold">{times.length} times</dd>
+                  {campeonato.responsavel.prefeitura ? (
+                    <div>
+                      <dt className="text-muted-foreground">Instituição</dt>
+                      <dd className="font-semibold">
+                        {campeonato.responsavel.prefeitura}
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt className="text-muted-foreground">
+                      Participantes confirmados
+                    </dt>
+                    <dd className="font-semibold">{times.length} times</dd>
+                  </div>
+                </dl>
+              </section>
+              <section className="border-t-2 border-navy-dark bg-card/60 p-5 sm:p-6">
+                <h2 className="font-display text-2xl font-bold uppercase">
+                  Últimos resultados
+                </h2>
+                <div className="mt-3 space-y-2">
+                  {partidas
+                    .filter((partida) => partida.resultadoPublicado)
+                    .map((partida) => (
+                      <Link
+                        key={partida.id}
+                        href={`/partidas/${partida.id}`}
+                        className="group flex min-h-12 items-center justify-between border-t border-green-dark/20 px-1 py-3 text-sm font-semibold transition-colors hover:bg-green-pale/60 sm:px-3"
+                      >
+                        {obterNomeTimePublico(partida.timeCasaId)}{' '}
+                        {partida.golsCasa} × {partida.golsFora}{' '}
+                        {obterNomeTimePublico(partida.timeForaId)}
+                      </Link>
+                    ))}
+                  {partidas.every((partida) => !partida.resultadoPublicado) ? (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum resultado publicado.
+                    </p>
+                  ) : null}
                 </div>
-              </dl>
-            </section>
-            <section className="rounded-3xl border border-border/70 bg-card p-5">
-              <h2 className="font-display text-xl font-semibold">
-                Últimos resultados
-              </h2>
-              <div className="mt-3 space-y-2">
-                {partidas
-                  .filter((partida) => partida.resultadoPublicado)
-                  .map((partida) => (
-                    <Link
-                      key={partida.id}
-                      href={`/partidas/${partida.id}`}
-                      className="block rounded-xl border border-border/70 p-3 text-sm font-semibold"
-                    >
-                      {obterNomeTimePublico(partida.timeCasaId)}{' '}
-                      {partida.golsCasa} × {partida.golsFora}{' '}
-                      {obterNomeTimePublico(partida.timeForaId)}
-                    </Link>
-                  ))}
-                {partidas.every((partida) => !partida.resultadoPublicado) ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum resultado publicado.
-                  </p>
-                ) : null}
-              </div>
-            </section>
+              </section>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {tab === 'Classificação' ? (
-        <div className="overflow-x-auto rounded-3xl border border-border/70 bg-card p-4">
-          <table className="w-full min-w-[650px] text-sm">
-            <thead>
-              <tr className="border-b text-left">
-                <th className="p-3">#</th>
-                <th className="p-3">Time</th>
-                {['P', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG'].map((item) => (
-                  <th key={item} className="p-3 text-center">
-                    {item}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {classificacao.map((linha, index) => (
-                <tr key={linha.time.id} className="border-b last:border-0">
-                  <td className="p-3">{index + 1}</td>
-                  <td className="p-3 font-semibold">{linha.time.nome}</td>
-                  {[
-                    linha.pontos,
-                    linha.jogos,
-                    linha.vitorias,
-                    linha.empates,
-                    linha.derrotas,
-                    linha.golsPro,
-                    linha.golsContra,
-                    linha.golsPro - linha.golsContra,
-                  ].map((value, cell) => (
-                    <td key={cell} className="p-3 text-center">
-                      {value}
-                    </td>
+        {tab === 'Classificação' ? (
+          <div className="overflow-x-auto border-t-2 border-green-dark bg-card/70 p-4">
+            <table className="w-full min-w-[650px] text-sm">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="p-3">#</th>
+                  <th className="p-3">Time</th>
+                  {['P', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG'].map((item) => (
+                    <th key={item} className="p-3 text-center">
+                      {item}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+              </thead>
+              <tbody>
+                {classificacao.map((linha, index) => (
+                  <tr key={linha.time.id} className="border-b last:border-0">
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3 font-semibold">{linha.time.nome}</td>
+                    {[
+                      linha.pontos,
+                      linha.jogos,
+                      linha.vitorias,
+                      linha.empates,
+                      linha.derrotas,
+                      linha.golsPro,
+                      linha.golsContra,
+                      linha.golsPro - linha.golsContra,
+                    ].map((value, cell) => (
+                      <td key={cell} className="p-3 text-center">
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
 
-      {tab === 'Artilharia' ? (
-        <ArtilhariaCampeonato
-          ranking={listarArtilhariaPublica(campeonato.id)}
-        />
-      ) : null}
+        {tab === 'Artilharia' ? (
+          <ArtilhariaCampeonato
+            ranking={listarArtilhariaPublica(campeonato.id)}
+          />
+        ) : null}
 
-      {tab === 'Partidas' ? (
-        <div className="space-y-3">
-          {partidas.map((partida) => (
-            <Link
-              key={partida.id}
-              href={`/partidas/${partida.id}`}
-              className="block rounded-2xl border border-border/70 bg-card p-4"
-            >
-              <strong>
-                {obterNomeTimePublico(partida.timeCasaId)} ×{' '}
-                {obterNomeTimePublico(partida.timeForaId)}
-              </strong>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {partida.rodada} · {partida.data ?? 'Data a definir'} ·{' '}
-                {obterNomeCampoPartida(partida.campoId)}
-              </p>
-            </Link>
-          ))}
-        </div>
-      ) : null}
-
-      {tab === 'Times' ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {times.map((time) => (
-            <Link
-              key={time.id}
-              href={`/times/${time.id}`}
-              className={cn(
-                'group flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm',
-                cardFocus,
-              )}
-            >
-              <div>
-                <p className="font-display font-semibold">{time.nome}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {time.municipio}, {time.uf}
-                </p>
-              </div>
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          ))}
-        </div>
-      ) : null}
-
-      {tab === 'Estrutura' ? (
-        <section className="rounded-3xl border border-border/70 bg-card p-5">
-          <h2 className="font-display text-xl font-semibold">
-            Estrutura publicada
-          </h2>
-          <p className="mt-3 text-sm font-semibold">
-            Responsável: {campeonato.responsavel.nome} ·{' '}
-            {campeonato.responsavel.funcao}
-          </p>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {campeonato.estrutura.map((fase) => (
-              <li
-                key={fase}
-                className="rounded-2xl bg-muted p-4 text-sm font-semibold"
+        {tab === 'Partidas' ? (
+          <div className="space-y-3">
+            {partidas.map((partida) => (
+              <Link
+                key={partida.id}
+                href={`/partidas/${partida.id}`}
+                className="block border-t border-green-dark/25 bg-card/60 p-4 transition-colors hover:bg-card"
               >
-                {fase}
-              </li>
+                <strong>
+                  {obterNomeTimePublico(partida.timeCasaId)} ×{' '}
+                  {obterNomeTimePublico(partida.timeForaId)}
+                </strong>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {partida.rodada} · {partida.data ?? 'Data a definir'} ·{' '}
+                  {obterNomeCampoPartida(partida.campoId)}
+                </p>
+              </Link>
             ))}
-          </ul>
-        </section>
-      ) : null}
+          </div>
+        ) : null}
+
+        {tab === 'Times' ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {times.map((time) => (
+              <Link
+                key={time.id}
+                href={`/times/${time.id}`}
+                className={cn(
+                  'group flex min-h-20 items-center justify-between gap-4 border-t-2 border-green-dark bg-card/70 p-5 transition-colors hover:bg-card',
+                  cardFocus,
+                )}
+              >
+                <div>
+                  <p className="font-display font-semibold">{time.nome}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {time.municipio}, {time.uf}
+                  </p>
+                </div>
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        ) : null}
+
+        {tab === 'Estrutura' ? (
+          <section className="border-t-2 border-green-dark bg-card/70 p-5 sm:p-6">
+            <h2 className="font-display text-2xl font-bold uppercase">
+              Estrutura publicada
+            </h2>
+            <p className="mt-3 text-sm font-semibold">
+              Responsável: {campeonato.responsavel.nome} ·{' '}
+              {campeonato.responsavel.funcao}
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              {campeonato.estrutura.map((fase) => (
+                <li
+                  key={fase}
+                  className="border-l-2 border-accent bg-muted p-4 text-sm font-semibold"
+                >
+                  {fase}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </div>
     </div>
   );
 }

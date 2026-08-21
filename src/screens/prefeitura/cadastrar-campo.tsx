@@ -71,7 +71,7 @@ export function TelaCadastrarCampo() {
           {error ? (
             <p
               role="alert"
-              className="rounded-xl bg-red-50 p-3 text-sm text-red-800"
+              className="rounded-md bg-red-50 p-3 text-sm text-red-800"
             >
               {error}
             </p>

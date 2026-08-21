@@ -50,6 +50,31 @@ test('menu público é opcional e pode ser aberto e fechado', async ({
   ).toHaveCount(0);
 });
 
+test('menu público captura o foco e o devolve ao acionador', async ({
+  page,
+}) => {
+  await page.goto('/campeonatos');
+  const trigger = page.getByRole('button', { name: 'Abrir menu público' });
+  await trigger.click();
+
+  const dialog = page.getByRole('dialog', { name: 'Menu público' });
+  const close = page.getByRole('button', { name: 'Fechar menu lateral' });
+  await expect(dialog).toBeVisible();
+  await expect(close).toBeFocused();
+
+  for (let step = 0; step < 12; step += 1) {
+    await page.keyboard.press('Tab');
+    const focusRemainsInside = await dialog.evaluate((element) =>
+      element.contains(document.activeElement),
+    );
+    expect(focusRemainsInside).toBe(true);
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
 test('conta autenticada usa a mesma página canônica com acesso à sua área', async ({
   page,
 }) => {
@@ -80,7 +105,8 @@ test('campeonato público mostra classificação e resultados sem dados pessoais
   await expect(page.getByText('João Silva')).toHaveCount(0);
 
   await page.getByRole('tab', { name: 'Classificação' }).click();
-  await expect(page.getByRole('table')).toBeVisible();
+  const painel = page.getByRole('tabpanel', { name: 'Classificação' });
+  await expect(painel.getByRole('table')).toBeVisible();
 });
 
 test('classificação pública permanece legível sem estourar a página no mobile', async ({
@@ -88,6 +114,7 @@ test('classificação pública permanece legível sem estourar a página no mobi
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/campeonatos/1');
+  await expect(page.getByText('Deslize para ver mais abas')).toBeVisible();
   await page.getByRole('tab', { name: 'Classificação' }).click();
 
   await expect(page.getByRole('table')).toBeVisible();

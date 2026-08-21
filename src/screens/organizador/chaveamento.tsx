@@ -87,7 +87,7 @@ export function TelaChaveamento({ campeonatoId }: { campeonatoId: string }) {
               : 'Grupos e fase eliminatória'}
         </h2>
         {gerado ? (
-          <div className="mt-4 rounded-xl bg-green-pale p-4 text-sm text-green-dark">
+          <div className="mt-4 rounded-md bg-green-pale p-4 text-sm text-green-dark">
             Estrutura {modo === 'AUTOMATICO' ? 'gerada' : 'confirmada'}{' '}
             localmente para {times.length} times. Folgas e avanços automáticos
             não criam partidas fictícias.

@@ -87,9 +87,9 @@ export function TelaPerfilAtletaAutenticado() {
             })}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+          <div className="overflow-hidden rounded-md border border-border/70 bg-card p-5 shadow-none sm:p-6">
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-green-pale text-green-dark">
                 <Users className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
@@ -104,13 +104,13 @@ export function TelaPerfilAtletaAutenticado() {
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <Link
                 href="/atleta/time/buscar"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-green-dark px-4 text-sm font-semibold text-green-dark"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-green-dark px-4 text-sm font-semibold text-green-dark"
               >
                 <Search className="h-4 w-4" aria-hidden="true" /> Ver convites
               </Link>
               <Link
                 href="/atleta/time/criar"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-green-dark px-4 text-sm font-semibold text-white"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-green-dark px-4 text-sm font-semibold text-white"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" /> Criar time
               </Link>

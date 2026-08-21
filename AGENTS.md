@@ -2,7 +2,7 @@
 
 ## Escopo
 
-Este repositório contém somente o frontend React do CampoLivre/LigaPro. O backend de referência é `https://github.com/thalesleall/Campo-Livre` e deve ser tratado como somente leitura, salvo autorização explícita.
+Este repositório contém somente o frontend React do CampoLivre. O backend de referência é `https://github.com/thalesleall/Campo-Livre` e deve ser tratado como somente leitura, salvo autorização explícita.
 
 ## Fonte de verdade
 
@@ -15,6 +15,17 @@ Em caso de divergência, use esta ordem:
 5. documentos antigos apenas como histórico.
 
 Não trate interface renderizada, estado local ou mocks como integração persistida.
+
+## Sistema visual
+
+`DESIGN.md` é a fonte de verdade durável da identidade **Campo Editorial + Estádio Municipal**. Toda tela existente, nova jornada e estado introduzido pela futura API deve reutilizar seus tokens e regras de composição.
+
+- Barlow Condensed: títulos, placares, números e métricas.
+- IBM Plex Sans: navegação, formulários, tabelas, mensagens e controles.
+- CampoLivre é a única marca principal; não reintroduza `LigaPro` como assinatura paralela.
+- Prefira bordas, divisores, tipografia e densidade funcional a cartões, sombras, pílulas e grandes raios.
+- Fotografia não sustenta a identidade. Use o vocabulário gráfico de campo, súmula, tabela e placar.
+- Ao integrar a API, estados de loading, vazio, erro, sucesso e permissão devem usar o mesmo sistema; não crie um segundo tema.
 
 ## Organização
 

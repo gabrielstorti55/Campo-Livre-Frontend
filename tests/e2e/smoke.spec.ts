@@ -9,7 +9,7 @@ test('abre a aplicação na área pública sem exigir autenticação', async ({
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   await expect(page).toHaveURL(/\/$/);
-  await expect(page).toHaveTitle(/CampoLivre LigaPro/);
+  await expect(page).toHaveTitle(/CampoLivre — Futebol local, jogo aberto/);
   await expect(
     page.getByRole('heading', {
       name: 'Campeonatos em andamento',

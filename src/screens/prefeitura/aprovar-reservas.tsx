@@ -89,7 +89,7 @@ export function TelaAprovarReservas() {
           ref={feedbackRef}
           role="status"
           tabIndex={-1}
-          className="rounded-xl bg-blue-50 p-3 text-sm font-semibold text-navy-mid"
+          className="rounded-md bg-blue-50 p-3 text-sm font-semibold text-navy-mid"
         >
           {feedback}
         </p>
@@ -154,7 +154,7 @@ export function TelaAprovarReservas() {
                 {rejectingId === item.id ? (
                   <div
                     id={`rejection-${item.id}`}
-                    className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4"
+                    className="space-y-3 rounded-md border border-red-200 bg-red-50 p-4"
                   >
                     <label
                       htmlFor={`reason-${item.id}`}

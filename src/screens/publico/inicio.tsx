@@ -41,36 +41,23 @@ function ChampionshipCard({
     <Link
       href={`/campeonatos/${campeonato.id}`}
       className={cn(
-        'group relative flex min-h-[250px] flex-col overflow-hidden rounded-[28px] border p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-6',
+        'group relative flex min-h-[270px] flex-col overflow-hidden rounded-md border p-5 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 sm:p-7',
         featured
-          ? 'border-green-dark bg-green-dark text-white shadow-[0_18px_48px_rgba(20,63,45,0.18)]'
-          : 'border-border/70 bg-card shadow-sm hover:border-green-light',
+          ? 'campo-lines border-green-dark bg-green-dark text-white lg:col-span-6'
+          : 'border-green-dark/25 bg-card hover:border-green-dark lg:col-span-3',
         focusRing,
       )}
     >
-      {featured ? (
-        <>
-          <img
-            src="/soccer-field.jpg"
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover opacity-20 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-green-dark via-green-dark/95 to-green-mid/80" />
-        </>
-      ) : null}
-
       <div className="relative flex items-start justify-between gap-4">
         <span
           className={cn(
-            'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold',
+            'inline-flex items-center gap-2 border-b pb-1.5 text-xs font-semibold tracking-[0.12em] uppercase',
             featured
-              ? 'bg-white/12 text-white'
-              : 'bg-green-pale text-green-dark',
+              ? 'border-white/35 text-white'
+              : 'border-green-dark/35 text-green-dark',
           )}
         >
           <span className="relative flex h-2 w-2" aria-hidden="true">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-current opacity-45 motion-reduce:animate-none" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
           </span>
           Em andamento
@@ -84,7 +71,7 @@ function ChampionshipCard({
         />
       </div>
 
-      <div className="relative mt-auto pt-10">
+      <div className="relative mt-auto pt-14">
         <p
           className={cn(
             'text-xs font-semibold tracking-[0.14em] uppercase',
@@ -93,7 +80,12 @@ function ChampionshipCard({
         >
           {campeonato.modalidade}
         </p>
-        <h2 className="mt-2 font-display text-2xl leading-tight font-semibold tracking-[-0.03em] sm:text-3xl">
+        <h2
+          className={cn(
+            'mt-2 max-w-xl font-display leading-[0.95] font-bold tracking-[-0.02em] uppercase',
+            featured ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-3xl',
+          )}
+        >
           {campeonato.nome}
         </h2>
         <div
@@ -146,7 +138,7 @@ function MatchRow({ partida }: { partida: PartidaPublica }) {
     <Link
       href={`/partidas/${partida.id}`}
       className={cn(
-        'group grid gap-4 rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-[border-color,box-shadow] hover:border-green-light hover:shadow-md sm:grid-cols-[116px_minmax(0,1fr)_auto] sm:items-center sm:p-5',
+        'group grid gap-4 border-t border-green-dark/25 bg-card/55 p-4 transition-colors hover:bg-card sm:grid-cols-[116px_minmax(0,1fr)_auto] sm:items-center sm:px-5 sm:py-6',
         focusRing,
       )}
     >
@@ -166,7 +158,7 @@ function MatchRow({ partida }: { partida: PartidaPublica }) {
           <span className="truncate">
             {obterNomeTimePublico(partida.timeCasaId)}
           </span>
-          <span className="rounded-lg bg-green-pale px-2.5 py-1 text-xs font-bold text-green-dark">
+          <span className="border-x border-green-dark/25 px-2.5 py-1 text-xs font-bold text-green-dark">
             ×
           </span>
           <span className="truncate text-right">
@@ -210,17 +202,17 @@ export function TelaInicioPublico() {
     .slice(0, 3);
 
   return (
-    <div className="mx-auto w-full max-w-[1380px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <header className="mb-7 flex flex-col gap-5 border-b border-border/70 pb-7 sm:mb-9 sm:flex-row sm:items-end sm:justify-between sm:pb-8">
+    <div className="mx-auto w-full max-w-[1380px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
+      <header className="mb-8 grid gap-7 border-b-2 border-green-dark pb-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div className="max-w-3xl">
-          <div className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-green-mid uppercase">
+          <div className="mb-4 flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-green-mid uppercase">
             <Trophy className="h-4 w-4" aria-hidden="true" />
             Agora no CampoLivre
           </div>
-          <h1 className="font-display text-4xl leading-[1.05] font-semibold tracking-[-0.045em] text-balance sm:text-5xl lg:text-6xl">
+          <h1 className="max-w-4xl font-display text-5xl leading-[0.9] font-extrabold tracking-[-0.025em] text-balance uppercase sm:text-7xl lg:text-[6.5rem]">
             Campeonatos em andamento
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+          <p className="mt-5 max-w-2xl border-l-2 border-accent pl-4 text-base leading-7 text-muted-foreground sm:text-lg">
             Acompanhe primeiro o que está acontecendo: competições ativas e a
             agenda pública de cada rodada.
           </p>
@@ -228,7 +220,7 @@ export function TelaInicioPublico() {
         <Link
           href="/campeonatos"
           className={cn(
-            'inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-green-dark shadow-sm transition hover:border-green-light hover:bg-green-pale/40',
+            'inline-flex min-h-11 w-fit items-center gap-2 rounded-md border border-green-dark bg-transparent px-4 text-sm font-semibold text-green-dark transition-colors hover:bg-green-dark hover:text-white',
             focusRing,
           )}
         >
@@ -245,7 +237,7 @@ export function TelaInicioPublico() {
             description="Consulte o catálogo completo para ver competições programadas ou já encerradas."
           />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-12">
             {campeonatos.map((campeonato, index) => (
               <ChampionshipCard
                 key={campeonato.id}
@@ -258,7 +250,7 @@ export function TelaInicioPublico() {
       </section>
 
       <section
-        className="mt-12 sm:mt-16"
+        className="mt-14 border-t-2 border-navy-dark pt-7 sm:mt-20"
         aria-labelledby="agenda-partidas-title"
       >
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
@@ -269,7 +261,7 @@ export function TelaInicioPublico() {
             </p>
             <h2
               id="agenda-partidas-title"
-              className="font-display text-2xl font-semibold tracking-[-0.03em] sm:text-3xl"
+              className="font-display text-3xl font-bold tracking-[-0.01em] uppercase sm:text-4xl"
             >
               Agenda de partidas
             </h2>
@@ -277,7 +269,7 @@ export function TelaInicioPublico() {
           <Link
             href="/partidas"
             className={cn(
-              'inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale',
+              'inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale',
               focusRing,
             )}
           >
@@ -292,7 +284,7 @@ export function TelaInicioPublico() {
             description="As partidas aparecerão aqui quando forem publicadas pelos campeonatos em andamento."
           />
         ) : (
-          <div className="grid gap-3">
+          <div className="border-b border-green-dark/25">
             {partidas.map((partida) => (
               <MatchRow key={partida.id} partida={partida} />
             ))}

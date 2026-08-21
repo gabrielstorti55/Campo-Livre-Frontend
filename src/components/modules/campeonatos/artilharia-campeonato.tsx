@@ -22,7 +22,7 @@ export function ArtilhariaCampeonato({
 
       {ranking.length > 0 ? (
         <>
-          <div className="overflow-x-auto rounded-3xl border border-border/70 bg-card p-4">
+          <div className="overflow-x-auto rounded-md border border-border/70 bg-card p-4">
             <table className="w-full min-w-[600px] text-sm">
               <thead>
                 <tr className="border-b text-left">
@@ -50,7 +50,7 @@ export function ArtilhariaCampeonato({
             </table>
           </div>
 
-          <div className="rounded-3xl border border-green-light/40 bg-green-pale p-5">
+          <div className="rounded-md border border-green-light/40 bg-green-pale p-5">
             <h3 className="font-display text-xl font-semibold">
               Destaque da artilharia
             </h3>
@@ -65,7 +65,7 @@ export function ArtilhariaCampeonato({
           </div>
         </>
       ) : (
-        <p className="rounded-3xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-md border border-border/70 bg-card p-5 text-sm text-muted-foreground">
           Ainda não há gols publicados neste campeonato.
         </p>
       )}

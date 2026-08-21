@@ -17,7 +17,7 @@ import { cn } from '@/utils/classes';
 const cardFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 const selectClass =
-  'h-11 rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  'h-11 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 const estadoLabel: Record<CampeonatoEstadoPublico, string> = {
   EM_CONFIGURACAO: 'Em configuração',
@@ -67,7 +67,7 @@ export function TelaCampeonatos() {
 
       <section
         aria-label="Filtros de campeonatos"
-        className="mb-7 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5"
+        className="mb-7 rounded-md border border-border/70 bg-card p-4 shadow-none sm:p-5"
       >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="md:col-span-2">
@@ -185,14 +185,14 @@ export function TelaCampeonatos() {
               key={campeonato.id}
               href={`/campeonatos/${campeonato.id}`}
               className={cn(
-                'group relative overflow-hidden rounded-[24px] border border-border/70 bg-card p-5 shadow-sm transition hover:border-green-light hover:shadow-md sm:p-6',
+                'group relative overflow-hidden rounded-md border border-border/70 bg-card p-5 shadow-none transition hover:border-green-light hover:shadow-none sm:p-6',
                 cardFocus,
               )}
             >
               <div className="absolute inset-x-0 top-0 h-1 bg-green-mid/70" />
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-green-pale text-green-dark">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-green-pale text-green-dark">
                     <Trophy className="h-4 w-4" aria-hidden="true" />
                   </div>
                   <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">

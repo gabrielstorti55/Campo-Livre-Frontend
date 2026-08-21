@@ -2,6 +2,7 @@
 
 import { Clock as Relogio, MapPin } from 'lucide-react';
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import {
@@ -61,6 +62,15 @@ export function TelaCalendarioReservas() {
           selected={selectedDate}
           onSelect={(nextDate) => nextDate && setSelectedDate(nextDate)}
           modifiers={{ hasEvent: eventDates }}
+          labels={{
+            labelDayButton: (date, modifiers) => {
+              const partes = [format(date, 'PPPP', { locale: ptBR })];
+              if (modifiers['hasEvent']) partes.push('possui reserva');
+              if (modifiers['today']) partes.push('hoje');
+              if (modifiers['selected']) partes.push('selecionado');
+              return partes.join(', ');
+            },
+          }}
           modifiersClassNames={{
             hasEvent:
               'after:absolute after:bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-navy-mid',
@@ -95,7 +105,7 @@ export function TelaCalendarioReservas() {
           </article>
         ))}
         {reservationsOfDay.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="rounded-md border border-border bg-card p-5 text-sm text-muted-foreground">
             Nenhuma reserva aprovada nesta data.
           </p>
         ) : null}

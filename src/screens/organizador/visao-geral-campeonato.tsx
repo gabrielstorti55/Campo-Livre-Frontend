@@ -107,7 +107,7 @@ export function TelaVisaoGeralCampeonato({
         }
       />
 
-      <div className="mb-6 rounded-2xl border border-border bg-card p-4 text-sm">
+      <div className="mb-6 rounded-md border border-border bg-card p-4 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <strong>{estadoLabel[estado]}</strong>
@@ -178,7 +178,7 @@ export function TelaVisaoGeralCampeonato({
                 {pendencias.map((item) => (
                   <li
                     key={item}
-                    className="flex flex-col justify-between gap-2 rounded-xl bg-muted p-3 sm:flex-row sm:items-center"
+                    className="flex flex-col justify-between gap-2 rounded-md bg-muted p-3 sm:flex-row sm:items-center"
                   >
                     <span className="text-sm">{item}</span>
                     {responsavel ? (
@@ -208,7 +208,7 @@ export function TelaVisaoGeralCampeonato({
                 ))}
               </ul>
             ) : (
-              <p className="mt-5 rounded-xl bg-green-pale p-3 text-sm text-green-dark">
+              <p className="mt-5 rounded-md bg-green-pale p-3 text-sm text-green-dark">
                 Nenhuma pendência detectada. O responsável pode revalidar a
                 configuração.
               </p>
@@ -288,7 +288,7 @@ export function TelaVisaoGeralCampeonato({
               {colaboradores.map((colaborador) => (
                 <div
                   key={colaborador.id}
-                  className="flex flex-col justify-between gap-2 rounded-xl bg-muted p-3 sm:flex-row sm:items-center"
+                  className="flex flex-col justify-between gap-2 rounded-md bg-muted p-3 sm:flex-row sm:items-center"
                 >
                   <p className="text-sm">
                     {colaborador.conta} ·{' '}
@@ -335,7 +335,7 @@ export function TelaVisaoGeralCampeonato({
               Transferir responsabilidade
             </Button>
             {transferindo ? (
-              <div className="mt-4 rounded-xl border border-border p-4">
+              <div className="mt-4 rounded-md border border-border p-4">
                 <label
                   htmlFor="novo-responsavel"
                   className="text-sm font-semibold"
@@ -431,7 +431,7 @@ export function TelaVisaoGeralCampeonato({
               </Button>
             </div>
             {cancelando ? (
-              <div className="mt-4 rounded-xl border border-danger/30 p-4">
+              <div className="mt-4 rounded-md border border-danger/30 p-4">
                 <label
                   htmlFor="motivo-cancelamento"
                   className="text-sm font-semibold"
@@ -493,7 +493,7 @@ export function TelaVisaoGeralCampeonato({
       {feedback ? (
         <p
           role="status"
-          className="rounded-xl bg-green-pale p-3 text-sm font-semibold text-green-dark"
+          className="rounded-md bg-green-pale p-3 text-sm font-semibold text-green-dark"
         >
           {feedback}
         </p>

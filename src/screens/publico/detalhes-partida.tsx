@@ -59,33 +59,36 @@ export function TelaDetalhesPartida() {
   const escalaFora = nomesAtletas(partida.escalacaoForaAtletaIds);
 
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <div className="mx-auto w-full max-w-[1180px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
       <DestaquePagina
         eyebrow={`${obterNomeCampeonatoPublico(partida.campeonatoId)} · ${partida.fase}${partida.grupo ? ` · ${partida.grupo}` : ''} · ${partida.rodada}`}
         title="Detalhes da partida"
         description={`${partida.data ? new Date(`${partida.data}T12:00:00`).toLocaleDateString('pt-BR') : 'Data a definir'} · ${obterNomeCampoPartida(partida.campoId)}`}
       />
-      <section className="overflow-hidden rounded-[30px] border border-border/70 bg-card shadow-sm">
-        <div className="bg-green-dark px-4 py-10 text-white sm:px-8">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+      <section
+        aria-label="Placar da partida"
+        className="overflow-hidden border-y-2 border-green-dark bg-card font-display"
+      >
+        <div className="campo-lines bg-green-dark px-4 py-10 text-white sm:px-8 sm:py-14">
+          <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
             <Link
               href={`/times/${partida.timeCasaId}`}
-              className="font-display text-lg font-semibold sm:text-3xl"
+              className="text-xl leading-none font-bold tracking-[0.01em] uppercase sm:text-4xl lg:text-5xl"
             >
               {casa}
             </Link>
-            <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 font-display text-xl font-bold sm:text-3xl">
+            <div className="border-x-2 border-accent px-4 py-2 text-3xl leading-none font-extrabold text-accent sm:px-7 sm:text-6xl lg:text-7xl">
               {placarPublicado ?? '×'}
             </div>
             <Link
               href={`/times/${partida.timeForaId}`}
-              className="font-display text-lg font-semibold sm:text-3xl"
+              className="text-xl leading-none font-bold tracking-[0.01em] uppercase sm:text-4xl lg:text-5xl"
             >
               {fora}
             </Link>
           </div>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid font-sans sm:grid-cols-2 lg:grid-cols-4">
           {[
             [
               CalendarDays,
@@ -103,7 +106,7 @@ export function TelaDetalhesPartida() {
             return (
               <div
                 key={String(label)}
-                className="flex items-start gap-3 border-b border-border/70 p-5 sm:border-r"
+                className="flex items-start gap-3 border-b border-green-dark/20 p-5 sm:border-r"
               >
                 <ItemIcon
                   className="h-4 w-4 text-green-dark"
@@ -134,8 +137,8 @@ export function TelaDetalhesPartida() {
 
       {(escalaCasa.length > 0 || escalaFora.length > 0) &&
       partida.estado === 'RESULTADO_PUBLICADO' ? (
-        <section className="mt-6 rounded-3xl border border-border/70 bg-card p-5">
-          <h2 className="font-display text-xl font-semibold">
+        <section className="mt-8 border-t-2 border-green-dark bg-card/70 p-5 sm:p-6">
+          <h2 className="font-display text-2xl font-bold uppercase">
             Escalações publicadas
           </h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2">
@@ -166,7 +169,7 @@ export function TelaDetalhesPartida() {
           {partida.pdfSumula ? (
             <a
               href={partida.pdfSumula}
-              className="mt-4 inline-flex min-h-11 items-center rounded-xl border border-border bg-card px-4 text-sm font-semibold text-green-dark"
+              className="mt-4 inline-flex min-h-11 items-center rounded-md border border-green-dark bg-card px-4 text-sm font-semibold text-green-dark transition-colors hover:bg-green-dark hover:text-white"
             >
               Consultar referência da súmula em PDF
             </a>
@@ -175,14 +178,14 @@ export function TelaDetalhesPartida() {
       ) : (
         <section
           aria-labelledby="resumo-partida-title"
-          className="mt-6 rounded-[28px] border border-border/70 bg-card p-5 sm:p-6"
+          className="mt-8 border-t-2 border-green-dark bg-card/70 p-5 sm:p-6"
         >
           <p className="text-xs font-semibold tracking-[0.14em] text-green-dark uppercase">
             Súmula
           </p>
           <h2
             id="resumo-partida-title"
-            className="mt-1 font-display text-2xl font-semibold"
+            className="mt-1 font-display text-3xl font-bold uppercase"
           >
             Resumo da partida
           </h2>
@@ -192,7 +195,7 @@ export function TelaDetalhesPartida() {
           </p>
         </section>
       )}
-      <div className="mt-5 rounded-2xl border border-green-light/30 bg-green-pale px-4 py-3 text-sm">
+      <div className="mt-6 border-l-2 border-green-dark bg-green-pale px-4 py-3 text-sm">
         Esta página mostra somente informações esportivas publicáveis. Motivos
         detalhados, observações administrativas e dados privados permanecem
         protegidos.

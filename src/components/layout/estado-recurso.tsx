@@ -15,7 +15,7 @@ export function EstadoRecurso({
 
   return (
     <div
-      className="rounded-xl border border-dashed border-border bg-white px-6 py-10 text-center"
+      className="rounded-md border border-dashed border-border bg-card px-6 py-10 text-center"
       role={kind === 'error' ? 'alert' : 'status'}
     >
       <Icon

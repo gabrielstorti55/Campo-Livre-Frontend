@@ -14,7 +14,8 @@ test('apresenta a identidade CampoLivre sem aparência de card genérico', async
   await page.goto('/login');
 
   await expect(page.getByTestId('auth-brand-panel')).toBeVisible();
-  await expect(page.getByText('LigaPro', { exact: true })).toBeVisible();
+  await expect(page.getByText('LigaPro', { exact: true })).toHaveCount(0);
+  await expect(page.locator('img[src="/soccer-field.jpg"]')).toHaveCount(0);
   await expect(
     page.getByRole('heading', { name: 'Entre no CampoLivre' }),
   ).toBeVisible();
@@ -23,6 +24,33 @@ test('apresenta a identidade CampoLivre sem aparência de card genérico', async
       name: 'Seu time, seus campeonatos, sua cidade.',
     }),
   ).toBeVisible();
+
+  await page.evaluate(() => document.fonts.ready);
+  expect(
+    await page.evaluate(() => document.fonts.check('400 16px "IBM Plex Sans"')),
+  ).toBe(true);
+  expect(
+    await page.evaluate(() =>
+      document.fonts.check('700 32px "Barlow Condensed"'),
+    ),
+  ).toBe(true);
+  await expect(page.locator('body')).toHaveCSS('font-family', /IBM Plex Sans/);
+  await expect(
+    page.getByRole('heading', { name: 'Entre no CampoLivre' }),
+  ).toHaveCSS('font-family', /Barlow Condensed/);
+
+  const emailBox = await page.getByLabel('E-mail').boundingBox();
+  const passwordBox = await page.getByLabel('Senha').boundingBox();
+  expect(passwordBox?.width).toBe(emailBox?.width);
+  expect(emailBox?.height).toBeGreaterThanOrEqual(44);
+  const entrarBox = await page
+    .getByRole('button', { name: 'Entrar' })
+    .boundingBox();
+  expect(entrarBox?.height).toBeGreaterThanOrEqual(44);
+  await expect(page.getByText('E-mail', { exact: true })).toHaveCSS(
+    'font-family',
+    /IBM Plex Sans/,
+  );
 });
 
 test('mantém a autenticação utilizável em uma tela móvel', async ({ page }) => {
@@ -113,7 +141,18 @@ test('expõe o calendário da prefeitura com semântica de grade', async ({
   await page.goto('/prefeitura/calendario');
 
   const calendar = page.getByRole('grid', { name: /agosto 2026/i });
-  await calendar.getByRole('button', { name: /21 de agosto de 2026/i }).click();
+  const dia = calendar.getByRole('button', { name: /21 de agosto de 2026/i });
+  const anterior = page.getByRole('button', { name: 'Mês anterior' });
+  const proximo = page.getByRole('button', { name: 'Próximo mês' });
+  await expect(
+    calendar.getByRole('button', {
+      name: /sexta-feira, 7 de agosto de 2026, possui reserva/i,
+    }),
+  ).toBeVisible();
+  expect((await dia.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  expect((await anterior.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  expect((await proximo.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+  await dia.click();
   await expect(
     page.getByRole('heading', { name: 'Reservas de 21/08/2026' }),
   ).toBeVisible();

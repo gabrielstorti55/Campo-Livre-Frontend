@@ -249,9 +249,31 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
     2,
   );
 
-  await page
-    .getByRole('button', { name: 'Confirmar resultado e súmula' })
-    .click();
+  const abrirConfirmacao = page.getByRole('button', {
+    name: 'Confirmar resultado e súmula',
+  });
+  await abrirConfirmacao.click();
+  const dialogoConfirmacao = page.getByRole('alertdialog', {
+    name: 'Confirma o envio definitivo?',
+  });
+  await expect(dialogoConfirmacao).toBeVisible();
+  const fecharDialogo = dialogoConfirmacao.getByRole('button', {
+    name: 'Fechar',
+  });
+  await expect(fecharDialogo).toBeVisible();
+  await expect
+    .poll(async () => (await fecharDialogo.boundingBox())?.width ?? 0)
+    .toBeGreaterThanOrEqual(44);
+  await expect
+    .poll(async () => (await fecharDialogo.boundingBox())?.height ?? 0)
+    .toBeGreaterThanOrEqual(44);
+  await expect(
+    dialogoConfirmacao.getByRole('button', { name: 'Cancelar envio' }),
+  ).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialogoConfirmacao).toHaveCount(0);
+  await expect(abrirConfirmacao).toBeFocused();
+  await abrirConfirmacao.click();
   await expect(
     page.getByRole('button', { name: 'Cancelar envio' }),
   ).toBeVisible();

@@ -12,10 +12,7 @@ export function CampoFormulario({
 }) {
   return (
     <div className="block space-y-1.5">
-      <Label
-        htmlFor={htmlFor}
-        className="font-display text-sm font-medium text-foreground"
-      >
+      <Label htmlFor={htmlFor} className="text-sm font-medium text-foreground">
         {label}
       </Label>
       {children}

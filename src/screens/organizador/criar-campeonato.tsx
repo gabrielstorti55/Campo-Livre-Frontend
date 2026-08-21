@@ -55,7 +55,7 @@ export function TelaCriarCampeonato() {
       />
       <section
         aria-label="Elegibilidade comercial"
-        className="mt-5 max-w-2xl rounded-2xl border border-border bg-card p-4 text-sm"
+        className="mt-5 max-w-2xl rounded-md border border-border bg-card p-4 text-sm"
       >
         <h2 className="font-display text-base font-semibold">
           Elegibilidade comercial
@@ -268,7 +268,7 @@ export function TelaCriarCampeonato() {
               convites.map((time) => (
                 <div
                   key={time}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-4 py-3 text-sm"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-4 py-3 text-sm"
                 >
                   <span>{time} · aguardando resposta do capitão</span>
                   <Button
@@ -316,7 +316,7 @@ export function TelaCriarCampeonato() {
             exigem configuração válida e ação posterior do responsável.
           </p>
           <p className="text-sm">Convites enviados: {convites.length}</p>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm">
             <p className="font-semibold text-amber-950">
               Pendências para validação
             </p>

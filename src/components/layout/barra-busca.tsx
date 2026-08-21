@@ -20,7 +20,7 @@ export function BarraBusca({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-11 rounded-md border-border/80 bg-white pr-4 pl-10 text-sm shadow-none focus-visible:border-green-mid"
+        className="h-11 rounded-md border-border/80 bg-card pr-4 pl-10 text-sm shadow-none focus-visible:border-green-mid"
       />
     </div>
   );

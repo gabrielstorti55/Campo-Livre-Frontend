@@ -51,7 +51,7 @@ export function TelaPerfilAtleta() {
         ].map(([value, label]) => (
           <div
             key={label}
-            className="rounded-2xl border border-border/70 bg-card p-5"
+            className="rounded-md border border-border/70 bg-card p-5"
           >
             <strong className="font-display text-2xl text-green-dark">
               {value}
@@ -61,7 +61,7 @@ export function TelaPerfilAtleta() {
         ))}
       </section>
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <section className="rounded-3xl border border-border/70 bg-card p-5">
+        <section className="rounded-md border border-border/70 bg-card p-5">
           <h2 className="font-display text-xl font-semibold">
             Histórico de times
           </h2>
@@ -82,7 +82,7 @@ export function TelaPerfilAtleta() {
             ) : null}
           </div>
         </section>
-        <section className="rounded-3xl border border-border/70 bg-card p-5">
+        <section className="rounded-md border border-border/70 bg-card p-5">
           <h2 className="font-display text-xl font-semibold">Campeonatos</h2>
           <div className="mt-4 space-y-3">
             {atleta.campeonatos.map((item) => (
@@ -100,7 +100,7 @@ export function TelaPerfilAtleta() {
             ) : null}
           </div>
         </section>
-        <section className="rounded-3xl border border-border/70 bg-card p-5">
+        <section className="rounded-md border border-border/70 bg-card p-5">
           <h2 className="font-display text-xl font-semibold">Conquistas</h2>
           <div className="mt-4 space-y-3">
             {atleta.conquistas.map((item) => (
@@ -119,7 +119,7 @@ export function TelaPerfilAtleta() {
           </div>
         </section>
       </div>
-      <p className="mt-6 rounded-2xl bg-green-pale px-5 py-4 text-sm">
+      <p className="mt-6 rounded-md bg-green-pale px-5 py-4 text-sm">
         Somente fatos esportivos publicados compõem este perfil. Dados pessoais,
         contatos e auditoria permanecem privados.
       </p>

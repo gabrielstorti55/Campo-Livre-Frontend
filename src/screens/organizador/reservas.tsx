@@ -161,7 +161,7 @@ export function TelaReservasCampeonato({
 
       <section aria-label="Reservas do campeonato" className="space-y-3">
         {reservas.length === 0 ? (
-          <p className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">
+          <p className="rounded-md border border-dashed p-5 text-sm text-muted-foreground">
             Nenhuma reserva vinculada a este campeonato.
           </p>
         ) : (
@@ -304,7 +304,7 @@ export function TelaReservasCampeonato({
       {feedback ? (
         <p
           role="status"
-          className="mt-5 rounded-xl bg-green-pale p-3 text-sm font-semibold text-green-dark"
+          className="mt-5 rounded-md bg-green-pale p-3 text-sm font-semibold text-green-dark"
         >
           {feedback}
         </p>

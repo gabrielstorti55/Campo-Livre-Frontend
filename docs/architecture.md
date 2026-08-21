@@ -109,6 +109,12 @@ Evolução prevista:
 
 Não criar Route Handlers do Next.js para duplicar a API sem decisão arquitetural explícita.
 
+## Contrato visual e chegada da API
+
+`DESIGN.md` é o contrato visual do produto. Tokens globais vivem em `src/app/styles.css`; primitivas acessíveis em `src/components/ui`; padrões editoriais e operacionais em `src/components/layout`; composições esportivas reais em `src/components/modules`.
+
+A chegada da API altera a origem e os estados dos dados, não a linguagem visual. Loading, vazio, erro, sucesso, conflito, indisponibilidade e permissão devem compor as mesmas superfícies, tipografia, divisores, controles e padrões responsivos já adotados. Novos componentes genéricos continuam baseados em shadcn/ui ou Radix; componentes próprios devem representar domínio real.
+
 ## Nomenclatura
 
 - arquivos e diretórios próprios: português, `kebab-case`, sem acentos;
