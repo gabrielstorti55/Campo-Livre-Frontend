@@ -1,3 +1,5 @@
+import type { MinhaConta } from '@/types/api/autenticacao';
+
 export type ContextoPessoal = 'atleta' | 'organizador';
 
 export type VinculoTimeCriado = {
@@ -11,7 +13,15 @@ export type VinculoTimeCriado = {
 
 export type SessaoPessoal = {
   sessionId: string;
-  account: { id: string; name: string; city?: string; type: 'pessoa' };
+  prototipo: boolean;
+  account: {
+    id: string;
+    name: string;
+    email: string;
+    city?: string;
+    type: 'pessoa';
+  };
+  minhaConta: MinhaConta;
   capabilities: ContextoPessoal[];
   activeContext: ContextoPessoal | null;
   organizerEnabledAt?: string;
@@ -26,14 +36,22 @@ export type SessaoPessoal = {
 
 export type ContaMockRegistrada = { name: string; city: string; email: string };
 
+export type StatusSessao =
+  'carregando' | 'visitante' | 'autenticando' | 'autenticado' | 'indisponivel';
+
 export type ValorContextoSessao = {
+  status: StatusSessao;
   session: SessaoPessoal | null;
   hydrated: boolean;
+  erroSessao: string | null;
+  signIn: (email: string, senha: string) => Promise<SessaoPessoal>;
+  signOut: () => Promise<void>;
+  executarAutenticado: <T>(
+    request: (accessToken: string) => Promise<T>,
+  ) => Promise<T>;
   registerMockAccount: (account: ContaMockRegistrada) => void;
-  signInWithMock: (email?: string) => SessaoPessoal;
   linkTeam: (teamId: string) => void;
   createTeam: (input: Omit<VinculoTimeCriado, 'id' | 'role'>) => string;
-  signOut: () => void;
   enableOrganizer: () => void;
   switchContext: (context: ContextoPessoal) => void;
 };

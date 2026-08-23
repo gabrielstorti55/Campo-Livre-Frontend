@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { autenticarEm } from './fixtures/autenticacao';
 test('rotas públicas abrem sem sessão e possuem links compartilháveis', async ({
   page,
 }) => {
@@ -78,10 +79,7 @@ test('menu público captura o foco e o devolve ao acionador', async ({
 test('conta autenticada usa a mesma página canônica com acesso à sua área', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'organizador', '/minha-area');
 
   await page.goto('/campeonatos/1');
 
@@ -148,3 +146,4 @@ test('prevê estados vazio e erro nas consultas públicas', async ({ page }) => 
     page.getByRole('heading', { name: 'Campeonato não encontrado' }),
   ).toBeVisible();
 });
+

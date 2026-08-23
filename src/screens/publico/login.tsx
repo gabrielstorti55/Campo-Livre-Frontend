@@ -3,17 +3,39 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { LayoutAutenticacao } from '@/layouts/autenticacao';
-import { obterInicioSessao } from '@/services/autenticacao/navegacao-sessao';
-import { useSessao } from '@/hooks/use-sessao';
 import { CampoFormulario } from '@/components/layout/campo-formulario';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useSessao } from '@/hooks/use-sessao';
+import { LayoutAutenticacao } from '@/layouts/autenticacao';
+import { ErroApi } from '@/services/api/problem-details';
+import { obterDestinoPosLogin } from '@/services/autenticacao/navegacao-sessao';
+
+function mensagemLogin(error: unknown): string {
+  if (error instanceof ErroApi) {
+    if (error.problem.codigo === 'CREDENCIAIS_INVALIDAS') {
+      return 'E-mail ou senha inválidos.';
+    }
+    if (error.problem.codigo === 'EMAIL_NAO_CONFIRMADO') {
+      return 'Confirme seu e-mail antes de entrar.';
+    }
+    if (error.problem.codigo === 'CONTA_INAPTA') {
+      return 'Esta conta não está disponível para acesso.';
+    }
+    if (error.problem.status === 429) {
+      return 'Muitas tentativas. Aguarde um pouco e tente novamente.';
+    }
+  }
+  return 'Não foi possível entrar agora. Verifique sua conexão e tente novamente.';
+}
 
 export function TelaLogin() {
   const router = useRouter();
-  const { hydrated, signInWithMock } = useSessao();
+  const { hydrated, status, signIn } = useSessao();
+  const [erro, setErro] = useState<string | null>(null);
+  const submitting = status === 'autenticando';
 
   return (
     <LayoutAutenticacao>
@@ -34,12 +56,23 @@ export function TelaLogin() {
 
         <form
           className="space-y-4"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
+            if (submitting) return;
+            setErro(null);
             const formData = new FormData(event.currentTarget);
             const email = String(formData.get('email') ?? '');
-            const session = signInWithMock(email);
-            router.push(obterInicioSessao(session));
+            const senha = String(formData.get('senha') ?? '');
+
+            try {
+              const session = await signIn(email, senha);
+              const returnTo = new URLSearchParams(window.location.search).get(
+                'returnTo',
+              );
+              router.push(obterDestinoPosLogin(returnTo, session));
+            } catch (error) {
+              setErro(mensagemLogin(error));
+            }
           }}
         >
           <CampoFormulario label="E-mail" htmlFor="e-mail-field">
@@ -55,18 +88,17 @@ export function TelaLogin() {
           </CampoFormulario>
 
           <div>
-            <div>
-              <CampoFormulario label="Senha" htmlFor="senha-field">
-                <Input
-                  id="senha-field"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  placeholder="Digite sua senha"
-                  className="h-11"
-                />
-              </CampoFormulario>
-            </div>
+            <CampoFormulario label="Senha" htmlFor="senha-field">
+              <Input
+                id="senha-field"
+                name="senha"
+                type="password"
+                autoComplete="current-password"
+                required
+                placeholder="Digite sua senha"
+                className="h-11"
+              />
+            </CampoFormulario>
 
             <div className="mt-1.5 text-right">
               <Link
@@ -78,18 +110,25 @@ export function TelaLogin() {
             </div>
           </div>
 
+          {erro ? (
+            <p role="alert" className="text-sm text-destructive">
+              {erro}
+            </p>
+          ) : null}
+
           <Button
             variant="campo"
             type="submit"
-            disabled={!hydrated}
+            disabled={!hydrated || submitting}
             className="group mt-2 h-11 w-full"
           >
-            <span>Entrar</span>
-
-            <ArrowRight
-              className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
+            <span>{submitting ? 'Entrando…' : 'Entrar'}</span>
+            {!submitting ? (
+              <ArrowRight
+                className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            ) : null}
           </Button>
         </form>
 

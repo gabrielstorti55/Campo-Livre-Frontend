@@ -34,20 +34,14 @@ test('cadastro novo entra sem vínculos ou papéis automáticos', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: 'Ana Souza' }),
   ).toBeVisible();
-
-  const session = await page.evaluate(() =>
-    JSON.parse(
-      sessionStorage.getItem('campo-livre:mock-personal-session') ?? '{}',
-    ),
-  );
-
-  expect(session.activeContext).toBeNull();
-  expect(session.capabilities).toEqual([]);
-  expect(session.links.teamIds).toEqual([]);
-  expect(session.links.organizedChampionshipIds).toEqual([]);
+  await expect(
+    page.getByText('Você ainda não participa de nenhum time'),
+  ).toBeVisible();
+  expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
+  expect(await page.evaluate(() => localStorage.length)).toBe(0);
 });
 
-test('login não exige papel global e abre a área autenticada da sessão', async ({
+test('login não exige papel global e abre a área pessoal neutra', async ({
   page,
 }) => {
   await page.goto('/login');
@@ -57,14 +51,7 @@ test('login não exige papel global e abre a área autenticada da sessão', asyn
   await page.getByLabel('Senha').fill('senha-mock');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        sessionStorage.getItem('campo-livre:mock-personal-session'),
-      ),
-    )
-    .not.toBeNull();
-  await expect(page).toHaveURL(/\/atleta\/inicio$/);
+  await expect(page).toHaveURL(/\/minha-area$/);
   await expect(
     page.getByRole('heading', { level: 1, name: 'Marcos Oliveira' }),
   ).toBeVisible();
@@ -89,16 +76,8 @@ test('conta sem vínculos entra em uma área pessoal vazia', async ({ page }) =>
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar um time' })).toBeVisible();
 
-  const session = await page.evaluate(() =>
-    JSON.parse(
-      sessionStorage.getItem('campo-livre:mock-personal-session') ?? '{}',
-    ),
-  );
-
-  expect(session.activeContext).toBeNull();
-  expect(session.capabilities).toEqual([]);
-  expect(session.links.teamIds).toEqual([]);
-  expect(session.links.organizedChampionshipIds).toEqual([]);
+  expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
+  expect(await page.evaluate(() => localStorage.length)).toBe(0);
 });
 
 test('troca atleta por organizador preservando a mesma sessão pessoal', async ({
@@ -109,27 +88,16 @@ test('troca atleta por organizador preservando a mesma sessão pessoal', async (
   await page.getByLabel('Senha').fill('senha-mock');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
-  const sessionBefore = await page.evaluate(() =>
-    JSON.parse(
-      sessionStorage.getItem('campo-livre:mock-personal-session') ?? '{}',
-    ),
-  );
-
-  await page.goto('/atleta/perfil');
+  await page.getByRole('link', { name: 'Abrir área esportiva' }).click();
+  await expect(page).toHaveURL(/\/atleta\/inicio$/);
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await page.getByRole('link', { name: 'Perfil', exact: true }).click();
   await page
     .getByRole('button', { name: 'Trocar para contexto Organizador' })
     .click();
 
   await expect(page).toHaveURL(/\/organizador\/inicio$/);
 
-  const sessionAfter = await page.evaluate(() =>
-    JSON.parse(
-      sessionStorage.getItem('campo-livre:mock-personal-session') ?? '{}',
-    ),
-  );
-
-  expect(sessionAfter.sessionId).toBe(sessionBefore.sessionId);
-  expect(sessionAfter.account.id).toBe(sessionBefore.account.id);
-  expect(sessionAfter.activeContext).toBe('organizador');
-  expect(sessionAfter.capabilities).toEqual(['atleta', 'organizador']);
+  expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
+  expect(await page.evaluate(() => localStorage.length)).toBe(0);
 });

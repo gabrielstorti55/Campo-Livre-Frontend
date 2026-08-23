@@ -1,20 +1,15 @@
 import { expect, type Page, test } from '@playwright/test';
 
+import { autenticarEm } from './fixtures/autenticacao';
 async function loginWithoutTeam(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('sem-time@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'semTime', '/minha-area');
   await expect(page).toHaveURL(/\/minha-area$/);
 }
 
 test('atleta encerra a sessão e não retorna por deep link privado', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'organizador', '/minha-area');
 
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   await page.getByRole('button', { name: 'Sair da conta' }).click();
@@ -27,11 +22,7 @@ test('atleta encerra a sessão e não retorna por deep link privado', async ({
 test('convite nominal aparece somente para a conta destinatária', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/atleta/time/buscar');
+  await autenticarEm(page, 'organizador', '/atleta/time/buscar');
   await expect(
     page.getByRole('button', { name: 'Aceitar convite do Leões FC' }),
   ).toHaveCount(0);
@@ -75,11 +66,7 @@ test('rotas pessoais exigem sessão e gestão exige capitania do time', async ({
 test('perfil do atleta usa somente fatos esportivos publicados e seus times', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/atleta/perfil');
+  await autenticarEm(page, 'organizador', '/atleta/perfil');
 
   const stats = page.getByRole('region', { name: 'Estatísticas publicadas' });
   await expect(stats.getByText('7', { exact: true })).toBeVisible();
@@ -98,10 +85,7 @@ test('perfil do atleta usa somente fatos esportivos publicados e seus times', as
 test('área do atleta mostra somente eventos e jogos dos times vinculados', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'organizador', '/minha-area');
 
   const proximosJogos = page.getByRole('region', {
     name: 'Meus próximos jogos',
@@ -129,10 +113,7 @@ test('área do atleta mostra somente eventos e jogos dos times vinculados', asyn
 test('evento cancelado preserva seu estado no histórico do atleta', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'organizador', '/minha-area');
   await page.evaluate(() => {
     const key = 'campo-livre:mock-personal-session';
     const session = JSON.parse(sessionStorage.getItem(key) ?? '{}');
@@ -239,3 +220,4 @@ test('atleta aceita convite nominal e passa a ver somente seus vínculos', async
     page.getByRole('button', { name: 'Aceitar convite do Leões FC' }),
   ).toHaveCount(0);
 });
+

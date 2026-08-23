@@ -1,9 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
 
+import { GuardaSessao } from '@/components/autenticacao/guarda-sessao';
 import { useSessao } from '@/hooks/use-sessao';
 
 export function ControleAcessoPrefeitura({
@@ -11,18 +10,18 @@ export function ControleAcessoPrefeitura({
 }: {
   children: ReactNode;
 }) {
-  const router = useRouter();
-  const { session, hydrated } = useSessao();
-  const hasInstitutionalLink =
-    session?.links.institutionalOrganizationIds.includes('prefeitura-franca') ??
-    false;
+  const { session } = useSessao();
+  const hasInstitutionalLink = Boolean(
+    session?.prototipo &&
+    session.links.institutionalOrganizationIds.includes('prefeitura-franca'),
+  );
 
-  useEffect(() => {
-    if (!hydrated) return;
-    if (!session) router.replace('/login');
-    else if (!hasInstitutionalLink) router.replace('/minha-area');
-  }, [hasInstitutionalLink, hydrated, router, session]);
-
-  if (!hydrated || !session || !hasInstitutionalLink) return null;
-  return children;
+  return (
+    <GuardaSessao
+      autorizado={hasInstitutionalLink}
+      mensagem="Validando vínculo institucional..."
+    >
+      {children}
+    </GuardaSessao>
+  );
 }

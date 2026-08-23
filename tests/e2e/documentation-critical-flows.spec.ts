@@ -1,29 +1,19 @@
 import { expect, type Page, test } from '@playwright/test';
 
+import { autenticarEm } from './fixtures/autenticacao';
 async function loginAsOrganizer(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page).toHaveURL(/\/atleta\/inicio$/);
+  await autenticarEm(page, 'organizador', '/minha-area');
+  await expect(page).toHaveURL(/\/minha-area$/);
 }
 
 async function loginAsMunicipality(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('prefeitura@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/prefeitura/painel');
+  await autenticarEm(page, 'prefeitura', '/prefeitura/painel');
 }
 
 test('entrada em time ocorre por convite nominal, sem solicitação aberta', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('sem-time@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/atleta/time/buscar');
+  await autenticarEm(page, 'semTime', '/atleta/time/buscar');
 
   await expect(
     page.getByRole('heading', { name: 'Convites para times' }),
@@ -328,3 +318,4 @@ test('agenda municipal filtra reservas pela data selecionada', async ({
     .click();
   await expect(page.getByText('Copa Franca 2026')).toBeVisible();
 });
+

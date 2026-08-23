@@ -1,0 +1,109 @@
+import type { ClienteApi } from '@/services/api/cliente-api';
+import type { AutenticacaoApi } from '@/services/autenticacao/autenticacao-api';
+import type {
+  EntradaCadastro,
+  EntradaLogin,
+  EntradaRedefinicaoSenha,
+  MinhaConta,
+  RespostaCadastro,
+  RespostaConfirmacaoEmail,
+  RespostaLogin,
+  RespostaRedefinicaoSenha,
+  RespostaRenovacao,
+  RespostaSolicitacaoRecuperacao,
+} from '@/types/api/autenticacao';
+
+type TransporteApi = Pick<ClienteApi, 'request'>;
+
+function validarRenovacaoWeb(value: unknown): RespostaRenovacao {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    typeof (value as RespostaRenovacao).accessToken !== 'string' ||
+    (value as RespostaRenovacao).tokenTipo !== 'Bearer' ||
+    typeof (value as RespostaRenovacao).accessTokenExpiraEm !== 'string' ||
+    (value as RespostaRenovacao).refreshToken !== null ||
+    typeof (value as RespostaRenovacao).refreshTokenExpiraEm !== 'string'
+  ) {
+    throw new Error(
+      'Resposta de autenticação web incompatível com o contrato.',
+    );
+  }
+  return value as RespostaRenovacao;
+}
+
+function validarLoginWeb(value: unknown): RespostaLogin {
+  const renewal = validarRenovacaoWeb(value);
+  const usuario = (value as Partial<RespostaLogin>).usuario;
+  if (
+    !usuario ||
+    typeof usuario.id !== 'string' ||
+    typeof usuario.nome !== 'string' ||
+    typeof usuario.nomeUsuario !== 'string' ||
+    typeof usuario.administrador !== 'boolean' ||
+    typeof usuario.organizadorHabilitado !== 'boolean'
+  ) {
+    throw new Error('Resposta de login incompatível com o contrato.');
+  }
+  return { ...renewal, usuario };
+}
+
+export class AutenticacaoHttp implements AutenticacaoApi {
+  constructor(private readonly client: TransporteApi) {}
+
+  async login(input: EntradaLogin): Promise<RespostaLogin> {
+    const response = await this.client.request<unknown>('/login', {
+      method: 'POST',
+      credentials: 'include',
+      body: { ...input, email: input.email.trim().toLowerCase() },
+    });
+    return validarLoginWeb(response);
+  }
+
+  async renovar(): Promise<RespostaRenovacao> {
+    const response = await this.client.request<unknown>('/login/renovacoes', {
+      method: 'POST',
+      credentials: 'include',
+      body: {},
+    });
+    return validarRenovacaoWeb(response);
+  }
+
+  logout(): Promise<void> {
+    return this.client.request('/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  }
+
+  consultarMinhaConta(accessToken: string): Promise<MinhaConta> {
+    return this.client.request('/minha-conta', { accessToken });
+  }
+
+  solicitarRecuperacao(email: string): Promise<RespostaSolicitacaoRecuperacao> {
+    return this.client.request('/recuperacao-senha', {
+      method: 'POST',
+      body: { email: email.trim().toLowerCase() },
+    });
+  }
+
+  redefinirSenha(
+    input: EntradaRedefinicaoSenha,
+  ): Promise<RespostaRedefinicaoSenha> {
+    return this.client.request('/recuperacao-senha/confirmacoes', {
+      method: 'POST',
+      body: input,
+    });
+  }
+
+  cadastrar(input: EntradaCadastro): Promise<RespostaCadastro> {
+    return this.client.request('/cadastros', { method: 'POST', body: input });
+  }
+
+  confirmarEmail(token: string): Promise<RespostaConfirmacaoEmail> {
+    return this.client.request('/confirmacoes-email', {
+      method: 'POST',
+      body: { token },
+    });
+  }
+}

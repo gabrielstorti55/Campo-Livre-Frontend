@@ -1,15 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
 
-async function login(page: Page, email: string) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email);
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-}
+import { autenticarEm } from './fixtures/autenticacao';
 
-async function loginAsMunicipality(page: Page) {
-  await login(page, 'prefeitura@campolivre.test');
-  await page.goto('/prefeitura/painel');
+async function loginAsMunicipality(
+  page: Page,
+  destino = '/prefeitura/painel',
+) {
+  await autenticarEm(page, 'prefeitura', destino);
   await expect(
     page.getByRole('heading', { level: 1, name: 'Prefeitura de Franca' }),
   ).toBeVisible();
@@ -19,8 +16,7 @@ test('rotas municipais exigem vínculo institucional', async ({ page }) => {
   await page.goto('/prefeitura/painel');
   await expect(page).toHaveURL(/\/login$/);
 
-  await login(page, 'sem-time@campolivre.test');
-  await page.goto('/prefeitura/painel');
+  await autenticarEm(page, 'semTime', '/prefeitura/painel');
   await expect(page).toHaveURL(/\/minha-area$/);
   await expect(page.getByText('Prefeitura de Franca')).toHaveCount(0);
 
@@ -71,8 +67,7 @@ test('prefeitura cadastra campo, persiste e controla disponibilidade', async ({
   await page
     .getByRole('button', { name: 'Disponibilizar Campo Jardim Petráglia' })
     .click();
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await expect(
     page
       .getByRole('combobox', { name: 'Campo', exact: true })
@@ -83,8 +78,7 @@ test('prefeitura cadastra campo, persiste e controla disponibilidade', async ({
 test('prefeitura rejeita campo duplicado e dados obrigatórios vazios', async ({
   page,
 }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/campos/novo');
+  await loginAsMunicipality(page, '/prefeitura/campos/novo');
   await page.getByLabel('Nome do campo').fill('   ');
   await page.getByLabel('Endereço completo').fill('   ');
   await page.getByRole('button', { name: 'Cadastrar campo' }).click();
@@ -109,8 +103,7 @@ test('decisão municipal atualiza calendário e retorna ao organizador', async (
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-08-20T12:00:00'));
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await page
     .getByRole('combobox', { name: 'Campo', exact: true })
     .selectOption('Campo Santa Rita');
@@ -145,8 +138,7 @@ test('decisão municipal atualiza calendário e retorna ao organizador', async (
     page.getByRole('region', { name: 'Reservas de 28/09/2026' }),
   ).toContainText('Copa Franca 2026');
 
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await expect(
     page.getByRole('article', { name: /Campo Santa Rita.*28\/09\/2026/ }),
   ).toContainText('APROVADA');
@@ -167,8 +159,7 @@ test('decisão municipal atualiza calendário e retorna ao organizador', async (
 });
 
 test('campo com reserva aprovada não entra em manutenção', async ({ page }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/campos');
+  await loginAsMunicipality(page, '/prefeitura/campos');
   const field = page.getByRole('article', { name: 'Campo Vera Cruz' });
   await field
     .getByRole('button', { name: 'Colocar Campo Vera Cruz em manutenção' })
@@ -183,8 +174,7 @@ test('campo em manutenção bloqueia aprovação sem consumir a solicitação', 
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-08-20T12:00:00'));
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/campos');
+  await loginAsMunicipality(page, '/prefeitura/campos');
   const field = page.getByRole('article', { name: 'Campo Aeroporto' });
   await field
     .getByRole('button', { name: 'Colocar Campo Aeroporto em manutenção' })
@@ -234,8 +224,7 @@ test('recusa exige motivo persistente e não ocupa o calendário', async ({
 test('recusa restaura o foco ao cancelar e o move para o retorno ao confirmar', async ({
   page,
 }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/aprovacoes');
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   const request = page.getByRole('article', { name: /Liga Bairro Norte/ });
   const rejectButton = request.getByRole('button', {
     name: 'Reprovar solicitação',
@@ -257,8 +246,7 @@ test('aprovação revalida a antecedência mínima de 24 horas', async ({
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-08-20T10:00:00'));
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await page
     .getByRole('combobox', { name: 'Campo', exact: true })
     .selectOption({ label: 'Campo São José' });
@@ -268,8 +256,7 @@ test('aprovação revalida a antecedência mínima de 24 horas', async ({
   await page.getByRole('button', { name: 'Solicitar reserva' }).click();
 
   await page.clock.setFixedTime(new Date('2026-08-21T13:00:00'));
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/aprovacoes');
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   const request = page.getByRole('article', {
     name: /Copa Franca 2026.*Campo São José.*22\/08\/2026.*12:00.*14:00/,
   });
@@ -297,8 +284,7 @@ test('prefeitura suspende e reativa credenciamento do organizador', async ({
   });
   await expect(persistedOrganizer).toContainText('Suspenso');
 
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await expect(
     page.getByRole('heading', { name: 'Credenciamento suspenso' }),
   ).toBeVisible();
@@ -306,14 +292,12 @@ test('prefeitura suspende e reativa credenciamento do organizador', async ({
     page.getByRole('button', { name: 'Solicitar reserva' }),
   ).toHaveCount(0);
 
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/organizadores');
+  await loginAsMunicipality(page, '/prefeitura/organizadores');
   await page
     .getByRole('article', { name: 'Marcos Oliveira' })
     .getByRole('button', { name: 'Reativar Marcos Oliveira' })
     .click();
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await expect(
     page.getByRole('button', { name: 'Solicitar reserva' }),
   ).toBeVisible();
@@ -323,8 +307,7 @@ test('contas do mesmo campeonato não sobrescrevem decisões municipais', async 
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-08-20T12:00:00'));
-  await login(page, 'pessoa@campolivre.test');
-  await page.goto('/organizador/campeonato/4/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4/reservas');
   await page
     .getByRole('combobox', { name: 'Campo', exact: true })
     .selectOption({ label: 'Campo Santa Rita' });
@@ -333,15 +316,13 @@ test('contas do mesmo campeonato não sobrescrevem decisões municipais', async 
   await page.getByLabel('Hora final').fill('11:00');
   await page.getByRole('button', { name: 'Solicitar reserva' }).click();
 
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/aprovacoes');
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   const first = page.getByRole('article', {
     name: /Marcos Oliveira.*Campo Santa Rita.*20\/09\/2026/,
   });
   await first.getByRole('button', { name: /Aprovar solicitação/ }).click();
 
-  await login(page, 'colaborador@campolivre.test');
-  await page.goto('/organizador/campeonato/4/reservas');
+  await autenticarEm(page, 'colaborador', '/organizador/campeonato/4/reservas');
   await page
     .getByRole('combobox', { name: 'Campo', exact: true })
     .selectOption({ label: 'Campo Aeroporto' });
@@ -350,8 +331,7 @@ test('contas do mesmo campeonato não sobrescrevem decisões municipais', async 
   await page.getByLabel('Hora final').fill('14:00');
   await page.getByRole('button', { name: 'Solicitar reserva' }).click();
 
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/aprovacoes');
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   await expect(
     page.getByRole('article', {
       name: /Marcos Oliveira.*Campo Santa Rita.*20\/09\/2026/,
@@ -363,3 +343,4 @@ test('contas do mesmo campeonato não sobrescrevem decisões municipais', async 
     }),
   ).toContainText('Pendente');
 });
+

@@ -1,25 +1,25 @@
 import { expect, test } from '@playwright/test';
 
-async function loginAsAthlete(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page).toHaveURL(/\/atleta\/inicio$/);
+import { autenticarEm } from './fixtures/autenticacao';
+
+async function loginAsAthlete(
+  page: import('@playwright/test').Page,
+  destino = '/minha-area',
+) {
+  await autenticarEm(page, 'atleta', destino);
 }
 
-async function loginAsMunicipality(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('prefeitura@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+async function loginAsMunicipality(
+  page: import('@playwright/test').Page,
+  destino = '/prefeitura/painel',
+) {
+  await autenticarEm(page, 'prefeitura', destino);
 }
 
 test('usa um cabeçalho de página semântico nas áreas autenticadas', async ({
   page,
 }) => {
-  await loginAsAthlete(page);
-  await page.goto('/atleta/perfil');
+  await loginAsAthlete(page, '/atleta/perfil');
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Marcos Oliveira' }),
@@ -60,8 +60,7 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await loginAsAthlete(page);
-  await page.goto('/atleta/inicio');
+  await loginAsAthlete(page, '/atleta/inicio');
 
   const main = page.getByRole('main');
   const mainBox = await main.boundingBox();
@@ -84,8 +83,7 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
 test('oferece atalho de teclado para o conteúdo principal', async ({
   page,
 }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/painel');
+  await loginAsMunicipality(page, '/prefeitura/painel');
   await page.keyboard.press('Tab');
 
   const skipLink = page.getByRole('link', {
@@ -100,8 +98,7 @@ test('mantém títulos completos quando o cabeçalho móvel possui ação', asyn
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/campos');
+  await loginAsMunicipality(page, '/prefeitura/campos');
 
   const title = page.getByRole('heading', {
     level: 1,
@@ -119,3 +116,4 @@ test('oferece uma saída segura em rotas inexistentes', async ({ page }) => {
   await backLink.click();
   await expect(page).toHaveURL(/\/login$/);
 });
+

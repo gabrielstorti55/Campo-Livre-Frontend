@@ -92,6 +92,12 @@ export function TelaMinhaArea() {
           <div className="max-w-md border-l border-white/25 px-4 py-3 text-sm leading-6 text-white/75">
             Este é o perfil da conta criada. Times, campeonatos e outras
             capacidades aparecem conforme seus vínculos no CampoLivre.
+            <Link
+              href="/minha-conta"
+              className="mt-3 block font-semibold text-white underline underline-offset-4"
+            >
+              Consultar dados da conta
+            </Link>
           </div>
         </div>
       </section>
@@ -113,7 +119,13 @@ export function TelaMinhaArea() {
                 : 'Entre em uma equipe existente ou crie seu próprio time para começar a participar.'}
             </CardDescription>
           </CardHeader>
-          {!hasTeam ? (
+          {hasTeam ? (
+            <CardContent>
+              <Button asChild variant="campo" tone="green">
+                <Link href="/atleta/inicio">Abrir área esportiva</Link>
+              </Button>
+            </CardContent>
+          ) : (
             <CardContent className="flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="campo" tone="green">
                 <Link href="/atleta/time/buscar">
@@ -124,7 +136,7 @@ export function TelaMinhaArea() {
                 <Link href="/atleta/time/criar">Criar um time</Link>
               </Button>
             </CardContent>
-          ) : null}
+          )}
         </Card>
 
         <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
@@ -149,13 +161,17 @@ export function TelaMinhaArea() {
                 <Button asChild variant="campo" tone="green">
                   <Link href="/organizador/novo">Criar campeonato</Link>
                 </Button>
-              ) : (
+              ) : session.prototipo ? (
                 <Button
                   variant="campo"
                   tone="green"
                   onClick={() => setActivationOpen(true)}
                 >
                   Ativar painel de organizador
+                </Button>
+              ) : (
+                <Button variant="campo" tone="green" disabled>
+                  Ativação disponível após integração
                 </Button>
               )}
               <Button asChild variant="campoOutline" tone="green">

@@ -8,11 +8,13 @@ Este repositório contém somente o frontend React do CampoLivre. O backend de r
 
 Em caso de divergência, use esta ordem:
 
-1. decisões atuais aprovadas por Gabriel e Thales;
-2. telas mais recentes do Figma;
-3. baseline vigente no Megabrain;
-4. implementação deste repositório;
-5. documentos antigos apenas como histórico.
+1. pasta viva e atualizada do CampoLivre no Google Drive;
+2. telas mais recentes do Figma, somente para composição visual e interação que não contradigam o Drive;
+3. baseline vigente no Megabrain, desde que reconciliada com o Drive;
+4. implementação deste repositório como evidência do que existe;
+5. conversas e documentos antigos apenas como histórico.
+
+Gabriel e Thales decidem em conjunto e Thales materializa a decisão vigente no Drive. Portanto, declarações anteriores em chat não substituem o Drive. Se houver contradição interna na própria pasta, registre o conflito e não invente uma terceira regra.
 
 Não trate interface renderizada, estado local ou mocks como integração persistida.
 

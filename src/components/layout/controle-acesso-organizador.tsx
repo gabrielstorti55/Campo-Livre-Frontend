@@ -1,9 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
 
+import { GuardaSessao } from '@/components/autenticacao/guarda-sessao';
 import { useSessao } from '@/hooks/use-sessao';
 
 export function ControleAcessoOrganizador({
@@ -11,23 +10,16 @@ export function ControleAcessoOrganizador({
 }: {
   children: ReactNode;
 }) {
-  const router = useRouter();
-  const { session, hydrated } = useSessao();
+  const { session } = useSessao();
   const hasOrganizerCapability =
-    session?.capabilities.includes('organizador') ?? false;
+    session?.minhaConta.organizadorHabilitado ?? false;
 
-  useEffect(() => {
-    if (!hydrated) return;
-    if (!session) {
-      router.replace('/login');
-      return;
-    }
-    if (!hasOrganizerCapability) router.replace('/minha-area');
-  }, [hasOrganizerCapability, hydrated, router, session]);
-
-  if (!hydrated || !session || !hasOrganizerCapability) {
-    return <p role="status">Validando acesso ao painel do organizador...</p>;
-  }
-
-  return children;
+  return (
+    <GuardaSessao
+      autorizado={hasOrganizerCapability}
+      mensagem="Validando acesso ao painel do organizador..."
+    >
+      {children}
+    </GuardaSessao>
+  );
 }

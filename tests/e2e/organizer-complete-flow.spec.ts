@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { respeitaAntecedenciaMinima } from '@/services/reservas/regras-horario-reserva';
 
+import { autenticarEm } from './fixtures/autenticacao';
 test('regra de reserva usa relógio injetável na fronteira de 24 horas', () => {
   const clock = { now: () => new Date('2026-08-19T12:00:00') };
 
@@ -12,11 +13,7 @@ test('regra de reserva usa relógio injetável na fronteira de 24 horas', () => 
 test('rotas do organizador exigem ativação explícita da capacidade', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('sem-time@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/novo');
+  await autenticarEm(page, 'semTime', '/organizador/novo');
 
   await expect(page).toHaveURL(/\/minha-area$/);
   await expect(
@@ -27,10 +24,7 @@ test('rotas do organizador exigem ativação explícita da capacidade', async ({
 test('conta pessoal habilita o painel de organizador sem receber campeonato', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('sem-time@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'semTime', '/minha-area');
 
   await expect(page).toHaveURL(/\/minha-area$/);
   await page
@@ -58,11 +52,7 @@ test('conta pessoal habilita o painel de organizador sem receber campeonato', as
 test('painel lista somente vínculos administráveis e informa situação comercial', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/inicio');
+  await autenticarEm(page, 'organizador', '/organizador/inicio');
 
   const meus = page.getByRole('region', { name: 'Meus campeonatos' });
   await expect(
@@ -90,11 +80,7 @@ test('painel lista somente vínculos administráveis e informa situação comerc
 test('responsável resolve pendências, valida, abre inscrições e inicia campeonato', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/4');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4');
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Copa Verão 2026' }),
@@ -149,11 +135,7 @@ test('responsável convida colaboradores e transfere a responsabilidade explicit
   page,
 }) => {
   test.setTimeout(60_000);
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/4');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4');
 
   await page
     .getByLabel('Usuário ou e-mail do organizador')
@@ -186,11 +168,7 @@ test('responsável convida colaboradores e transfere a responsabilidade explicit
   await expect(page.getByText('Responsável: Juliana Lopes')).toBeVisible();
   await expect(page.getByText('Equipe organizadora')).toHaveCount(0);
 
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('colaborador@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/4');
+  await autenticarEm(page, 'colaborador', '/organizador/campeonato/4');
   await expect(page.getByText('Você é o responsável ativo')).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Transferir responsabilidade' }),
@@ -203,11 +181,7 @@ test('responsável convida colaboradores e transfere a responsabilidade explicit
 test('chaveamento usa somente participantes do campeonato e geração integral', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/4/chaveamento');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4/chaveamento');
 
   await expect(page.getByText('Time A', { exact: true })).toBeVisible();
   await expect(page.getByText('Leões FC', { exact: true })).toBeVisible();
@@ -225,11 +199,7 @@ test('chaveamento usa somente participantes do campeonato e geração integral',
 test('papel e histórico comercial pertencem ao vínculo da conta', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('colaborador@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/4');
+  await autenticarEm(page, 'colaborador', '/organizador/campeonato/4');
 
   await expect(page.getByText('Você atua como colaborador')).toBeVisible();
   await expect(
@@ -254,11 +224,7 @@ test('papel e histórico comercial pertencem ao vínculo da conta', async ({
 test('colaborador administra operações permitidas sem receber ações do responsável', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/2');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/2');
 
   await expect(page.getByText('Você atua como colaborador')).toBeVisible();
   await expect(page.getByText('Responsável: Carlos Mendes')).toBeVisible();
@@ -277,10 +243,7 @@ test('colaborador administra operações permitidas sem receber ações do respo
 });
 
 test('rotas diretas respeitam o lifecycle do campeonato', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'organizador', '/minha-area');
 
   await page.goto('/organizador/campeonato/7/reservas');
   await expect(page.getByText('Histórico somente leitura')).toBeVisible();
@@ -308,11 +271,7 @@ test('rotas diretas respeitam o lifecycle do campeonato', async ({ page }) => {
 test('agendamento compartilhado persiste e habilita WO após recarregar', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/1/partidas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/partidas');
 
   await page
     .getByRole('radio', { name: /Bairro Sul FC vs Time A, Rodada 5/ })
@@ -328,11 +287,7 @@ test('agendamento compartilhado persiste e habilita WO após recarregar', async 
 test('opera somente partidas do campeonato e registra WO sem publicar placar inventado', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/1/partidas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/partidas');
 
   await expect(
     page.getByRole('heading', {
@@ -361,11 +316,7 @@ test('opera somente partidas do campeonato e registra WO sem publicar placar inv
 test('solicita e cancela reserva no contexto do campeonato administrado', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/1/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
 
   await expect(
     page.getByRole('heading', {
@@ -400,10 +351,7 @@ test('solicita e cancela reserva no contexto do campeonato administrado', async 
 test('bloqueia finalização incompleta e cancela preservando histórico', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
+  await autenticarEm(page, 'organizador', '/minha-area');
 
   await page.goto('/organizador/campeonato/1');
   await page.getByRole('button', { name: 'Finalizar campeonato' }).click();
@@ -429,11 +377,7 @@ test('finaliza quando todas as partidas possuem fato definitivo', async ({
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-08-23T12:00:00'));
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/campeonato/1/partidas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/partidas');
 
   for (const partida of [
     { id: 5, nome: /Bairro Sul FC vs Time A, Rodada 5/ },
@@ -482,11 +426,7 @@ test('finaliza quando todas as partidas possuem fato definitivo', async ({
 test('perfil mostra vínculos e histórico comercial sem score inventado', async ({
   page,
 }) => {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
-  await page.getByLabel('Senha').fill('senha-mock');
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.goto('/organizador/perfil');
+  await autenticarEm(page, 'organizador', '/organizador/perfil');
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Histórico do organizador' }),
@@ -499,3 +439,4 @@ test('perfil mostra vínculos e histórico comercial sem score inventado', async
   ).toContainText('PIX · Valor registrado no momento da compra');
   await expect(page.getByText(/score/i)).toHaveCount(0);
 });
+

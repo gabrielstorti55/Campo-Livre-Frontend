@@ -90,6 +90,12 @@ O sistema visual aprovado está documentado em [DESIGN.md](DESIGN.md). Ele combi
 
 As fontes Barlow Condensed e IBM Plex Sans são empacotadas localmente por `@fontsource`; a produção não depende de fontes remotas.
 
+## Integração com a API
+
+- [Arquitetura do frontend](docs/architecture.md)
+- [Contrato básico de autenticação no frontend](docs/autenticacao-frontend.md)
+- [Pendências da autenticação para o backend](docs/pendencias-autenticacao-backend.md)
+
 ## Backend
 
 Repositório de referência: https://github.com/thalesleall/Campo-Livre
