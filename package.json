@@ -6,6 +6,7 @@
   "sideEffects": false,
   "scripts": {
     "dev": "next dev",
+    "dev:prototype": "cross-env NEXT_PUBLIC_APP_MODE=prototipo next dev",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write .",
@@ -15,10 +16,13 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:e2e": "cross-env NEXT_PUBLIC_AUTH_ADAPTER=fake playwright test",
-    "test:e2e:ui": "cross-env NEXT_PUBLIC_AUTH_ADAPTER=fake playwright test --ui",
+    "test:e2e": "npm run test:e2e:frontend",
+    "test:e2e:frontend": "cross-env NEXT_PUBLIC_APP_MODE=integrado playwright test tests/e2e/frontend-mode.spec.ts",
+    "test:e2e:prototype": "cross-env NEXT_PUBLIC_APP_MODE=prototipo playwright test --grep-invert @integrado",
+    "test:e2e:prototype:auth": "cross-env NEXT_PUBLIC_APP_MODE=prototipo playwright test tests/e2e/prototype-mode.spec.ts tests/e2e/autenticacao-login.spec.ts tests/e2e/personal-account.spec.ts tests/e2e/authentication-account-security.spec.ts --grep-invert @dominio-prototipo",
+    "test:e2e:ui": "cross-env NEXT_PUBLIC_APP_MODE=prototipo playwright test --ui",
     "test:e2e:report": "playwright show-report",
-    "check": "npm run format:check && npm run lint && npm run deadcode && npm run typecheck && npm run test:unit && npm run test:e2e"
+    "check": "npm run format:check && npm run lint && npm run deadcode && npm run typecheck && npm run test:unit && npm run test:e2e:frontend && npm run test:e2e:prototype:auth && npm run build"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.3.0",

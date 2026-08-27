@@ -46,9 +46,22 @@ npm run typecheck
 npm run build
 npm run test:e2e
 
+# Frontend integrado, fechado e sem fallback
+npm run test:e2e:frontend
+
+# Jornadas de autenticação somente no protótipo em memória
+npm run test:e2e:prototype:auth
+
 # Executa todos os gates acima
 npm run check
 ```
+
+## Modos da aplicação
+
+- `NEXT_PUBLIC_APP_MODE=integrado`: usa somente adapters HTTP e falha fechada; produção sempre resolve para este modo.
+- `NEXT_PUBLIC_APP_MODE=prototipo`: disponível somente fora de produção, usa dados em memória e mostra aviso permanente de simulação.
+
+Não existe fallback HTTP → protótipo. A autenticação não é persistida em Web Storage nem em cookie acessível por JavaScript.
 
 ## Estrutura
 
@@ -93,6 +106,9 @@ As fontes Barlow Condensed e IBM Plex Sans são empacotadas localmente por `@fon
 ## Integração com a API
 
 - [Arquitetura do frontend](docs/architecture.md)
+- [Roadmap de integração do frontend](docs/roadmap-integracao-frontend.md)
+- [Fluxo de atleta e bloqueios](docs/fluxo-atleta-frontend.md)
+- [Questões contratuais a acertar](docs/questoes-a-acertar.md)
 - [Contrato básico de autenticação no frontend](docs/autenticacao-frontend.md)
 - [Pendências da autenticação para o backend](docs/pendencias-autenticacao-backend.md)
 

@@ -1,17 +1,69 @@
 'use client';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { catalogoPublicoMock } from '@/services/publico/catalogo-publico.mock';
-import { Iniciais } from '@/components/layout/iniciais';
 import { DestaquePagina } from '@/components/layout/destaque-pagina';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
+import { Iniciais } from '@/components/layout/iniciais';
+import { Button } from '@/components/ui/button';
+import { useTimesApi } from '@/contexts/times-api';
+import type { PaginaElenco, TimeDetalhado } from '@/types/api/times';
+
+function anoEntrada(valor: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { year: 'numeric' }).format(
+    new Date(valor),
+  );
+}
 
 export function TelaDetalhesTime() {
   const { id } = useParams<{ id: string }>();
-  const detalhe = catalogoPublicoMock.obterTime(id);
-  if (!detalhe)
+  const api = useTimesApi();
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const chaveAtual = `${id}:${paginaAtual}`;
+  const [estado, setEstado] = useState<{
+    chave: string | null;
+    detalhe: TimeDetalhado | null;
+    elenco: PaginaElenco | null;
+    falhou: boolean;
+  }>({ chave: null, detalhe: null, elenco: null, falhou: false });
+
+  useEffect(() => {
+    let ativo = true;
+    void Promise.all([
+      api.consultarTime(id),
+      api.listarElenco(id, paginaAtual, 20),
+    ]).then(
+      ([detalhe, elenco]) => {
+        if (ativo) {
+          setEstado({ chave: chaveAtual, detalhe, elenco, falhou: false });
+        }
+      },
+      () => {
+        if (ativo) {
+          setEstado({
+            chave: chaveAtual,
+            detalhe: null,
+            elenco: null,
+            falhou: true,
+          });
+        }
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [api, chaveAtual, id, paginaAtual]);
+
+  if (estado.chave !== chaveAtual) {
+    return (
+      <div className="mx-auto w-full max-w-[1100px] px-4 py-10">
+        <p role="status">Carregando time...</p>
+      </div>
+    );
+  }
+
+  if (estado.falhou || !estado.detalhe || !estado.elenco) {
     return (
       <div className="mx-auto w-full max-w-[1100px] px-4 py-10">
         <EstadoRecurso
@@ -21,76 +73,118 @@ export function TelaDetalhesTime() {
         />
       </div>
     );
-  const { time, elenco, campeonatos } = detalhe;
+  }
+
+  const { detalhe, elenco } = estado;
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <DestaquePagina
-        eyebrow={`${time.municipio}, ${time.uf} · fundado em ${time.fundadoEm}`}
-        title={time.nome}
-        description="Projeção esportiva pública do time, sem contatos ou dados pessoais de seus integrantes."
+        eyebrow={`${detalhe.sigla} · ${detalhe.municipio.nome}, ${detalhe.municipio.uf}`}
+        title={detalhe.nome}
+        description={
+          detalhe.descricao ??
+          'Projeção esportiva pública do time, sem contatos ou dados pessoais.'
+        }
       />
+
       <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
         <section
           role="region"
           aria-label="Elenco público"
-          className="rounded-md border border-border/70 bg-card p-5 sm:p-6"
+          className="border-y border-border bg-card py-5 sm:p-6"
         >
           <h2 className="font-display text-xl font-semibold">Elenco público</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Somente vínculos com exposição autorizada.
+            Capitão: {detalhe.capitao.nome} · somente vínculos ativos
+            permitidos.
           </p>
+
           <div className="mt-5 grid gap-3">
-            {elenco.map((atleta) => (
-              <Link
-                key={atleta.id}
-                href={`/atletas/${atleta.id}`}
-                className="flex items-center gap-3 rounded-md border border-border/70 p-3"
+            {elenco.itens.map((atleta) => (
+              <article
+                key={atleta.membroId}
+                className="flex items-center gap-3 border-l-2 border-green-mid py-2 pl-3"
               >
                 <div role="img" aria-label={`Foto de ${atleta.nome}`}>
                   <Iniciais name={atleta.nome} className="h-10 w-10" />
                 </div>
-                <span className="text-sm">
-                  <strong>{atleta.nome}</strong> ·{' '}
-                  {atleta.historicoTimes.find((item) => item.time === time.nome)
-                    ?.funcao ?? atleta.posicao}{' '}
-                  · {atleta.golsPublicados} gols · desde{' '}
-                  {atleta.historicoTimes.find((item) => item.time === time.nome)
-                    ?.inicio ?? 'período não informado'}
-                </span>
-              </Link>
+                <div className="text-sm">
+                  <h3 className="font-semibold">{atleta.nome}</h3>
+                  <p className="text-muted-foreground">
+                    {atleta.funcao === 'CAPITAO' ? 'Capitão' : 'Atleta'} · desde{' '}
+                    {anoEntrada(atleta.entrouEm)} ·{' '}
+                    {atleta.estatisticas.partidas} partidas ·{' '}
+                    {atleta.estatisticas.gols} gols
+                  </p>
+                </div>
+              </article>
             ))}
-            {elenco.length === 0 ? (
+            {elenco.itens.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Nenhum atleta autorizou a exposição do perfil.
+                Nenhum membro ativo disponível nesta projeção.
               </p>
             ) : null}
           </div>
-        </section>
-        <section className="rounded-md border border-border/70 bg-card p-5 sm:p-6">
-          <h2 className="font-display text-xl font-semibold">
-            Histórico competitivo
-          </h2>
-          <div className="mt-4 space-y-3">
-            {campeonatos.map((campeonato) => (
-              <Link
-                key={campeonato.id}
-                href={`/campeonatos/${campeonato.id}`}
-                className="block rounded-md bg-muted p-4"
+
+          {elenco.totalPaginas > 1 ? (
+            <nav
+              aria-label="Paginação do elenco"
+              className="mt-5 flex items-center justify-between border-t border-border pt-4"
+            >
+              <Button
+                variant="campoOutline"
+                disabled={paginaAtual <= 1}
+                onClick={() => setPaginaAtual((atual) => atual - 1)}
               >
-                <strong>{campeonato.nome}</strong>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {campeonato.estado
-                    .replaceAll('_', ' ')
-                    .toLocaleLowerCase('pt-BR')}
-                </p>
-              </Link>
-            ))}
-          </div>
+                Página anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {elenco.pagina} de {elenco.totalPaginas}
+              </span>
+              <Button
+                variant="campoOutline"
+                disabled={paginaAtual >= elenco.totalPaginas}
+                onClick={() => setPaginaAtual((atual) => atual + 1)}
+              >
+                Próxima página
+              </Button>
+            </nav>
+          ) : null}
         </section>
-      </div>
-      <div className="mt-6 rounded-md border border-green-light/30 bg-green-pale px-5 py-4 text-sm text-foreground/75">
-        Dados pessoais, contatos e informações administrativas não fazem parte
-        desta projeção.
+
+        <section className="border-y border-border bg-card py-5 sm:p-6">
+          <h2 className="font-display text-xl font-semibold">
+            Resumo esportivo
+          </h2>
+          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-muted-foreground">Partidas</dt>
+              <dd className="font-display text-2xl font-bold">
+                {detalhe.estatisticasGerais.partidas}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Vitórias</dt>
+              <dd className="font-display text-2xl font-bold">
+                {detalhe.estatisticasGerais.vitorias}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Gols</dt>
+              <dd className="font-display text-2xl font-bold">
+                {detalhe.estatisticasGerais.gols}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Status</dt>
+              <dd className="font-semibold">{detalhe.status}</dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-sm text-muted-foreground">
+            {detalhe.estatisticasGerais.partidas} partidas registradas na
+            projeção pública.
+          </p>
+        </section>
       </div>
     </div>
   );

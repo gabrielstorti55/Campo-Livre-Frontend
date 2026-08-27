@@ -37,9 +37,16 @@ export class ClienteApi {
     options: RequestOptions = {},
   ): Promise<T> {
     const hasBody = options.body !== undefined;
+    const isFormData =
+      typeof FormData !== 'undefined' && options.body instanceof FormData;
+    const requestBody: BodyInit | undefined = hasBody
+      ? isFormData
+        ? (options.body as FormData)
+        : JSON.stringify(options.body)
+      : undefined;
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+      ...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...(options.accessToken
         ? { Authorization: `Bearer ${options.accessToken}` }
         : {}),
@@ -49,7 +56,7 @@ export class ClienteApi {
     const response = await fetch(joinUrl(this.baseUrl, path), {
       method: options.method ?? 'GET',
       headers,
-      ...(hasBody ? { body: JSON.stringify(options.body) } : {}),
+      ...(requestBody !== undefined ? { body: requestBody } : {}),
       ...(options.credentials ? { credentials: options.credentials } : {}),
       ...(options.signal ? { signal: options.signal } : {}),
     });

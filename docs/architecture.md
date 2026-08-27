@@ -67,11 +67,11 @@ A sessão está deliberadamente separada entre `types/sessao.ts`, `constants/ses
 
 ## Projeções e regras atuais
 
-Campeonatos, times, partidas e atletas usam relações por ID. Rascunhos, perfis privados e resultados não publicados continuam nos mocks sem vazar na projeção pública. Campos não formam uma jornada pública independente: aparecem publicamente apenas como contexto da partida.
+Campeonatos, times, partidas e atletas usam relações por ID. Rascunhos, perfis privados e resultados não publicados continuam nos mocks sem vazar na projeção pública. Campos possuem consulta pública própria em `/campos` e `/campos/{id}`, limitada à allowlist publicada; o cadastro é informativo e não representa reserva ou autorização de uso.
 
 Ativar a capacidade de organizador não atribui campeonatos. O namespace `/organizador` consulta somente vínculos da sessão. O gate cliente evita navegação visual indevida, mas não representa autorização segura.
 
-Solicitar reserva não equivale à aprovação municipal. A Prefeitura revalida disponibilidade, conflitos e antecedência mínima no momento da decisão. O estado local é isolado por conta, mas continua sem segurança de servidor.
+Reservas, agenda oficial, aprovações municipais e indisponibilidades por período foram retiradas do MVP vigente. As telas e stores antigos que representam esses comportamentos são resíduos de protótipo e permanecem bloqueados no modo integrado até serem removidos; não devem orientar adapters, DTOs ou regras novas.
 
 ## Server e Client Components
 

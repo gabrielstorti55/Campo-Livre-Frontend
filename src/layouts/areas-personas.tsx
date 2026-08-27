@@ -2,7 +2,6 @@
 
 import {
   CalendarDays,
-  CheckSquare,
   Home,
   MapPinned,
   Trophy,
@@ -82,8 +81,6 @@ export function LayoutPrefeitura({ children }: { children: ReactNode }) {
       to: '/prefeitura/organizadores',
       icon: Users,
     },
-    { label: 'Calendário', to: '/prefeitura/calendario', icon: CalendarDays },
-    { label: 'Aprovações', to: '/prefeitura/aprovacoes', icon: CheckSquare },
   ];
 
   return (

@@ -14,20 +14,36 @@ test('cadastro público cria conta pessoal sem escolher perfil global', async ({
   await expect(page.getByText('Organizador', { exact: true })).toHaveCount(0);
 });
 
-test('cadastro novo entra sem vínculos ou papéis automáticos', async ({
+test('cadastro novo confirma o e-mail antes de entrar sem vínculos automáticos', async ({
   page,
 }) => {
   await page.goto('/cadastro');
   await page.getByLabel('Nome completo').fill('Ana Souza');
-  await page.getByLabel('E-mail').fill('ana@campolivre.test');
-  await page.getByLabel('Senha', { exact: true }).fill('senha-mock');
-  await page.getByLabel('Confirmar senha').fill('senha-mock');
-  await page.getByLabel('Cidade').fill('Franca, SP');
+  await page.getByLabel('Nome de usuário').fill('anasouzae2e');
+  await page.getByLabel('E-mail').fill('ana-e2e@campolivre.test');
+  await page.getByLabel('Telefone (opcional)').fill('(16) 99999-9999');
+  await page.getByLabel('CPF').fill('123.456.789-01');
+  await page.getByLabel('Número do RG').fill('12.345.678-9');
+  await page.getByLabel('Órgão expedidor').fill('SSP');
+  await page.getByLabel('UF do RG').fill('SP');
+  await page.getByLabel('Data de nascimento').fill('2000-01-01');
+  await page.getByLabel('Senha', { exact: true }).fill('senha-segura');
+  await page.getByLabel('Confirmar senha').fill('senha-segura');
+  await page.getByLabel('Aceito os termos de uso').check();
   await page.getByRole('button', { name: 'Criar conta pessoal' }).click();
-  await expect(page).toHaveURL(/\/login$/);
 
-  await page.getByLabel('E-mail').fill('ana@campolivre.test');
-  await page.getByLabel('Senha', { exact: true }).fill('senha-mock');
+  await expect(
+    page.getByRole('heading', { name: 'Confirme seu e-mail' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Abrir confirmação simulada' }).click();
+  await expect(page).toHaveURL(/\/confirmar-email$/);
+  await expect(
+    page.getByRole('heading', { name: 'E-mail confirmado' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Ir para o acesso' }).click();
+
+  await page.getByLabel('E-mail').fill('ana-e2e@campolivre.test');
+  await page.getByLabel('Senha', { exact: true }).fill('senha-segura');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
   await expect(page).toHaveURL(/\/minha-area$/);
@@ -80,7 +96,7 @@ test('conta sem vínculos entra em uma área pessoal vazia', async ({ page }) =>
   expect(await page.evaluate(() => localStorage.length)).toBe(0);
 });
 
-test('troca atleta por organizador preservando a mesma sessão pessoal', async ({
+test('@dominio-prototipo troca atleta por organizador preservando a mesma sessão pessoal', async ({
   page,
 }) => {
   await page.goto('/login');

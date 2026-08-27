@@ -125,14 +125,14 @@ export const situacoesComerciaisPorContaMock: Record<
 > = {
   'mock-person-1': {
     primeiroCampeonatoUtilizado: true,
-    direitosAdicionaisDisponiveis: 1,
     contextoPrefeituraIsento: true,
-    compras: [
+    pagamentos: [
       {
-        id: 'compra-1',
+        id: 'pagamento-1',
+        campeonatoId: 4,
         campeonato: 'Copa Verão 2026',
-        estado: 'PAGO',
-        meio: 'PIX',
+        estado: 'CONFIRMADO',
+        provedor: 'MERCADO_PAGO',
         valor: 'Valor registrado no momento da compra',
         data: '10/08/2026',
       },

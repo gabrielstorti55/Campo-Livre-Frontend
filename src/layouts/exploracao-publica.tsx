@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Home,
   LogIn,
+  MapPinned,
   Menu,
   Trophy,
   User,
@@ -25,6 +26,7 @@ const navigationItems = [
   { label: 'Inicio', to: '/', icon: Home },
   { label: 'Campeonatos', to: '/campeonatos', icon: Trophy },
   { label: 'Times', to: '/times', icon: Users },
+  { label: 'Campos', to: '/campos', icon: MapPinned },
   { label: 'Partidas', to: '/partidas', icon: CalendarDays },
   { label: 'Atletas', to: '/atletas', icon: UserRoundSearch },
 ] as const;

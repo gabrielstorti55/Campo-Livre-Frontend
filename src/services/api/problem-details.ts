@@ -64,6 +64,22 @@ export function normalizarProblemDetails(
   };
 }
 
+export function mapearErrosDeCampo<const Campo extends string>(
+  problem: ProblemDetails,
+  camposConhecidos: readonly Campo[],
+): Partial<Record<Campo, string>> {
+  const conhecidos = new Set<string>(camposConhecidos);
+  const resultado: Partial<Record<Campo, string>> = {};
+
+  for (const erro of problem.erros ?? []) {
+    if (!conhecidos.has(erro.campo)) continue;
+    const campo = erro.campo as Campo;
+    if (resultado[campo] === undefined) resultado[campo] = erro.mensagem;
+  }
+
+  return resultado;
+}
+
 export class ErroApi extends Error {
   readonly problem: ProblemDetails;
 

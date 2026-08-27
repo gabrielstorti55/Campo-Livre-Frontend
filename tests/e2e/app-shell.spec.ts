@@ -116,4 +116,3 @@ test('oferece uma saída segura em rotas inexistentes', async ({ page }) => {
   await backLink.click();
   await expect(page).toHaveURL(/\/login$/);
 });
-

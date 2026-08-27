@@ -20,6 +20,8 @@ import type {
 } from '@/types/organizador';
 import { partidasPublicasMock } from '@/mocks/publico/dados-publicos';
 import type { PartidaEstadoPublico } from '@/types/publico';
+import type { AtletaEscaladoRascunho } from '@/services/organizador/rascunho-escalacao';
+import type { TempoEvento } from '@/services/organizador/tempo-evento';
 
 const STORAGE_KEY = 'campo-livre:organizer-operational-state:v2';
 const RESPONSIBILITY_KEY = 'campo-livre:organizer-responsibilities:v1';
@@ -36,9 +38,11 @@ export type FatoDefinitivoPartida =
       placarCasa: number;
       placarFora: number;
       arbitragem: string[];
-      gols: string[];
-      cartoes: string[];
-      substituicoes: string[];
+      escalacaoCasa: AtletaEscaladoRascunho[];
+      escalacaoFora: AtletaEscaladoRascunho[];
+      gols: Array<{ resumo: string; tempo: TempoEvento }>;
+      cartoes: Array<{ resumo: string; tempo: TempoEvento }>;
+      substituicoes: Array<{ resumo: string; tempo: TempoEvento }>;
       relatorio: string;
     };
 

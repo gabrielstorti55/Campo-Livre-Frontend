@@ -67,12 +67,9 @@ export function TelaCriarCampeonato() {
           </p>
         ) : (
           <p className="mt-2 text-muted-foreground">
-            Primeiro campeonato gratuito utilizado. Há{' '}
-            {comercial.direitosAdicionaisDisponiveis}{' '}
-            {comercial.direitosAdicionaisDisponiveis === 1
-              ? 'direito adicional disponível'
-              : 'direitos adicionais disponíveis'}{' '}
-            para reservar ao salvar este rascunho.
+            {comercial.primeiroCampeonatoUtilizado
+              ? 'O campeonato adicional nasce privado e bloqueado. Ele exige pagamento próprio por checkout externo do Mercado Pago; não existe crédito reutilizável.'
+              : 'Este primeiro campeonato pessoal consome o benefício gratuito ao ser criado.'}
           </p>
         )}
       </section>

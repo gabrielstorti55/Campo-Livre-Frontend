@@ -9,31 +9,18 @@ import {
   type ReactNode,
 } from 'react';
 
-import { ClienteApi, obterUrlApi } from '@/services/api/cliente-api';
+import type { ModoAplicacao } from '@/config/modo-aplicacao';
 import { ErroApi } from '@/services/api/problem-details';
 import type { AutenticacaoApi } from '@/services/autenticacao/autenticacao-api';
-import { AutenticacaoFake } from '@/services/autenticacao/autenticacao-fake';
-import { AutenticacaoHttp } from '@/services/autenticacao/autenticacao-http';
 import { CoordenadorRefresh } from '@/services/autenticacao/coordenador-refresh';
 import type { MinhaConta } from '@/types/api/autenticacao';
 import type {
-  ContaMockRegistrada,
   ContextoPessoal,
   SessaoPessoal,
   StatusSessao,
   ValorContextoSessao,
   VinculoTimeCriado,
 } from '@/types/sessao';
-
-const fakeApi = new AutenticacaoFake();
-const httpApi = new AutenticacaoHttp(new ClienteApi(obterUrlApi()));
-
-function obterApiPadrao(): AutenticacaoApi {
-  if (process.env.NODE_ENV === 'production') return httpApi;
-  if (process.env['NEXT_PUBLIC_AUTH_ADAPTER'] === 'fake') return fakeApi;
-  if (process.env['NEXT_PUBLIC_AUTH_ADAPTER'] === 'http') return httpApi;
-  return fakeApi;
-}
 
 const emptyLinks: SessaoPessoal['links'] = {
   teamIds: [],
@@ -46,7 +33,7 @@ const emptyLinks: SessaoPessoal['links'] = {
 function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
   // TODO(domain-api): estes vínculos sustentam apenas as telas protótipo dos
   // outros domínios. Eles não são inferidos de /minha-conta nem autorizam APIs.
-  if (account.id === 'conta-marcos') {
+  if (account.id === 'mock-person-1') {
     return {
       ...emptyLinks,
       teamIds: ['1'],
@@ -63,7 +50,7 @@ function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
   if (account.id === 'conta-atleta-cancelado') {
     return { ...emptyLinks, teamIds: ['5'] };
   }
-  if (account.id === 'conta-colaboradora') {
+  if (account.id === 'mock-person-collaborator-1') {
     return { ...emptyLinks, organizedChampionshipIds: ['4'] };
   }
   return { ...emptyLinks };
@@ -111,10 +98,12 @@ export const ContextoSessao = createContext<ValorContextoSessao | null>(null);
 
 export function ProvedorSessao({
   children,
-  api = obterApiPadrao(),
+  modo = 'integrado',
+  api,
 }: {
   children: ReactNode;
-  api?: AutenticacaoApi;
+  modo?: ModoAplicacao;
+  api: AutenticacaoApi;
 }) {
   const refreshCoordinator = useMemo(() => new CoordenadorRefresh(api), [api]);
   const [status, setStatus] = useState<StatusSessao>('carregando');
@@ -127,7 +116,7 @@ export function ProvedorSessao({
     credentialRef.current = next;
   };
   const [erroSessao, setErroSessao] = useState<string | null>(null);
-  const permitirMocksDominio = api instanceof AutenticacaoFake;
+  const permitirMocksDominio = modo === 'prototipo';
   const operacaoAtual = useRef(0);
   const renovacaoCompleta = useRef<Promise<string> | null>(null);
 
@@ -164,6 +153,11 @@ export function ProvedorSessao({
             setErroSessao(
               'Sua sessão foi encerrada por segurança. Entre novamente.',
             );
+            setStatus('visitante');
+          } else if (error.problem.codigo === 'CONTA_INAPTA') {
+            setCredential(null);
+            setSession(null);
+            setErroSessao('Sua conta não está disponível para acesso.');
             setStatus('visitante');
           }
         }
@@ -211,6 +205,14 @@ export function ProvedorSessao({
     }
   }
 
+  async function recarregarMinhaConta(): Promise<MinhaConta> {
+    const account = await executarAutenticado((accessToken) =>
+      api.consultarMinhaConta(accessToken),
+    );
+    setSession(criarSessao(account, permitirMocksDominio));
+    return account;
+  }
+
   useEffect(() => {
     let active = true;
     const operacao = ++operacaoAtual.current;
@@ -244,6 +246,12 @@ export function ProvedorSessao({
           setErroSessao(
             'Sua sessão foi encerrada por segurança. Entre novamente.',
           );
+          setStatus('visitante');
+        } else if (
+          error instanceof ErroApi &&
+          error.problem.codigo === 'CONTA_INAPTA'
+        ) {
+          setErroSessao('Sua conta não está disponível para acesso.');
           setStatus('visitante');
         } else {
           setErroSessao(
@@ -312,18 +320,6 @@ export function ProvedorSessao({
     } catch {
       // A revogação é best-effort quando a sessão já expirou ou a rede falha.
     }
-  }
-
-  function registerMockAccount(account: ContaMockRegistrada) {
-    ++operacaoAtual.current;
-    // TODO(auth-cadastro): removido o armazenamento local. O cadastro completo
-    // será conectado ao adapter canônico em uma fatia posterior.
-    if (api instanceof AutenticacaoFake) {
-      api.registrarContaPrototipo(account);
-    }
-    setCredential(null);
-    setSession(null);
-    setStatus('visitante');
   }
 
   function switchContext(context: ContextoPessoal) {
@@ -408,7 +404,7 @@ export function ProvedorSessao({
         signIn,
         signOut,
         executarAutenticado,
-        registerMockAccount,
+        recarregarMinhaConta,
         linkTeam,
         createTeam,
         enableOrganizer,

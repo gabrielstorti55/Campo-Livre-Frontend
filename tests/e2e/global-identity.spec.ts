@@ -38,7 +38,6 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 
-
   for (const route of [
     '/atleta/inicio',
     '/atleta/perfil',
@@ -53,7 +52,6 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
     }
   }
 
-
   for (const route of [
     '/prefeitura/painel',
     '/prefeitura/campos',
@@ -63,4 +61,3 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
     await expectEditorialGeometry(page);
   }
 });
-

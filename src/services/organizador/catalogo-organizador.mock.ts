@@ -9,9 +9,8 @@ import type { SituacaoComercialOrganizador } from '@/types/organizador';
 
 const situacaoComercialVazia: SituacaoComercialOrganizador = {
   primeiroCampeonatoUtilizado: false,
-  direitosAdicionaisDisponiveis: 0,
   contextoPrefeituraIsento: false,
-  compras: [],
+  pagamentos: [],
 };
 
 /**

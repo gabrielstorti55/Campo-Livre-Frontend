@@ -49,6 +49,35 @@ describe('ClienteApi', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('envia FormData sem serializar nem definir Content-Type', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const body = new FormData();
+    body.set(
+      'arquivo',
+      new Blob(['escudo'], { type: 'image/png' }),
+      'time.png',
+    );
+
+    const client = new ClienteApi('https://api.campolivre.test/api/v1');
+    await client.request('/times/time-1/escudo', {
+      method: 'PUT',
+      body,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.campolivre.test/api/v1/times/time-1/escudo',
+      expect.objectContaining({ body }),
+    );
+    const options = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(options.headers).not.toHaveProperty('Content-Type');
+  });
+
   it('converte erro HTTP em ErroApi sanitizado', async () => {
     vi.stubGlobal(
       'fetch',

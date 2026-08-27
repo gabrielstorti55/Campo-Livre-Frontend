@@ -2,10 +2,7 @@ import { expect, type Page, test } from '@playwright/test';
 
 import { autenticarEm } from './fixtures/autenticacao';
 
-async function loginAsMunicipality(
-  page: Page,
-  destino = '/prefeitura/painel',
-) {
+async function loginAsMunicipality(page: Page, destino = '/prefeitura/painel') {
   await autenticarEm(page, 'prefeitura', destino);
   await expect(
     page.getByRole('heading', { level: 1, name: 'Prefeitura de Franca' }),
@@ -60,6 +57,7 @@ test('prefeitura cadastra campo, persiste e controla disponibilidade', async ({
   await expect(field).toContainText('Em manutenção');
 
   await page.reload();
+  await loginAsMunicipality(page, '/prefeitura/campos');
   await expect(
     page.getByRole('article', { name: 'Campo Jardim Petráglia' }),
   ).toContainText('Em manutenção');
@@ -123,13 +121,14 @@ test('decisão municipal atualiza calendário e retorna ao organizador', async (
   await request.getByRole('button', { name: 'Aprovar solicitação' }).click();
   await expect(request).toContainText('Aprovado');
   await page.reload();
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   await expect(
     page.getByRole('article', {
       name: /Copa Franca 2026.*Campo Santa Rita.*28\/09\/2026.*09:00.*11:00/,
     }),
   ).toContainText('Aprovado');
 
-  await page.goto('/prefeitura/calendario');
+  await loginAsMunicipality(page, '/prefeitura/calendario');
   const calendar = page.getByRole('grid', { name: /setembro 2026/i });
   await calendar
     .getByRole('button', { name: /28 de setembro de 2026/i })
@@ -209,11 +208,12 @@ test('recusa exige motivo persistente e não ocupa o calendário', async ({
   await expect(request).toContainText('Reprovado');
   await expect(request).toContainText('Conflito com manutenção programada.');
   await page.reload();
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   await expect(
     page.getByRole('article', { name: /Liga Bairro Norte/ }),
   ).toContainText('Conflito com manutenção programada.');
 
-  await page.goto('/prefeitura/calendario');
+  await loginAsMunicipality(page, '/prefeitura/calendario');
   const calendar = page.getByRole('grid', { name: /agosto 2026/i });
   await calendar.getByRole('button', { name: /24 de agosto de 2026/i }).click();
   const day = page.getByRole('region', { name: 'Reservas de 24/08/2026' });
@@ -279,6 +279,7 @@ test('prefeitura suspende e reativa credenciamento do organizador', async ({
     .click();
   await expect(organizer).toContainText('Suspenso');
   await page.reload();
+  await loginAsMunicipality(page, '/prefeitura/organizadores');
   const persistedOrganizer = page.getByRole('article', {
     name: 'Marcos Oliveira',
   });
@@ -343,4 +344,3 @@ test('contas do mesmo campeonato não sobrescrevem decisões municipais', async 
     }),
   ).toContainText('Pendente');
 });
-

@@ -1,16 +1,26 @@
 import type { ClienteApi } from '@/services/api/cliente-api';
 import type { AutenticacaoApi } from '@/services/autenticacao/autenticacao-api';
 import type {
+  EntradaAlteracaoSenha,
+  EntradaAtualizacaoMinhaConta,
   EntradaCadastro,
   EntradaLogin,
   EntradaRedefinicaoSenha,
+  EntradaReativacaoConta,
   MinhaConta,
+  RespostaAlteracaoSenha,
   RespostaCadastro,
+  RespostaFotoMinhaConta,
+  RespostaConfirmacaoAlteracaoEmail,
   RespostaConfirmacaoEmail,
   RespostaLogin,
   RespostaRedefinicaoSenha,
+  RespostaReenvioConfirmacaoEmail,
   RespostaRenovacao,
+  RespostaReativacaoConta,
   RespostaSolicitacaoRecuperacao,
+  RespostaSolicitacaoAlteracaoEmail,
+  RespostaSolicitacaoReativacaoConta,
 } from '@/types/api/autenticacao';
 
 type TransporteApi = Pick<ClienteApi, 'request'>;
@@ -80,6 +90,93 @@ export class AutenticacaoHttp implements AutenticacaoApi {
     return this.client.request('/minha-conta', { accessToken });
   }
 
+  atualizarMinhaConta(
+    accessToken: string,
+    input: EntradaAtualizacaoMinhaConta,
+  ): Promise<MinhaConta> {
+    return this.client.request('/minha-conta', {
+      method: 'PATCH',
+      accessToken,
+      body: input,
+    });
+  }
+
+  enviarFotoMinhaConta(
+    accessToken: string,
+    arquivo: File,
+  ): Promise<RespostaFotoMinhaConta> {
+    const body = new FormData();
+    body.set('arquivo', arquivo);
+    return this.client.request('/minha-conta/foto', {
+      method: 'PUT',
+      accessToken,
+      body,
+    });
+  }
+
+  removerFotoMinhaConta(accessToken: string): Promise<void> {
+    return this.client.request('/minha-conta/foto', {
+      method: 'DELETE',
+      accessToken,
+    });
+  }
+
+  alterarSenha(
+    accessToken: string,
+    input: EntradaAlteracaoSenha,
+  ): Promise<RespostaAlteracaoSenha> {
+    return this.client.request('/minha-conta/senha', {
+      method: 'PUT',
+      accessToken,
+      body: input,
+    });
+  }
+
+  solicitarAlteracaoEmail(
+    accessToken: string,
+    novoEmail: string,
+  ): Promise<RespostaSolicitacaoAlteracaoEmail> {
+    return this.client.request('/minha-conta/alteracao-email', {
+      method: 'POST',
+      accessToken,
+      body: { novoEmail: novoEmail.trim().toLowerCase() },
+    });
+  }
+
+  confirmarAlteracaoEmail(
+    token: string,
+  ): Promise<RespostaConfirmacaoAlteracaoEmail> {
+    return this.client.request('/alteracoes-email/confirmacoes', {
+      method: 'POST',
+      body: { token },
+    });
+  }
+
+  reativarConta(
+    input: EntradaReativacaoConta,
+  ): Promise<RespostaReativacaoConta> {
+    return this.client.request('/reativacao-conta', {
+      method: 'POST',
+      body: { ...input, email: input.email.trim().toLowerCase() },
+    });
+  }
+
+  solicitarReativacaoConta(
+    email: string,
+  ): Promise<RespostaSolicitacaoReativacaoConta> {
+    return this.client.request('/reativacao-conta/solicitacoes', {
+      method: 'POST',
+      body: { email: email.trim().toLowerCase() },
+    });
+  }
+
+  confirmarReativacaoConta(token: string): Promise<RespostaReativacaoConta> {
+    return this.client.request('/reativacao-conta/confirmacoes', {
+      method: 'POST',
+      body: { token, confirmacao: true },
+    });
+  }
+
   solicitarRecuperacao(email: string): Promise<RespostaSolicitacaoRecuperacao> {
     return this.client.request('/recuperacao-senha', {
       method: 'POST',
@@ -104,6 +201,15 @@ export class AutenticacaoHttp implements AutenticacaoApi {
     return this.client.request('/confirmacoes-email', {
       method: 'POST',
       body: { token },
+    });
+  }
+
+  reenviarConfirmacaoEmail(
+    cadastroToken: string,
+  ): Promise<RespostaReenvioConfirmacaoEmail> {
+    return this.client.request('/confirmacoes-email/reenvios', {
+      method: 'POST',
+      body: { cadastroToken },
     });
   }
 }

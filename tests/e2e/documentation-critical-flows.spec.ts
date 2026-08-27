@@ -1,13 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { autenticarEm } from './fixtures/autenticacao';
-async function loginAsOrganizer(page: Page) {
-  await autenticarEm(page, 'organizador', '/minha-area');
-  await expect(page).toHaveURL(/\/minha-area$/);
+async function loginAsOrganizer(page: Page, destino = '/minha-area') {
+  await autenticarEm(page, 'organizador', destino);
 }
 
-async function loginAsMunicipality(page: Page) {
-  await autenticarEm(page, 'prefeitura', '/prefeitura/painel');
+async function loginAsMunicipality(page: Page, destino = '/prefeitura/painel') {
+  await autenticarEm(page, 'prefeitura', destino);
 }
 
 test('entrada em time ocorre por convite nominal, sem solicitação aberta', async ({
@@ -18,12 +17,13 @@ test('entrada em time ocorre por convite nominal, sem solicitação aberta', asy
   await expect(
     page.getByRole('heading', { name: 'Convites para times' }),
   ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Leões FC' })).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Aceitar convite do Leões FC' }),
+    page.getByText(/Abra o link único recebido na notificação ou no e-mail/),
   ).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Recusar convite do Leões FC' }),
-  ).toBeVisible();
+    page.getByRole('button', { name: /Aceitar convite|Recusar convite/ }),
+  ).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Solicitar' })).toHaveCount(0);
   await expect(page.getByText('Tenho um código de convite')).toHaveCount(0);
 });
@@ -31,8 +31,7 @@ test('entrada em time ocorre por convite nominal, sem solicitação aberta', asy
 test('capitão convida uma conta nominal em vez de adicionar jogador diretamente', async ({
   page,
 }) => {
-  await loginAsOrganizer(page);
-  await page.goto('/atleta/time/1');
+  await loginAsOrganizer(page, '/atleta/time/1');
 
   await expect(page.getByLabel('Conta do atleta')).toBeVisible();
   await expect(page.getByLabel('Forma de envio')).toBeVisible();
@@ -96,8 +95,7 @@ test('página pública do time exibe somente a projeção permitida do elenco', 
 test('campeonato nasce como rascunho e recebe times somente por convite', async ({
   page,
 }) => {
-  await loginAsOrganizer(page);
-  await page.goto('/organizador/novo');
+  await loginAsOrganizer(page, '/organizador/novo');
 
   await expect(page.getByText('Rascunho', { exact: true })).toBeVisible();
   await expect(page.getByText(/responsável: Marcos Oliveira/i)).toBeVisible();
@@ -158,8 +156,7 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
   page,
 }) => {
   await page.clock.setFixedTime(new Date('2026-08-23T12:00:00'));
-  await loginAsOrganizer(page);
-  await page.goto('/organizador/campeonato/1/sumula');
+  await loginAsOrganizer(page, '/organizador/campeonato/1/sumula');
 
   await expect(page.getByLabel('Partida da súmula')).toHaveValue('1');
   await expect(page.getByLabel('Árbitro', { exact: true })).toBeVisible();
@@ -283,8 +280,7 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
 test('recusa de reserva exige motivo e aparece no histórico local', async ({
   page,
 }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/aprovacoes');
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
 
   const request = page.getByRole('article', { name: /Copa Verão 2026/ });
   await request.getByRole('button', { name: 'Reprovar solicitação' }).click();
@@ -304,8 +300,7 @@ test('recusa de reserva exige motivo e aparece no histórico local', async ({
 test('agenda municipal filtra reservas pela data selecionada', async ({
   page,
 }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/calendario');
+  await loginAsMunicipality(page, '/prefeitura/calendario');
   const calendar = page.getByRole('grid', { name: /agosto 2026/i });
 
   await calendar.getByRole('button', { name: /21 de agosto de 2026/i }).click();
@@ -318,4 +313,3 @@ test('agenda municipal filtra reservas pela data selecionada', async ({
     .click();
   await expect(page.getByText('Copa Franca 2026')).toBeVisible();
 });
-

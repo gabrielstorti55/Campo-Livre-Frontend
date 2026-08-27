@@ -1,17 +1,19 @@
 # Pendências da autenticação para integração com o backend
 
-Atualizado em 2026-08-23. A pasta viva do CampoLivre no Drive continua sendo a fonte canônica. Este arquivo registra trabalho técnico adiado; não cria requisitos.
+Atualizado em 2026-08-25. A pasta viva do CampoLivre no Drive continua sendo a fonte canônica. Este arquivo registra trabalho técnico adiado; não cria requisitos.
 
 ## Estado atual do frontend
 
-Implementado e verificável com adapter fake/injeção de testes:
+Implementado e verificável no frontend com adapters separados, testes unitários e protótipo em memória:
 
 - contratos TypeScript de login, renovação web e `/minha-conta` reconciliados com `06-API/Catalogo-de-Rotas.md`;
 - cliente HTTP e normalização de Problem Details;
-- adapter HTTP e adapter fake separados;
+- modo integrado exclusivamente HTTP e modo protótipo explicitamente identificado, sem fallback;
 - access token e sua expiração somente em memória;
 - bootstrap por renovação seguido de `/minha-conta`;
-- login, logout, rota privada, retorno interno seguro e página `/minha-conta`;
+- cadastro adulto, confirmação/reenvio, login, logout, rota privada, retorno interno seguro e `/minha-conta`;
+- recuperação/redefinição e alteração autenticada de senha;
+- solicitação/confirmação de alteração de e-mail e reativação por credenciais ou link de e-mail;
 - deduplicação de refresh e repetição única após `401` disponível no coordenador;
 - CPF e RG mascarados na área privada;
 - nenhum token em `localStorage` ou `sessionStorage`.
@@ -62,16 +64,27 @@ A store ainda preserva vínculos operacionais fake para manter as telas protóti
 - devem migrar para providers/services dos respectivos domínios;
 - devem ser removidos da store de autenticação quando as APIs de domínio existirem.
 
-Também atualizar os E2E antigos que ainda inspecionam chaves históricas de `sessionStorage` fora da fatia já migrada.
+### Limite da suíte E2E legada
+
+Os E2E direcionados de autenticação e conta são o gate desta primeira fatia frontend. A suíte legada completa também exercita stores e mocks operacionais locais de Times, Campeonatos e Prefeitura, incluindo cenários que historicamente presumiam identidade persistente durante navegações duras ou recargas.
+
+Esses cenários antigos são úteis como medição de regressão do protótipo, mas:
+
+- não representam integração com backend, banco ou cookie `HttpOnly` real;
+- não devem fabricar sessão com Web Storage, cookie legível por JavaScript, token em URL ou hook global de teste;
+- não justificam criar autenticação paralela ou persistência fake;
+- deverão ser reconciliados com as APIs e fixtures de integração dos respectivos domínios quando elas existirem.
+
+Falhas remanescentes exclusivamente nesses mocks operacionais não bloqueiam a fatia de autenticação frontend quando os testes direcionados e os gates estáticos passam. O resultado da suíte completa deve ser informado com transparência, sem ser apresentado como prova de autenticação real.
 
 ### Cadastro e ciclo da conta
 
-- integrar cadastro adulto completo com CPF e RG;
-- confirmar o endpoint canônico para seleção pública de municípios antes de ligar `municipioId`;
-- integrar confirmação e reenvio de e-mail;
-- integrar recuperação e redefinição de senha;
-- consumir tokens uma vez, removê-los da URL e nunca persisti-los;
-- verificar revogação de todas as sessões após troca/recuperação de senha.
+- implementar uma fonte canônica pública de municípios antes de habilitar o cadastro no modo integrado;
+- entregar envio real dos e-mails de confirmação, alteração de endereço e recuperação;
+- aplicar consumo único e expiração dos tokens no servidor;
+- verificar com integração real a revogação de todas as sessões após troca/recuperação de senha;
+- verificar no servidor o prazo e o cancelamento da eliminação durante a reativação;
+- integrar desativação, eliminação e demais operações de perfil em uma fatia própria, sem tratá-las como autenticação concluída.
 
 ### Menores e responsável
 

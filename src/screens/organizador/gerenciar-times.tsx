@@ -125,7 +125,7 @@ export function TelaGerenciarTimes({ campeonatoId }: { campeonatoId: string }) {
                     key={atleta.id}
                     className="rounded-md bg-muted p-3 text-sm"
                   >
-                    {atleta.nome} · {atleta.posicao}
+                    {atleta.nome} · posição principal: {atleta.posicao}
                   </li>
                 ))}
               </ul>

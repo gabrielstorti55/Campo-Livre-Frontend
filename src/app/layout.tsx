@@ -9,6 +9,8 @@ import '@fontsource/barlow-condensed/800.css';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
+import { IndicadorModoPrototipo } from '@/components/layout/indicador-modo-prototipo';
+import { obterModoAplicacao } from '@/config/modo-aplicacao';
 import { ProvedoresAplicacao } from '@/layouts/provedores-aplicacao';
 
 import './styles.css';
@@ -20,10 +22,13 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const modo = obterModoAplicacao();
+
   return (
     <html lang="pt-BR">
       <body>
-        <ProvedoresAplicacao>{children}</ProvedoresAplicacao>
+        <ProvedoresAplicacao modo={modo}>{children}</ProvedoresAplicacao>
+        {/* <IndicadorModoPrototipo modo={modo} /> */}
       </body>
     </html>
   );

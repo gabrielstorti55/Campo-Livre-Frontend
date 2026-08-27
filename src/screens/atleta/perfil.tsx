@@ -1,221 +1,218 @@
 'use client';
 
-import {
-  CalendarDays,
-  MapPin,
-  Plus,
-  Search,
-  Trophy,
-  Users,
-} from 'lucide-react';
 import Link from 'next/link';
+import { type FormEvent, useState } from 'react';
 
-import { SeletorContexto } from '@/components/layout/seletor-contexto';
+import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
+import { CampoFormulario } from '@/components/layout/campo-formulario';
+import { CartaoFormulario } from '@/components/layout/cartao-formulario';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useAutenticacaoApi } from '@/contexts/autenticacao-api';
 import { useSessao } from '@/hooks/use-sessao';
-import { CartaoProximaPartida } from '@/components/modules/campeonatos/elementos-campeonato';
-import { catalogoPublicoMock } from '@/services/publico/catalogo-publico.mock';
-import { atletaLogado, partidas, times } from '@/mocks/dados-gerais';
-import { Secao } from '@/components/layout/secao';
-import { GradeEstatisticas } from '@/components/layout/grade-estatisticas';
-import {
-  IndicadorAvanco,
-  IconeCircular,
-  ItemLista,
-  AvatarItem,
-} from '@/components/layout/item-lista';
-import { EstadoRecurso } from '@/components/layout/estado-recurso';
-import { CabecalhoPerfil } from '@/layouts/area-autenticada';
+import type { MinhaConta, PosicaoPrincipal } from '@/types/api/autenticacao';
 
-export function TelaPerfilAtletaAutenticado() {
-  const { session } = useSessao();
-  const accountName = session?.account.name ?? atletaLogado.nome;
-  const accountCity = session?.account.city ?? atletaLogado.cidade;
-  const teamIds = session?.links.teamIds ?? ['1'];
-  const knownPublicAthlete =
-    !session || session.account.id === 'mock-person-1'
-      ? catalogoPublicoMock.obterAtleta(1)
-      : undefined;
-  const linkedTeams = times.filter((time) => teamIds.includes(String(time.id)));
-  const createdTeams = (session?.links.createdTeams ?? []).map((time) => ({
-    id: time.id,
-    nome: time.name,
-    cidade: time.city,
-    jogadores: 1,
-  }));
-  const personalTeams = [...linkedTeams, ...createdTeams];
-  const teamNames = new Set(personalTeams.map((time) => time.nome));
-  const nextMatches = partidas
-    .filter(
-      (match) =>
-        match.agendada &&
-        !match.concluida &&
-        (teamNames.has(match.casa) || teamNames.has(match.fora)),
-    )
-    .slice(0, 2);
+const posicoes: Array<{ value: PosicaoPrincipal; label: string }> = [
+  { value: 'GOLEIRO', label: 'Goleiro' },
+  { value: 'ZAGUEIRO', label: 'Zagueiro' },
+  { value: 'LATERAL', label: 'Lateral' },
+  { value: 'MEIO_CAMPO', label: 'Meio-campo' },
+  { value: 'ATACANTE', label: 'Atacante' },
+];
+
+function EditorPerfil({ conta }: { conta: MinhaConta }) {
+  const api = useAutenticacaoApi();
+  const { executarAutenticado, recarregarMinhaConta } = useSessao();
+  const [nome, setNome] = useState(conta.nome);
+  const [biografia, setBiografia] = useState(conta.biografia ?? '');
+  const [posicao, setPosicao] = useState<PosicaoPrincipal | ''>(
+    conta.posicaoPrincipal ?? '',
+  );
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+  const [mensagem, setMensagem] = useState<string | null>(null);
+
+  async function salvar(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setOcupado(true);
+    setMensagem(null);
+    try {
+      await executarAutenticado((accessToken) =>
+        api.atualizarMinhaConta(accessToken, {
+          nome: nome.trim(),
+          biografia: biografia.trim() || null,
+          posicaoPrincipal: posicao || null,
+        }),
+      );
+      await recarregarMinhaConta();
+      setMensagem('Perfil básico atualizado.');
+    } catch {
+      setMensagem('Não foi possível atualizar o perfil. Revise os campos.');
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  async function enviarFoto(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!arquivo) return;
+    setOcupado(true);
+    setMensagem(null);
+    try {
+      await executarAutenticado((accessToken) =>
+        api.enviarFotoMinhaConta(accessToken, arquivo),
+      );
+      await recarregarMinhaConta();
+      setArquivo(null);
+      setMensagem('Foto atualizada.');
+    } catch {
+      setMensagem('Não foi possível processar a foto selecionada.');
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  async function removerFoto() {
+    setOcupado(true);
+    setMensagem(null);
+    try {
+      await executarAutenticado((accessToken) =>
+        api.removerFotoMinhaConta(accessToken),
+      );
+      await recarregarMinhaConta();
+      setMensagem('Foto removida.');
+    } catch {
+      setMensagem('Não foi possível remover a foto.');
+    } finally {
+      setOcupado(false);
+    }
+  }
 
   return (
     <>
-      <CabecalhoPerfil
-        name={accountName}
-        subtitle={accountCity}
-        meta="Perfil esportivo · conta pessoal"
+      <CabecalhoPagina
+        title="Perfil básico"
+        subtitle={`@${conta.nomeUsuario} · ${conta.municipio.nome}/${conta.municipio.uf}`}
+        actions={
+          <Button variant="campoOutline" asChild>
+            <Link href="/minha-conta">Dados privados e segurança</Link>
+          </Button>
+        }
       />
 
-      <Secao title="Meus times">
-        {personalTeams.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {personalTeams.map((time) => {
-              const isCaptain = session?.links.captainTeamIds.includes(
-                String(time.id),
-              );
-              return (
-                <Link
-                  key={time.id}
-                  href={
-                    isCaptain ? `/atleta/time/${time.id}` : `/times/${time.id}`
-                  }
-                >
-                  <ItemLista
-                    interactive
-                    avatar={<AvatarItem name={time.nome} />}
-                    title={time.nome}
-                    subtitle={`${time.cidade} · ${time.jogadores} jogadores`}
-                    right={<IndicadorAvanco />}
-                  />
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-md border border-border/70 bg-card p-5 shadow-none sm:p-6">
-            <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-green-pale text-green-dark">
-                <Users className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="font-display text-lg font-semibold">
-                  Você ainda não está em nenhum time
-                </p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Aceite um convite nominal ou crie seu próprio time.
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <Link
-                href="/atleta/time/buscar"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-green-dark px-4 text-sm font-semibold text-green-dark"
-              >
-                <Search className="h-4 w-4" aria-hidden="true" /> Ver convites
-              </Link>
-              <Link
-                href="/atleta/time/criar"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-green-dark px-4 text-sm font-semibold text-white"
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" /> Criar time
-              </Link>
-            </div>
-          </div>
-        )}
-      </Secao>
+      <form onSubmit={salvar}>
+        <CartaoFormulario>
+          <CampoFormulario label="Nome público" htmlFor="nome-perfil">
+            <Input
+              id="nome-perfil"
+              value={nome}
+              onChange={(event) => setNome(event.target.value)}
+              required
+            />
+          </CampoFormulario>
 
-      <Secao title="Estatísticas publicadas">
-        <GradeEstatisticas
-          columns={3}
-          items={[
-            {
-              label: 'Gols publicados',
-              value: knownPublicAthlete?.golsPublicados ?? 0,
-            },
-            {
-              label: 'Partidas publicadas',
-              value: knownPublicAthlete?.partidasPublicadas ?? 0,
-            },
-            {
-              label: 'Assistências publicadas',
-              value: knownPublicAthlete?.assistenciasPublicadas ?? 0,
-            },
-          ]}
-        />
-      </Secao>
+          <CampoFormulario label="Biografia" htmlFor="biografia-perfil">
+            <Textarea
+              id="biografia-perfil"
+              value={biografia}
+              onChange={(event) => setBiografia(event.target.value)}
+              rows={5}
+            />
+          </CampoFormulario>
 
-      <Secao title="Meus próximos jogos">
-        {nextMatches.length === 0 ? (
-          <EstadoRecurso
-            kind="empty"
-            title="Nenhum próximo jogo"
-            description="Os jogos aparecem depois que um dos seus times entra na agenda publicada de um campeonato."
-          />
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {nextMatches.map((match) => (
-              <CartaoProximaPartida
-                key={match.id}
-                casa={match.casa}
-                fora={match.fora}
-                rodada={match.rodada}
-                meta={[
-                  {
-                    icon: CalendarDays,
-                    label: `${match.data} · ${match.hora}`,
-                  },
-                  { icon: MapPin, label: match.campo },
-                ]}
-              />
-            ))}
+          <CampoFormulario label="Posição principal" htmlFor="posicao-perfil">
+            <select
+              id="posicao-perfil"
+              value={posicao}
+              onChange={(event) =>
+                setPosicao(event.target.value as PosicaoPrincipal | '')
+              }
+              className="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Não informar</option>
+              {posicoes.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </CampoFormulario>
+
+          <div className="border-l-2 border-accent pl-3 text-sm text-muted-foreground">
+            Município atual: {conta.municipio.nome}/{conta.municipio.uf}. A
+            alteração fica indisponível até o backend publicar a consulta
+            canônica de municípios e seus UUIDs.
           </div>
-        )}
-      </Secao>
 
-      <Secao title="Histórico de times publicado">
-        {knownPublicAthlete?.historicoTimes.length ? (
-          <div className="space-y-2">
-            {knownPublicAthlete.historicoTimes.map((history) => (
-              <ItemLista
-                key={`${history.time}-${history.inicio}`}
-                title={history.time}
-                subtitle={`${history.funcao} · ${history.inicio}${history.fim ? `–${history.fim}` : '–atual'}`}
-              />
-            ))}
+          <Button type="submit" variant="campo" disabled={ocupado}>
+            Salvar perfil
+          </Button>
+        </CartaoFormulario>
+      </form>
+
+      <form onSubmit={enviarFoto} className="mt-6">
+        <CartaoFormulario>
+          <div>
+            <h2 className="font-display text-xl font-bold">Foto pública</h2>
+            <p className="text-sm text-muted-foreground">
+              PNG, JPEG ou WebP. O servidor valida o conteúdo, remove metadados
+              e normaliza a imagem.
+            </p>
           </div>
-        ) : (
-          <EstadoRecurso
-            kind="empty"
-            title="Nenhum histórico publicado"
-            description="Somente vínculos esportivos autorizados e publicados aparecem no perfil."
-          />
-        )}
-      </Secao>
-
-      <Secao title="Conquistas publicadas">
-        {knownPublicAthlete?.conquistas.length ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {knownPublicAthlete.conquistas.map((achievement) => (
-              <ItemLista
-                key={`${achievement.titulo}-${achievement.ano}`}
-                avatar={
-                  <IconeCircular icon={Trophy} className="rounded-full" />
-                }
-                title={achievement.titulo}
-                subtitle={`${achievement.descricao} · ${achievement.ano}`}
-              />
-            ))}
+          <CampoFormulario label="Arquivo da foto" htmlFor="foto-perfil">
+            <Input
+              id="foto-perfil"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => setArquivo(event.target.files?.[0] ?? null)}
+            />
+          </CampoFormulario>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="submit"
+              variant="campo"
+              disabled={ocupado || !arquivo}
+            >
+              Enviar foto
+            </Button>
+            <Button
+              type="button"
+              variant="campoOutline"
+              disabled={ocupado || !conta.fotoUrl}
+              onClick={() => void removerFoto()}
+            >
+              Remover foto
+            </Button>
           </div>
-        ) : (
-          <EstadoRecurso
-            kind="empty"
-            title="Nenhuma conquista publicada"
-            description="As conquistas aparecem após a publicação dos resultados definitivos."
-          />
-        )}
-      </Secao>
+        </CartaoFormulario>
+      </form>
 
-      <Secao title="Conta e contexto">
-        <p className="mb-3 text-sm leading-6 text-muted-foreground">
-          Troque de contexto sem sair da sua conta pessoal.
+      {mensagem ? (
+        <p role="status" className="mt-4 text-sm">
+          {mensagem}
         </p>
-        <SeletorContexto />
-      </Secao>
+      ) : null}
+
+      <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
+        <Link href="/alterar-email" className="text-green-dark hover:underline">
+          Alterar e-mail
+        </Link>
+        <Link href="/alterar-senha" className="text-green-dark hover:underline">
+          Alterar senha
+        </Link>
+      </div>
     </>
+  );
+}
+
+export function TelaPerfilAtletaAutenticado() {
+  const { session } = useSessao();
+  if (!session) return <p role="status">Carregando perfil...</p>;
+  return (
+    <EditorPerfil
+      key={session.minhaConta.atualizadoEm}
+      conta={session.minhaConta}
+    />
   );
 }

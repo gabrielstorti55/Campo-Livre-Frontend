@@ -34,8 +34,6 @@ export type SessaoPessoal = {
   };
 };
 
-export type ContaMockRegistrada = { name: string; city: string; email: string };
-
 export type StatusSessao =
   'carregando' | 'visitante' | 'autenticando' | 'autenticado' | 'indisponivel';
 
@@ -49,7 +47,7 @@ export type ValorContextoSessao = {
   executarAutenticado: <T>(
     request: (accessToken: string) => Promise<T>,
   ) => Promise<T>;
-  registerMockAccount: (account: ContaMockRegistrada) => void;
+  recarregarMinhaConta: () => Promise<MinhaConta>;
   linkTeam: (teamId: string) => void;
   createTeam: (input: Omit<VinculoTimeCriado, 'id' | 'role'>) => string;
   enableOrganizer: () => void;

@@ -6,8 +6,6 @@ import type { SumulaPublica } from '@/types/publico';
 type PublicacaoPartidaMock = {
   resultadoPublicado: boolean;
   sumulaPublica?: SumulaPublica;
-  // Existe apenas para garantir que informação administrativa não vaze na tela canônica.
-  observacaoAdministrativaMock?: string;
 };
 
 const publicacaoPorPartida: Record<string, PublicacaoPartidaMock> = {
@@ -40,14 +38,8 @@ const publicacaoPorPartida: Record<string, PublicacaoPartidaMock> = {
         },
       ],
     },
-    observacaoAdministrativaMock:
-      'Revisar documento do árbitro antes do arquivamento.',
   },
-  '4': {
-    resultadoPublicado: false,
-    observacaoAdministrativaMock:
-      'Resultado aguardando revisão interna do organizador.',
-  },
+  '4': { resultadoPublicado: false },
   '5': { resultadoPublicado: false },
   '6': { resultadoPublicado: false },
 };

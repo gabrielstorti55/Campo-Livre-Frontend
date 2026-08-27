@@ -60,6 +60,18 @@ export type MinhaConta = {
   atualizadoEm: string;
 };
 
+export type EntradaAtualizacaoMinhaConta = {
+  nome?: string;
+  biografia?: string | null;
+  municipioId?: string;
+  posicaoPrincipal?: PosicaoPrincipal | null;
+};
+
+export type RespostaFotoMinhaConta = {
+  fotoUrl: string;
+  atualizadoEm: string;
+};
+
 export type EntradaCadastro = {
   nome: string;
   nomeUsuario: string;
@@ -101,10 +113,48 @@ export type RespostaRedefinicaoSenha = {
   novoLoginNecessario: true;
 };
 
+export type EntradaAlteracaoSenha = {
+  senhaAtual: string;
+  novaSenha: string;
+};
+
+export type RespostaAlteracaoSenha = RespostaRedefinicaoSenha;
+
+export type RespostaSolicitacaoAlteracaoEmail = {
+  confirmacaoPendente: true;
+  novoEmailMascarado: string;
+  expiraEm: string;
+};
+
+export type RespostaConfirmacaoAlteracaoEmail = {
+  emailAlterado: true;
+  emailConfirmado: true;
+};
+
+export type EntradaReativacaoConta = {
+  email: string;
+  senha: string;
+  confirmacao: true;
+};
+
+export type RespostaReativacaoConta = {
+  contaReativada: true;
+  eliminacaoCancelada: true;
+  novoLoginNecessario: true;
+};
+
+export type RespostaSolicitacaoReativacaoConta = {
+  solicitacaoAceita: true;
+};
+
 export type RespostaConfirmacaoEmail = {
   emailConfirmado: true;
   statusConta: 'ATIVA' | 'AGUARDANDO_CONSENTIMENTO';
   consentimentoResponsavelNecessario: boolean;
+};
+
+export type RespostaReenvioConfirmacaoEmail = {
+  envioAceito: true;
 };
 
 export type ErroDeCampo = {

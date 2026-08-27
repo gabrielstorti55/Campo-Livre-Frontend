@@ -98,9 +98,7 @@ export const catalogoPublicoMock: PortaCatalogoPublico = {
       .map((atletaId) =>
         atletasPublicosMock.find((atleta) => atleta.id === atletaId),
       )
-      .filter((atleta): atleta is AtletaPublico =>
-        Boolean(atleta?.perfilPublico),
-      );
+      .filter((atleta): atleta is AtletaPublico => Boolean(atleta));
     const campeonatos = time.campeonatoIds
       .map((campeonatoId) =>
         campeonatosPublicosMock.find(
@@ -134,10 +132,8 @@ export const catalogoPublicoMock: PortaCatalogoPublico = {
 
   listarAtletas(busca = '') {
     const termo = busca.trim().toLocaleLowerCase('pt-BR');
-    return atletasPublicosMock.filter(
-      (atleta) =>
-        atleta.perfilPublico &&
-        atleta.nome.toLocaleLowerCase('pt-BR').includes(termo),
+    return atletasPublicosMock.filter((atleta) =>
+      atleta.nome.toLocaleLowerCase('pt-BR').includes(termo),
     );
   },
 
@@ -178,9 +174,6 @@ export function listarArtilhariaPublica(campeonatoId: number) {
       ),
       time: timesPublicosMock.find((time) => time.id === linha.timeId),
     }))
-    .filter(
-      (linha) =>
-        Boolean(linha.atleta?.perfilPublico) && Boolean(linha.time?.publicado),
-    )
+    .filter((linha) => Boolean(linha.atleta) && Boolean(linha.time?.publicado))
     .sort((a, b) => b.gols - a.gols);
 }

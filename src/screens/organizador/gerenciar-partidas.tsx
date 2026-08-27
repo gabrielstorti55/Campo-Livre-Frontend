@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale';
 
 import { useSessao } from '@/hooks/use-sessao';
 import { catalogoOrganizadorMock } from '@/services/organizador/catalogo-organizador.mock';
+import { podeRegistrarWo } from '@/services/organizador/permissoes-partidas';
 import { useEstadoOperacionalOrganizador } from '@/stores/estado-operacional-organizador';
 import {
   obterNomeCampoPartida,
@@ -17,6 +18,13 @@ import { Secao } from '@/components/layout/secao';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -53,6 +61,7 @@ export function TelaGerenciarPartidas({
   const [justificativaWO, setJustificativaWO] = useState(
     'Ausência da equipe adversária',
   );
+  const [confirmandoWo, setConfirmandoWo] = useState(false);
   const [data, setData] = useState(new Date(2026, 7, 14));
   const [hora, setHora] = useState('15:00');
   const [campo, setCampo] = useState('1');
@@ -274,7 +283,8 @@ export function TelaGerenciarPartidas({
                         Cancelar
                       </Button>
                     ) : null}
-                    {estadoDaPartida(partida.id) === 'AGENDADA' ? (
+                    {estadoDaPartida(partida.id) === 'AGENDADA' &&
+                    podeRegistrarWo(campeonato.papelDaConta) ? (
                       <Button
                         size="sm"
                         variant="campo"
@@ -411,22 +421,55 @@ export function TelaGerenciarPartidas({
             className="mt-4"
             variant="campo"
             disabled={!vencedorWO || !justificativaWO.trim()}
-            onClick={() => {
-              operacional.registrarPartidaDefinitiva(partidaWO, {
-                tipo: 'WO',
-                vencedorTimeId: Number(vencedorWO),
-                justificativa: justificativaWO.trim(),
-              });
-              setPartidaWO(null);
-              setFeedback(
-                'WO registrado localmente; aguarda persistência e publicação pela API.',
-              );
-            }}
+            onClick={() => setConfirmandoWo(true)}
           >
-            Confirmar WO
+            Revisar WO definitivo
           </Button>
         </Card>
       ) : null}
+
+      <Dialog open={confirmandoWo} onOpenChange={setConfirmandoWo}>
+        <DialogContent
+          role="alertdialog"
+          aria-label="Confirmar WO definitivo"
+          className="w-[calc(100%-2rem)] rounded-md border-warning bg-card sm:max-w-lg"
+        >
+          <DialogTitle className="font-display text-2xl">
+            Confirma o registro definitivo do WO?
+          </DialogTitle>
+          <DialogDescription>
+            O WO encerrará a partida, publicará o placar regulamentar e impedirá
+            o envio posterior de súmula. Nenhum evento individual será criado.
+          </DialogDescription>
+          <DialogFooter className="gap-2 sm:space-x-0">
+            <Button
+              variant="campoOutline"
+              onClick={() => setConfirmandoWo(false)}
+            >
+              Cancelar registro
+            </Button>
+            <Button
+              variant="campo"
+              onClick={() => {
+                if (!partidaWO || !vencedorWO || !justificativaWO.trim())
+                  return;
+                operacional.registrarPartidaDefinitiva(partidaWO, {
+                  tipo: 'WO',
+                  vencedorTimeId: Number(vencedorWO),
+                  justificativa: justificativaWO.trim(),
+                });
+                setConfirmandoWo(false);
+                setPartidaWO(null);
+                setFeedback(
+                  'WO registrado localmente; aguarda persistência e publicação pela API.',
+                );
+              }}
+            >
+              Registrar WO definitivo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {feedback ? (
         <p

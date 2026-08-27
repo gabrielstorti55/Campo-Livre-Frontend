@@ -22,11 +22,6 @@ test('rotas públicas abrem sem sessão e possuem links compartilháveis', async
       page.getByRole('button', { name: 'Abrir menu público' }),
     ).toBeVisible();
   }
-
-  const session = await page.evaluate(() =>
-    sessionStorage.getItem('campo-livre:mock-personal-session'),
-  );
-  expect(session).toBeNull();
 });
 
 test('menu público é opcional e pode ser aberto e fechado', async ({
@@ -79,9 +74,7 @@ test('menu público captura o foco e o devolve ao acionador', async ({
 test('conta autenticada usa a mesma página canônica com acesso à sua área', async ({
   page,
 }) => {
-  await autenticarEm(page, 'organizador', '/minha-area');
-
-  await page.goto('/campeonatos/1');
+  await autenticarEm(page, 'organizador', '/campeonatos/1');
 
   await expect(
     page.getByRole('heading', { name: 'Copa Franca 2026' }),
@@ -146,4 +139,3 @@ test('prevê estados vazio e erro nas consultas públicas', async ({ page }) => 
     page.getByRole('heading', { name: 'Campeonato não encontrado' }),
   ).toBeVisible();
 });
-

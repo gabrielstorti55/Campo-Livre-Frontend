@@ -5,6 +5,19 @@ import { useRef, useState } from 'react';
 import { useSessao } from '@/hooks/use-sessao';
 import { catalogoOrganizadorMock } from '@/services/organizador/catalogo-organizador.mock';
 import {
+  atualizarEscalado,
+  criarRascunhoEscalacao,
+  type AtletaEscaladoRascunho,
+  type PosicaoEscalacao,
+  type SituacaoEscalacao,
+} from '@/services/organizador/rascunho-escalacao';
+import {
+  criarTempoEvento,
+  formatarTempoEvento,
+  type PeriodoEvento,
+  type TempoEvento,
+} from '@/services/organizador/tempo-evento';
+import {
   type FatoDefinitivoPartida,
   useEstadoOperacionalOrganizador,
 } from '@/stores/estado-operacional-organizador';
@@ -35,7 +48,23 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-type Evento = { id: number; resumo: string; lado: 'casa' | 'fora' };
+type Evento = {
+  id: number;
+  resumo: string;
+  lado: 'casa' | 'fora';
+  tempo: TempoEvento;
+};
+
+const posicoesEscalacao: Array<{
+  valor: PosicaoEscalacao;
+  rotulo: string;
+}> = [
+  { valor: 'GOLEIRO', rotulo: 'Goleiro' },
+  { valor: 'ZAGUEIRO', rotulo: 'Zagueiro' },
+  { valor: 'LATERAL', rotulo: 'Lateral' },
+  { valor: 'MEIO_CAMPO', rotulo: 'Meio-campo' },
+  { valor: 'ATACANTE', rotulo: 'Atacante' },
+];
 
 export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
   const { session, hydrated } = useSessao();
@@ -77,6 +106,12 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
       )
     : [];
   const elenco = [...elencoCasa, ...elencoFora];
+  const [escalacaoCasa, setEscalacaoCasa] = useState(() =>
+    criarRascunhoEscalacao(elencoCasa),
+  );
+  const [escalacaoFora, setEscalacaoFora] = useState(() =>
+    criarRascunhoEscalacao(elencoFora),
+  );
   const jogo = {
     id: partida?.id ?? 0,
     casa: partida ? obterNomeTimePublico(partida.timeCasaId) : 'Time da casa',
@@ -89,7 +124,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
   const [fora, setFora] = useState(0);
   const [jogadorGol, setJogadorGol] = useState(String(elencoCasa[0]?.id ?? ''));
   const [timeGol, setTimeGol] = useState<'casa' | 'fora'>('casa');
-  const [periodoGol, setPeriodoGol] = useState('segundo-tempo');
+  const [periodoGol, setPeriodoGol] = useState<PeriodoEvento>('segundo-tempo');
   const [minutoGol, setMinutoGol] = useState('');
   const [acrescimoGol, setAcrescimoGol] = useState('');
   const [gols, setGols] = useState<Evento[]>([]);
@@ -98,7 +133,10 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
   );
   const [timeCartao, setTimeCartao] = useState<'casa' | 'fora'>('casa');
   const [tipoCartao, setTipoCartao] = useState('amarelo');
+  const [periodoCartao, setPeriodoCartao] =
+    useState<PeriodoEvento>('segundo-tempo');
   const [minutoCartao, setMinutoCartao] = useState('');
+  const [acrescimoCartao, setAcrescimoCartao] = useState('');
   const [cartoes, setCartoes] = useState<Evento[]>([]);
   const [timeSubstituicao, setTimeSubstituicao] = useState<'casa' | 'fora'>(
     'casa',
@@ -109,7 +147,10 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
   const [jogadorEntrou, setJogadorEntrou] = useState(
     String(elencoCasa[1]?.id ?? ''),
   );
+  const [periodoSubstituicao, setPeriodoSubstituicao] =
+    useState<PeriodoEvento>('segundo-tempo');
   const [minutoSubstituicao, setMinutoSubstituicao] = useState('');
+  const [acrescimoSubstituicao, setAcrescimoSubstituicao] = useState('');
   const [substituicoes, setSubstituicoes] = useState<Evento[]>([]);
   const [confirmacao, setConfirmacao] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
@@ -150,6 +191,102 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
     id: number,
     setter: React.Dispatch<React.SetStateAction<Evento[]>>,
   ) => setter((eventos) => eventos.filter((evento) => evento.id !== id));
+  const tempoSeguro = (
+    periodo: PeriodoEvento,
+    minuto: string,
+    acrescimo: string,
+  ) => {
+    try {
+      return criarTempoEvento(periodo, minuto, acrescimo);
+    } catch (error) {
+      setErro(
+        error instanceof Error ? error.message : 'Tempo do evento inválido.',
+      );
+      return null;
+    }
+  };
+  const atualizarEscalacao = (
+    lado: 'casa' | 'fora',
+    atletaId: number,
+    campo: 'situacao' | 'posicaoUsada',
+    valor: SituacaoEscalacao | PosicaoEscalacao,
+  ) => {
+    const setter = lado === 'casa' ? setEscalacaoCasa : setEscalacaoFora;
+    setter((atletas) =>
+      atletas.map((atleta) =>
+        atleta.atletaId === atletaId
+          ? atualizarEscalado(atleta, {
+              situacao:
+                campo === 'situacao'
+                  ? (valor as SituacaoEscalacao)
+                  : atleta.situacao,
+              posicaoUsada:
+                campo === 'posicaoUsada'
+                  ? (valor as PosicaoEscalacao)
+                  : atleta.posicaoUsada,
+            })
+          : atleta,
+      ),
+    );
+  };
+  const renderEscalacao = (
+    lado: 'casa' | 'fora',
+    atletas: AtletaEscaladoRascunho[],
+  ) => (
+    <ul className="mt-2 space-y-3">
+      {atletas.map((atleta) => (
+        <li key={atleta.atletaId} className="rounded-md border p-3">
+          <p className="text-sm font-semibold">{atleta.nome}</p>
+          <p className="text-xs text-muted-foreground">
+            Posição principal: {atleta.posicaoPrincipal}
+          </p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <select
+              aria-label={`Situação de ${atleta.nome}`}
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+              value={atleta.situacao ?? ''}
+              onChange={(event) =>
+                atualizarEscalacao(
+                  lado,
+                  atleta.atletaId,
+                  'situacao',
+                  event.target.value as SituacaoEscalacao,
+                )
+              }
+            >
+              <option value="" disabled>
+                Titular ou reserva
+              </option>
+              <option value="TITULAR">Titular</option>
+              <option value="RESERVA">Reserva</option>
+            </select>
+            <select
+              aria-label={`Posição usada por ${atleta.nome}`}
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+              value={atleta.posicaoUsada ?? ''}
+              onChange={(event) =>
+                atualizarEscalacao(
+                  lado,
+                  atleta.atletaId,
+                  'posicaoUsada',
+                  event.target.value as PosicaoEscalacao,
+                )
+              }
+            >
+              <option value="" disabled>
+                Posição usada
+              </option>
+              {posicoesEscalacao.map((posicao) => (
+                <option key={posicao.valor} value={posicao.valor}>
+                  {posicao.rotulo}
+                </option>
+              ))}
+            </select>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
 
   function adicionarGol() {
     if (!minutoGol) return setErro('Informe o minuto do gol.');
@@ -158,13 +295,15 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
         'O autor do gol deve pertencer à escalação do time escolhido.',
       );
     }
-    const acrescimo = acrescimoGol ? `+${acrescimoGol}` : '';
+    const tempo = tempoSeguro(periodoGol, minutoGol, acrescimoGol);
+    if (!tempo) return;
     setGols((eventos) => [
       ...eventos,
       {
         id: Date.now(),
         lado: timeGol,
-        resumo: `${nomeTime(timeGol)} · ${nomeJogador(jogadorGolEfetivo)} · ${periodoGol} · ${minutoGol}${acrescimo}'`,
+        tempo,
+        resumo: `${nomeTime(timeGol)} · ${nomeJogador(jogadorGolEfetivo)} · ${formatarTempoEvento(tempo)}`,
       },
     ]);
     setMinutoGol('');
@@ -179,15 +318,19 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
         'O atleta advertido deve pertencer à escalação do time escolhido.',
       );
     }
+    const tempo = tempoSeguro(periodoCartao, minutoCartao, acrescimoCartao);
+    if (!tempo) return;
     setCartoes((eventos) => [
       ...eventos,
       {
         id: Date.now(),
         lado: timeCartao,
-        resumo: `${nomeTime(timeCartao)} · ${nomeJogador(jogadorCartaoEfetivo)} · ${tipoCartao} · ${minutoCartao}'`,
+        tempo,
+        resumo: `${nomeTime(timeCartao)} · ${nomeJogador(jogadorCartaoEfetivo)} · ${tipoCartao} · ${formatarTempoEvento(tempo)}`,
       },
     ]);
     setMinutoCartao('');
+    setAcrescimoCartao('');
     setErro(null);
   }
 
@@ -201,21 +344,36 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
     ) {
       return setErro('Informe atletas diferentes e o minuto da substituição.');
     }
+    const tempo = tempoSeguro(
+      periodoSubstituicao,
+      minutoSubstituicao,
+      acrescimoSubstituicao,
+    );
+    if (!tempo) return;
     setSubstituicoes((eventos) => [
       ...eventos,
       {
         id: Date.now(),
         lado: timeSubstituicao,
-        resumo: `${nomeTime(timeSubstituicao)} · sai ${nomeJogador(jogadorSaiuEfetivo)} · entra ${nomeJogador(jogadorEntrouEfetivo)} · ${minutoSubstituicao}'`,
+        tempo,
+        resumo: `${nomeTime(timeSubstituicao)} · sai ${nomeJogador(jogadorSaiuEfetivo)} · entra ${nomeJogador(jogadorEntrouEfetivo)} · ${formatarTempoEvento(tempo)}`,
       },
     ]);
     setMinutoSubstituicao('');
+    setAcrescimoSubstituicao('');
     setErro(null);
   }
 
   function revisarEnvio(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!partida) return;
+    const escalados = [...escalacaoCasa, ...escalacaoFora];
+    if (escalados.some((atleta) => !atleta.situacao || !atleta.posicaoUsada)) {
+      setErro(
+        'Informe titular ou reserva e a posição usada por cada atleta escalado.',
+      );
+      return;
+    }
     const golsCasa = gols.filter((gol) => gol.lado === 'casa').length;
     const golsFora = gols.filter((gol) => gol.lado === 'fora').length;
     if (golsCasa !== casa || golsFora !== fora) {
@@ -237,9 +395,14 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
           'segundo-assistente',
           'quarto-arbitro',
         ].map((campo) => String(dados.get(campo) ?? '')),
-        gols: gols.map((item) => item.resumo),
-        cartoes: cartoes.map((item) => item.resumo),
-        substituicoes: substituicoes.map((item) => item.resumo),
+        escalacaoCasa,
+        escalacaoFora,
+        gols: gols.map(({ resumo, tempo }) => ({ resumo, tempo })),
+        cartoes: cartoes.map(({ resumo, tempo }) => ({ resumo, tempo })),
+        substituicoes: substituicoes.map(({ resumo, tempo }) => ({
+          resumo,
+          tempo,
+        })),
         relatorio: String(dados.get('relatorio-jogo') ?? ''),
       },
     });
@@ -295,9 +458,32 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
             cartoes.length > 0 ||
             substituicoes.length > 0
           }
-          onChange={(event) =>
-            setPartidaSelecionadaId(Number(event.target.value))
-          }
+          onChange={(event) => {
+            const proximaId = Number(event.target.value);
+            const proxima = partidasElegiveis.find(
+              (item) => item.id === proximaId,
+            );
+            setPartidaSelecionadaId(proximaId);
+            if (!proxima) return;
+            const casa =
+              catalogoPublicoMock.obterTime(proxima.timeCasaId)?.elenco ?? [];
+            const fora =
+              catalogoPublicoMock.obterTime(proxima.timeForaId)?.elenco ?? [];
+            setEscalacaoCasa(
+              criarRascunhoEscalacao(
+                casa.filter((atleta) =>
+                  (proxima.escalacaoCasaAtletaIds ?? []).includes(atleta.id),
+                ),
+              ),
+            );
+            setEscalacaoFora(
+              criarRascunhoEscalacao(
+                fora.filter((atleta) =>
+                  (proxima.escalacaoForaAtletaIds ?? []).includes(atleta.id),
+                ),
+              ),
+            );
+          }}
         >
           {partidasElegiveis.map((item) => (
             <option key={item.id} value={item.id}>
@@ -327,15 +513,11 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm font-semibold">{jogo.casa}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {elencoCasa.map((jogador) => jogador.nome).join(', ')}
-            </p>
+            {renderEscalacao('casa', escalacaoCasa)}
           </div>
           <div>
             <p className="text-sm font-semibold">{jogo.fora}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {elencoFora.map((jogador) => jogador.nome).join(', ')}
-            </p>
+            {renderEscalacao('fora', escalacaoFora)}
           </div>
         </div>
       </Cartao>
@@ -430,7 +612,12 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
                   </Select>
                 </CampoFormulario>
                 <CampoFormulario label="Período do gol" htmlFor="periodo-gol">
-                  <Select value={periodoGol} onValueChange={setPeriodoGol}>
+                  <Select
+                    value={periodoGol}
+                    onValueChange={(value) =>
+                      setPeriodoGol(value as PeriodoEvento)
+                    }
+                  >
                     <SelectTrigger id="periodo-gol">
                       <SelectValue />
                     </SelectTrigger>
@@ -450,7 +637,6 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
                     id="minuto-gol"
                     type="number"
                     min={0}
-                    max={45}
                     value={minutoGol}
                     onChange={(event) => setMinutoGol(event.target.value)}
                   />
@@ -462,8 +648,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
                   <Input
                     id="acrescimo-gol"
                     type="number"
-                    min={0}
-                    max={30}
+                    min={1}
                     value={acrescimoGol}
                     onChange={(event) => setAcrescimoGol(event.target.value)}
                     placeholder="Opcional"
@@ -500,7 +685,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
 
           <Secao title="Cartões">
             <Cartao className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <CampoFormulario label="Time do cartão" htmlFor="time-cartao">
                   <Select
                     value={timeCartao}
@@ -551,16 +736,52 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
                   </Select>
                 </CampoFormulario>
                 <CampoFormulario
-                  label="Minuto do cartão"
+                  label="Período do cartão"
+                  htmlFor="periodo-cartao"
+                >
+                  <Select
+                    value={periodoCartao}
+                    onValueChange={(value) =>
+                      setPeriodoCartao(value as PeriodoEvento)
+                    }
+                  >
+                    <SelectTrigger id="periodo-cartao">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="primeiro-tempo">
+                        Primeiro tempo
+                      </SelectItem>
+                      <SelectItem value="segundo-tempo">
+                        Segundo tempo
+                      </SelectItem>
+                      <SelectItem value="prorrogacao">Prorrogação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CampoFormulario>
+                <CampoFormulario
+                  label="Minuto regulamentar do cartão"
                   htmlFor="minuto-cartao"
                 >
                   <Input
                     id="minuto-cartao"
                     type="number"
                     min={0}
-                    max={150}
                     value={minutoCartao}
                     onChange={(event) => setMinutoCartao(event.target.value)}
+                  />
+                </CampoFormulario>
+                <CampoFormulario
+                  label="Acréscimo do cartão"
+                  htmlFor="acrescimo-cartao"
+                >
+                  <Input
+                    id="acrescimo-cartao"
+                    type="number"
+                    min={1}
+                    value={acrescimoCartao}
+                    onChange={(event) => setAcrescimoCartao(event.target.value)}
+                    placeholder="Opcional"
                   />
                 </CampoFormulario>
               </div>
@@ -591,7 +812,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
 
           <Secao title="Substituições">
             <Cartao className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <CampoFormulario
                   label="Time da substituição"
                   htmlFor="time-substituicao"
@@ -656,18 +877,56 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
                   </Select>
                 </CampoFormulario>
                 <CampoFormulario
-                  label="Minuto da substituição"
+                  label="Período da substituição"
+                  htmlFor="periodo-substituicao"
+                >
+                  <Select
+                    value={periodoSubstituicao}
+                    onValueChange={(value) =>
+                      setPeriodoSubstituicao(value as PeriodoEvento)
+                    }
+                  >
+                    <SelectTrigger id="periodo-substituicao">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="primeiro-tempo">
+                        Primeiro tempo
+                      </SelectItem>
+                      <SelectItem value="segundo-tempo">
+                        Segundo tempo
+                      </SelectItem>
+                      <SelectItem value="prorrogacao">Prorrogação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CampoFormulario>
+                <CampoFormulario
+                  label="Minuto regulamentar da substituição"
                   htmlFor="minuto-substituicao"
                 >
                   <Input
                     id="minuto-substituicao"
                     type="number"
                     min={0}
-                    max={150}
                     value={minutoSubstituicao}
                     onChange={(event) =>
                       setMinutoSubstituicao(event.target.value)
                     }
+                  />
+                </CampoFormulario>
+                <CampoFormulario
+                  label="Acréscimo da substituição"
+                  htmlFor="acrescimo-substituicao"
+                >
+                  <Input
+                    id="acrescimo-substituicao"
+                    type="number"
+                    min={1}
+                    value={acrescimoSubstituicao}
+                    onChange={(event) =>
+                      setAcrescimoSubstituicao(event.target.value)
+                    }
+                    placeholder="Opcional"
                   />
                 </CampoFormulario>
               </div>

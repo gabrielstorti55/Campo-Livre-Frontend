@@ -57,15 +57,10 @@ export function TelaInicioOrganizador() {
             </p>
           </div>
           <div className="rounded-md bg-muted p-4 text-sm">
-            <strong>
-              {comercial.direitosAdicionaisDisponiveis}{' '}
-              {comercial.direitosAdicionaisDisponiveis === 1
-                ? 'direito adicional disponível'
-                : 'direitos adicionais disponíveis'}
-            </strong>
+            <strong>Pagamento por campeonato adicional</strong>
             <p className="mt-1 text-muted-foreground">
-              Campeonatos de Prefeitura elegível são isentos e não consomem o
-              benefício pessoal.
+              Cada campeonato pessoal adicional exige pagamento próprio; não há
+              créditos reutilizáveis. Prefeitura elegível permanece isenta.
             </p>
           </div>
         </div>

@@ -4,13 +4,26 @@ import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { useAutenticacaoApi } from '@/contexts/autenticacao-api';
+import {
+  obterModoAplicacao,
+  type ModoAplicacao,
+} from '@/config/modo-aplicacao';
 import { LayoutAutenticacao } from '@/layouts/autenticacao';
 import { CampoFormulario } from '@/components/layout/campo-formulario';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export function TelaRecuperarSenha() {
+export function TelaRecuperarSenha({
+  modo = obterModoAplicacao(),
+}: {
+  modo?: ModoAplicacao;
+}) {
+  const api = useAutenticacaoApi();
   const [enviado, setEnviado] = useState(false);
+  const [emailEnviado, setEmailEnviado] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   return (
     <LayoutAutenticacao>
@@ -24,9 +37,19 @@ export function TelaRecuperarSenha() {
             Confira seu e-mail
           </h1>
           <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-            Enviamos as instruções de recuperação. Se a mensagem não aparecer,
-            verifique também a caixa de spam.
+            Se existir uma conta elegível para esse e-mail, as instruções de
+            recuperação serão enviadas. Verifique também a caixa de spam.
           </p>
+          {modo === 'prototipo' && emailEnviado ? (
+            <Link
+              href={`/redefinir-senha?token=${encodeURIComponent(
+                `recuperacao-token-${encodeURIComponent(emailEnviado)}`,
+              )}`}
+              className="mt-6 block text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
+            >
+              Abrir recuperação simulada
+            </Link>
+          ) : null}
           <Link
             href="/login"
             className="mt-8 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
@@ -48,14 +71,30 @@ export function TelaRecuperarSenha() {
           </p>
           <form
             className="mt-8 space-y-5"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault();
-              setEnviado(true);
+              if (enviando) return;
+              const form = new FormData(event.currentTarget);
+              const email = String(form.get('email') ?? '').trim();
+              setErro(null);
+              setEnviando(true);
+              try {
+                await api.solicitarRecuperacao(email);
+                setEmailEnviado(email.toLowerCase());
+                setEnviado(true);
+              } catch {
+                setErro(
+                  'Não foi possível solicitar a recuperação agora. Tente novamente.',
+                );
+              } finally {
+                setEnviando(false);
+              }
             }}
           >
             <CampoFormulario label="E-mail" htmlFor="e-mail-field">
               <Input
                 id="e-mail-field"
+                name="email"
                 type="email"
                 autoComplete="email"
                 required
@@ -63,8 +102,18 @@ export function TelaRecuperarSenha() {
                 className="h-11"
               />
             </CampoFormulario>
-            <Button variant="campo" type="submit" className="h-11 w-full">
-              Enviar instruções
+            {erro ? (
+              <p role="alert" className="text-sm text-destructive">
+                {erro}
+              </p>
+            ) : null}
+            <Button
+              variant="campo"
+              type="submit"
+              disabled={enviando}
+              className="h-11 w-full"
+            >
+              {enviando ? 'Enviando…' : 'Enviar instruções'}
             </Button>
           </form>
           <p className="mt-8 border-t border-border pt-6 text-sm">

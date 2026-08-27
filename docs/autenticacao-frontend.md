@@ -16,9 +16,16 @@ cadastro pessoal
 → logout
 ```
 
-### Estado de implementação em 2026-08-23
+### Estado de implementação em 2026-08-25
 
-Implementado e testado no frontend com adapter fake/injeção: contratos, Problem Details, cliente HTTP, login, bootstrap, refresh concorrente, logout, proteção de rotas, retorno interno seguro e `/minha-conta`. O adapter HTTP está preparado, mas não existe integração real porque o backend ainda não expõe essas operações. As dependências para retomada estão em [`pendencias-autenticacao-backend.md`](./pendencias-autenticacao-backend.md).
+O frontend possui dois modos explícitos e sem fallback entre si:
+
+- `integrado`: usa exclusivamente `AutenticacaoHttp`; é o único modo permitido em produção e falha fechada quando a API está indisponível;
+- `prototipo`: exige `NEXT_PUBLIC_APP_MODE=prototipo` fora de produção, usa estado somente em memória e exibe permanentemente que os dados são simulados, não persistidos e sem backend.
+
+Estão implementados no contrato, adapters e interfaces: cadastro pessoal adulto, confirmação e reenvio de e-mail, login, bootstrap/refresh, consulta da conta, logout, recuperação e redefinição de senha, alteração autenticada de senha, solicitação e confirmação de alteração de e-mail e reativação da conta. Os adapters HTTP representam o contrato documental; não existe evidência de integração real enquanto backend, banco, e-mail e cookie `HttpOnly` não forem exercitados conjuntamente.
+
+Os gates são separados: `test:e2e:frontend` comprova o comportamento fechado do frontend integrado; `test:e2e:prototype:auth` exercita as jornadas em memória e não é evidência de backend. A suíte legada completa mede o protótipo dos demais domínios. Não se deve adicionar persistência de identidade no navegador nem simular infraestrutura de backend para compatibilizar testes antigos.
 
 ## Fontes e precedência
 
@@ -123,8 +130,9 @@ A implementação não deve inventar solução para os itens abaixo:
 10. O UC de habilitação do organizador chama o ator de “Atleta”, enquanto RN e API exigem somente conta pessoal ativa com e-mail confirmado. Até a fonte ser reconciliada, não exigir vínculo esportivo no frontend sem decisão canônica no Drive.
 11. A API exige expiração absoluta da família de refresh em 30 dias, mas o modelo só materializa expiração por linha e não demonstra uma invariante que impeça a rotação de estender a família. O backend precisa fechar e testar essa garantia.
 12. A atualização final corrompeu a linha `UC-CMP-003` na matriz: ela foi dividida em duas linhas e recebeu conteúdo de `chaves_idempotencia` pertencente a outros UCs. A matriz não pode ser considerada estruturalmente íntegra até essa linha ser reparada.
+13. Cadastro pessoal e criação de time exigem `municipioId`, mas o catálogo não publica uma rota para consultar municípios. Gabriel propôs uma API de cidades; Gabriel e Thales precisam definir filtros, paginação, projeção (`id`, `nome`, `uf` e eventual `codigoIbge`) e materializar o contrato no Drive. A API externa do IBGE não substitui diretamente essa rota porque fornece código IBGE, não o UUID interno esperado.
 
-Essas pendências não bloqueiam login, refresh, logout, consulta da própria conta nem cadastro adulto conforme o payload vigente com CPF e RG. Provedor e autoridade legal bloqueiam a conclusão real do fluxo de menor.
+Essas pendências não bloqueiam login, refresh, logout nem consulta da própria conta. O adapter representa o payload do cadastro adulto, mas a jornada integrada permanece bloqueada até existir uma fonte canônica para selecionar `municipioId`. Provedor e autoridade legal bloqueiam a conclusão real do fluxo de menor.
 
 ### Resíduos do Drive que não devem orientar implementação nova
 
@@ -140,18 +148,25 @@ A pasta inteira ainda contém contradições históricas. Para esta fatia, preva
 
 ## Estado atual observado no frontend
 
-As telas e rotas abaixo já existem visualmente:
+| Rota web                     | Estado frontend                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `/login`                     | login por e-mail e senha, mensagem neutra e retorno interno seguro            |
+| `/cadastro`                  | cadastro adulto; integrado bloqueado sem fonte canônica pública de municípios |
+| `/confirmar-email`           | consome token uma vez e o remove da URL                                       |
+| `/recuperar-senha`           | solicitação com resposta pública neutra                                       |
+| `/redefinir-senha`           | redefine por token e exige novo login                                         |
+| `/minha-area`                | destino privado neutro para conta sem vínculos                                |
+| `/minha-conta`               | projeção privada e acesso às ações de segurança                               |
+| `/minha-conta/seguranca`     | alteração autenticada de senha e encerramento da sessão local                 |
+| `/minha-conta/alterar-email` | solicita o novo endereço sem substituir imediatamente o atual                 |
+| `/confirmar-alteracao-email` | confirma a troca por token removido da URL                                    |
+| `/reativar-conta`            | reativa no prazo, com credenciais e confirmação, sem criar sessão automática  |
+| `/solicitar-reativacao`      | solicita link com resposta neutra, sem revelar elegibilidade                  |
+| `/confirmar-reativacao`      | confirma por token de uso único, removido imediatamente da URL                |
 
-| Rota web           | Arquivo de tela                           | Estado atual                                                     |
-| ------------------ | ----------------------------------------- | ---------------------------------------------------------------- |
-| `/login`           | `src/screens/publico/login.tsx`           | usa login mock por e-mail e ignora a senha digitada              |
-| `/cadastro`        | `src/screens/publico/cadastro.tsx`        | salva conta mock no `sessionStorage` e possui campos incompletos |
-| `/recuperar-senha` | `src/screens/publico/recuperar-senha.tsx` | apenas alterna estado local de sucesso                           |
-| `/minha-area`      | `src/screens/conta/minha-area.tsx`        | depende da sessão mock                                           |
+A identidade de protótipo existe somente em memória e é perdida em uma recarga completa. Access token, refresh token e credenciais de sessão não são persistidos em `localStorage` ou `sessionStorage`. Produção seleciona obrigatoriamente o adapter HTTP; o protótipo é apenas infraestrutura de demonstração e E2E, não evidência de autenticação, autorização ou persistência real.
 
-A sessão atual em `src/stores/sessao.tsx` usa `sessionStorage` e dados simulados. Isso é válido somente como mock e deve ser substituído na integração. Não é evidência de autenticação, autorização ou persistência real.
-
-O tipo mock atual também mistura autenticação com projeções de outros domínios (`teamIds`, capitanias, times criados, campeonatos organizados e vínculos institucionais). Nenhum desses vínculos é retornado por `POST /login` ou `GET /minha-conta`; eles não podem ser mantidos no tipo real de sessão sem uma fonte de API correspondente.
+Projeções fictícias de outros domínios (`teamIds`, capitanias, campeonatos organizados e vínculos institucionais) só podem existir em uma sessão explicitamente marcada como protótipo. Nenhum desses vínculos é retornado por `POST /login` ou `GET /minha-conta`; portanto, eles não podem ser promovidos a dados reais de sessão sem uma fonte de API correspondente.
 
 ## Impactos dos demais domínios na sessão e navegação
 
@@ -391,7 +406,7 @@ POST /api/v1/integracoes/verificador-responsavel/resultados
 Até a escolha do provedor:
 
 - tipos e interfaces podem ser preparados;
-- testes podem usar adapter fake;
+- testes podem usar o adapter de protótipo explicitamente injetado;
 - a interface pode representar estados pendentes;
 - não apresentar a verificação como funcional em ambiente real;
 - não simular aprovação em produção;
@@ -685,7 +700,7 @@ Pode começar contra uma interface de serviço e adapter mock fiel ao contrato:
 
 Não pode ser considerado integrado ao backend real enquanto os endpoints não existirem e forem exercitados.
 
-O cadastro adulto pode seguir o contrato vigente com CPF e RG. O fluxo real de menor possui bloqueios adicionais: provedor de verificação e comprovação de autoridade legal do responsável. É permitido preparar interfaces e estados com adapter fake; é proibido simular aprovação em produção ou declarar o fluxo concluído.
+O cadastro adulto pode seguir o contrato vigente com CPF e RG. O fluxo real de menor possui bloqueios adicionais: provedor de verificação e comprovação de autoridade legal do responsável. É permitido preparar interfaces e estados no modo protótipo explicitamente identificado; é proibido simular aprovação em produção ou declarar o fluxo concluído.
 
 ### Login e sessão
 
@@ -744,7 +759,7 @@ Testes esperados:
 
 - testes direcionados de serviços e estado de sessão quando a infraestrutura de testes unitários for adicionada;
 - Playwright para fluxos visíveis e redirecionamentos;
-- adapter fake controlável para estados e Problem Details;
+- adapter de protótipo controlável para estados e Problem Details;
 - integração real com API e PostgreSQL antes de considerar a fatia concluída.
 
 ## Fora do escopo desta primeira documentação

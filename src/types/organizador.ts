@@ -37,13 +37,13 @@ export type CampeonatoAdministravel = CampeonatoOrganizador & {
 
 export type SituacaoComercialOrganizador = {
   primeiroCampeonatoUtilizado: boolean;
-  direitosAdicionaisDisponiveis: number;
   contextoPrefeituraIsento: boolean;
-  compras: Array<{
+  pagamentos: Array<{
     id: string;
+    campeonatoId: number;
     campeonato: string;
-    estado: 'PAGO' | 'PENDENTE' | 'CANCELADO';
-    meio: 'PIX';
+    estado: 'CONFIRMADO' | 'PENDENTE' | 'CANCELADO';
+    provedor: 'MERCADO_PAGO';
     valor: string;
     data: string;
   }>;

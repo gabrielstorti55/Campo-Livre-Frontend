@@ -46,12 +46,6 @@ export type ParticipacaoAtletaPublica = {
   ano: string;
 };
 
-export type ConquistaPublica = {
-  titulo: string;
-  descricao: string;
-  ano: string;
-};
-
 export type AtletaPublico = {
   id: number;
   nome: string;
@@ -59,14 +53,11 @@ export type AtletaPublico = {
   bio?: string;
   municipio: string;
   uf: string;
-  perfilPublico: boolean;
   posicao: string;
   golsPublicados: number;
   partidasPublicadas: number;
-  assistenciasPublicadas: number;
   historicoTimes: HistoricoVinculoPublico[];
   campeonatos: ParticipacaoAtletaPublica[];
-  conquistas: ConquistaPublica[];
 };
 
 export type LocalPartidaPublico = {

@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 import { autenticarEm } from './fixtures/autenticacao';
-async function loginAsMunicipality(page: import('@playwright/test').Page) {
-  await autenticarEm(page, 'prefeitura', '/minha-area');
+async function loginAsMunicipality(
+  page: import('@playwright/test').Page,
+  destino = '/prefeitura/painel',
+) {
+  await autenticarEm(page, 'prefeitura', destino);
 }
 
 test('apresenta a identidade CampoLivre sem aparência de card genérico', async ({
@@ -131,8 +134,7 @@ test('agenda data, horário e partida com primitivas de seleção acessíveis', 
 test('expõe o calendário da prefeitura com semântica de grade', async ({
   page,
 }) => {
-  await loginAsMunicipality(page);
-  await page.goto('/prefeitura/calendario');
+  await loginAsMunicipality(page, '/prefeitura/calendario');
 
   const calendar = page.getByRole('grid', { name: /agosto 2026/i });
   const dia = calendar.getByRole('button', { name: /21 de agosto de 2026/i });
@@ -151,4 +153,3 @@ test('expõe o calendário da prefeitura com semântica de grade', async ({
     page.getByRole('heading', { name: 'Reservas de 21/08/2026' }),
   ).toBeVisible();
 });
-

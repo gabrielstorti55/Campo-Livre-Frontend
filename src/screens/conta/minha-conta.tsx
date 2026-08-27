@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 
+import { AcoesSegurancaConta } from '@/components/autenticacao/acoes-seguranca-conta';
 import { GuardaSessao } from '@/components/autenticacao/guarda-sessao';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSessao } from '@/hooks/use-sessao';
@@ -87,6 +88,8 @@ export function TelaMinhaConta() {
               </dl>
             </CardContent>
           </Card>
+
+          <AcoesSegurancaConta />
 
           <Link
             href="/minha-area"

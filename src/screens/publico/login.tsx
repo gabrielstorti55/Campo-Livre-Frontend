@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { CampoFormulario } from '@/components/layout/campo-formulario';
+import { LinkReativarConta } from '@/components/autenticacao/link-reativar-conta';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSessao } from '@/hooks/use-sessao';
 import { LayoutAutenticacao } from '@/layouts/autenticacao';
-import { ErroApi } from '@/services/api/problem-details';
+import { ErroApi, mapearErrosDeCampo } from '@/services/api/problem-details';
 import { obterDestinoPosLogin } from '@/services/autenticacao/navegacao-sessao';
 
 function mensagemLogin(error: unknown): string {
@@ -33,8 +34,11 @@ function mensagemLogin(error: unknown): string {
 
 export function TelaLogin() {
   const router = useRouter();
-  const { hydrated, status, signIn } = useSessao();
+  const { hydrated, status, signIn, erroSessao } = useSessao();
   const [erro, setErro] = useState<string | null>(null);
+  const [errosCampos, setErrosCampos] = useState<
+    Partial<Record<'email' | 'senha', string>>
+  >({});
   const submitting = status === 'autenticando';
 
   return (
@@ -54,12 +58,22 @@ export function TelaLogin() {
           </p>
         </div>
 
+        {erroSessao ? (
+          <p
+            role="status"
+            className="mb-4 border-l-2 border-warning bg-warning/10 px-3 py-2 text-sm text-foreground"
+          >
+            {erroSessao}
+          </p>
+        ) : null}
+
         <form
           className="space-y-4"
           onSubmit={async (event) => {
             event.preventDefault();
             if (submitting) return;
             setErro(null);
+            setErrosCampos({});
             const formData = new FormData(event.currentTarget);
             const email = String(formData.get('email') ?? '');
             const senha = String(formData.get('senha') ?? '');
@@ -71,7 +85,19 @@ export function TelaLogin() {
               );
               router.push(obterDestinoPosLogin(returnTo, session));
             } catch (error) {
-              setErro(mensagemLogin(error));
+              const errosMapeados =
+                error instanceof ErroApi
+                  ? mapearErrosDeCampo(error.problem, [
+                      'email',
+                      'senha',
+                    ] as const)
+                  : {};
+              setErrosCampos(errosMapeados);
+              setErro(
+                Object.keys(errosMapeados).length > 0
+                  ? null
+                  : mensagemLogin(error),
+              );
             }
           }}
         >
@@ -82,9 +108,16 @@ export function TelaLogin() {
               type="email"
               autoComplete="email"
               required
+              aria-invalid={Boolean(errosCampos.email)}
+              aria-describedby={errosCampos.email ? 'erro-email' : undefined}
               placeholder="seu@email.com"
               className="h-11"
             />
+            {errosCampos.email ? (
+              <p id="erro-email" className="text-sm text-destructive">
+                {errosCampos.email}
+              </p>
+            ) : null}
           </CampoFormulario>
 
           <div>
@@ -95,9 +128,16 @@ export function TelaLogin() {
                 type="password"
                 autoComplete="current-password"
                 required
+                aria-invalid={Boolean(errosCampos.senha)}
+                aria-describedby={errosCampos.senha ? 'erro-senha' : undefined}
                 placeholder="Digite sua senha"
                 className="h-11"
               />
+              {errosCampos.senha ? (
+                <p id="erro-senha" className="text-sm text-destructive">
+                  {errosCampos.senha}
+                </p>
+              ) : null}
             </CampoFormulario>
 
             <div className="mt-1.5 text-right">
@@ -144,6 +184,7 @@ export function TelaLogin() {
             Criar minha conta
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
+          <LinkReativarConta />
         </div>
       </div>
     </LayoutAutenticacao>

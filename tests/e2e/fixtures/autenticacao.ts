@@ -27,7 +27,10 @@ export async function autenticarEm(
   await page.getByLabel('E-mail').fill(emailPorPersona[persona]);
   await page.getByLabel('Senha').fill('senha-mock');
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page).toHaveURL((url) => `${url.pathname}${url.search}` === destino);
+  await expect(page).toHaveURL(
+    (url) => `${url.pathname}${url.search}` === destino,
+    { timeout: 60_000 },
+  );
 }
 
 export async function reautenticarEm(

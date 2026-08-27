@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import { ResumoPartida } from '@/components/modules/partidas/resumo-partida';
+import { obterNomesAtletasPublicados } from '@/mocks/partidas/atletas-publicados.mock';
 import { obterPublicacaoPartidaMock } from '@/mocks/partidas/publicacao-partida.mock';
-import { atletasPublicosMock } from '@/mocks/publico/dados-publicos';
 import {
   obterNomeCampeonatoPublico,
   obterNomeCampoPartida,
@@ -24,13 +24,6 @@ const estadoLabel = {
   AGUARDANDO_PUBLICACAO: 'Aguardando publicação',
   RESULTADO_PUBLICADO: 'Resultado publicado',
 } as const;
-
-function nomesAtletas(ids: number[] = []) {
-  return ids
-    .map((id) => atletasPublicosMock.find((atleta) => atleta.id === id))
-    .filter((atleta) => atleta?.perfilPublico)
-    .map((atleta) => atleta!.nome);
-}
 
 export function TelaDetalhesPartida() {
   const { id } = useParams<{ id: string }>();
@@ -55,8 +48,12 @@ export function TelaDetalhesPartida() {
     partida.golsFora !== undefined
       ? `${partida.golsCasa} × ${partida.golsFora}`
       : null;
-  const escalaCasa = nomesAtletas(partida.escalacaoCasaAtletaIds);
-  const escalaFora = nomesAtletas(partida.escalacaoForaAtletaIds);
+  const escalaCasa = obterNomesAtletasPublicados(
+    partida.escalacaoCasaAtletaIds,
+  );
+  const escalaFora = obterNomesAtletasPublicados(
+    partida.escalacaoForaAtletaIds,
+  );
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
@@ -161,20 +158,10 @@ export function TelaDetalhesPartida() {
       {partida.resultadoPublicado &&
       publicacao.sumulaPublica &&
       placarPublicado ? (
-        <>
-          <ResumoPartida
-            placar={placarPublicado}
-            sumula={publicacao.sumulaPublica}
-          />
-          {partida.pdfSumula ? (
-            <a
-              href={partida.pdfSumula}
-              className="mt-4 inline-flex min-h-11 items-center rounded-md border border-green-dark bg-card px-4 text-sm font-semibold text-green-dark transition-colors hover:bg-green-dark hover:text-white"
-            >
-              Consultar referência da súmula em PDF
-            </a>
-          ) : null}
-        </>
+        <ResumoPartida
+          placar={placarPublicado}
+          sumula={publicacao.sumulaPublica}
+        />
       ) : (
         <section
           aria-labelledby="resumo-partida-title"

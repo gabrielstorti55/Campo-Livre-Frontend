@@ -2,11 +2,15 @@ import type { ReactNode } from 'react';
 
 import { LayoutOrganizador } from '@/layouts/areas-personas';
 import { ControleAcessoOrganizador } from '@/components/layout/controle-acesso-organizador';
+import { ControleModoPrototipo } from '@/components/prototipo/controle-modo-prototipo';
+import { obterModoAplicacao } from '@/config/modo-aplicacao';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <ControleAcessoOrganizador>
-      <LayoutOrganizador>{children}</LayoutOrganizador>
-    </ControleAcessoOrganizador>
+    <ControleModoPrototipo modo={obterModoAplicacao()}>
+      <ControleAcessoOrganizador>
+        <LayoutOrganizador>{children}</LayoutOrganizador>
+      </ControleAcessoOrganizador>
+    </ControleModoPrototipo>
   );
 }

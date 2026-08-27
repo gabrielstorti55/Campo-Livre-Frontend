@@ -62,25 +62,25 @@ export function TelaPerfilOrganizador() {
           Histórico comercial
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Registros locais para representar direitos comerciais; não são
-          comprovantes de pagamento reais.
+          Registros locais de pagamentos vinculados a um campeonato específico;
+          não são comprovantes reais.
         </p>
         <div className="mt-4 space-y-3">
-          {comercial.compras.length === 0 ? (
+          {comercial.pagamentos.length === 0 ? (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              Nenhuma compra vinculada a esta conta.
+              Nenhum pagamento vinculado a campeonato.
             </p>
           ) : null}
-          {comercial.compras.map((compra) => (
-            <Card key={compra.id} className="p-5">
+          {comercial.pagamentos.map((pagamento) => (
+            <Card key={pagamento.id} className="p-5">
               <div className="flex flex-col justify-between gap-2 sm:flex-row">
                 <div>
-                  <h3 className="font-semibold">{compra.campeonato}</h3>
+                  <h3 className="font-semibold">{pagamento.campeonato}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {compra.meio} · {compra.valor} · {compra.data}
+                    Mercado Pago · {pagamento.valor} · {pagamento.data}
                   </p>
                 </div>
-                <strong className="text-sm">{compra.estado}</strong>
+                <strong className="text-sm">{pagamento.estado}</strong>
               </div>
             </Card>
           ))}

@@ -55,10 +55,20 @@ function createApi(overrides: Partial<AutenticacaoApi> = {}): AutenticacaoApi {
     renovar: vi.fn().mockResolvedValue(renewal),
     logout: vi.fn().mockResolvedValue(undefined),
     consultarMinhaConta: vi.fn().mockResolvedValue(account),
+    atualizarMinhaConta: vi.fn().mockResolvedValue(account),
+    enviarFotoMinhaConta: vi.fn(),
+    removerFotoMinhaConta: vi.fn(),
+    alterarSenha: vi.fn(),
+    solicitarAlteracaoEmail: vi.fn(),
+    confirmarAlteracaoEmail: vi.fn(),
+    reativarConta: vi.fn(),
+    solicitarReativacaoConta: vi.fn(),
+    confirmarReativacaoConta: vi.fn(),
     solicitarRecuperacao: vi.fn(),
     redefinirSenha: vi.fn(),
     cadastrar: vi.fn(),
     confirmarEmail: vi.fn(),
+    reenviarConfirmacaoEmail: vi.fn(),
     ...overrides,
   };
 }
@@ -258,6 +268,32 @@ describe('ProvedorSessao', () => {
     );
     expect(screen.getByTestId('erro')).toHaveTextContent(
       'Sua sessão foi encerrada por segurança.',
+    );
+  });
+
+  it('encerra a sessão local quando a conta se torna inapta', async () => {
+    const api = createApi({
+      renovar: vi.fn().mockRejectedValue(
+        new ErroApi({
+          type: 'about:blank',
+          title: 'Conta inapta',
+          status: 403,
+          codigo: 'CONTA_INAPTA',
+        }),
+      ),
+    });
+    render(
+      <ProvedorSessao api={api}>
+        <Probe />
+      </ProvedorSessao>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('visitante'),
+    );
+    expect(screen.getByTestId('email')).toBeEmptyDOMElement();
+    expect(screen.getByTestId('erro')).toHaveTextContent(
+      'Sua conta não está disponível para acesso.',
     );
   });
 

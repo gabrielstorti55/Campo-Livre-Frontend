@@ -38,15 +38,15 @@ test('conta pessoal habilita o painel de organizador sem receber campeonato', as
     .click();
 
   await expect(page).toHaveURL(/\/organizador\/inicio$/);
-  const session = await page.evaluate(() =>
-    JSON.parse(
-      sessionStorage.getItem('campo-livre:mock-personal-session') ?? '{}',
-    ),
+  await expect(
+    page.getByRole('region', { name: 'Meus campeonatos' }),
+  ).toContainText('Nenhum campeonato organizado');
+  await expect(
+    page.getByRole('link', { name: /Copa Franca 2026/ }),
+  ).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Liga Bairro Sul/ })).toHaveCount(
+    0,
   );
-  expect(session.capabilities).toContain('organizador');
-  expect(session.activeContext).toBe('organizador');
-  expect(session.links.organizedChampionshipIds).toEqual([]);
-  expect(session.organizerEnabledAt).toBeTruthy();
 });
 
 test('painel lista somente vínculos administráveis e informa situação comercial', async ({
@@ -98,7 +98,7 @@ test('responsável resolve pendências, valida, abre inscrições e inicia campe
     await page.getByRole('button', { name: `Registrar: ${item}` }).click();
   }
 
-  await page.goto('/organizador/campeonato/4/times');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4/times');
   await page
     .getByRole('button', { name: 'Cancelar convite de Estrela Azul' })
     .click();
@@ -106,17 +106,26 @@ test('responsável resolve pendências, valida, abre inscrições e inicia campe
     .getByRole('button', { name: 'Registrar validação dos elencos' })
     .click();
 
-  await page.goto('/organizador/campeonato/4/chaveamento');
+  await autenticarEm(
+    page,
+    'organizador',
+    '/organizador/campeonato/4/chaveamento',
+  );
   await page
     .getByRole('button', { name: 'Gerar programação completa' })
     .click();
   await page.reload();
+  await autenticarEm(
+    page,
+    'organizador',
+    '/organizador/campeonato/4/chaveamento',
+  );
   await expect(page.getByText(/Estrutura gerada localmente/)).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Gerar programação completa' }),
   ).toBeDisabled();
 
-  await page.goto('/organizador/campeonato/4');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4');
   await expect(page.getByText('0 pendências bloqueantes')).toBeVisible();
   await page.getByRole('button', { name: 'Validar configuração' }).click();
   await expect(page.getByRole('status')).toHaveText(
@@ -145,6 +154,7 @@ test('responsável convida colaboradores e transfere a responsabilidade explicit
     page.getByText('novo.organizador@campolivre.test · Pendente de aceite'),
   ).toBeVisible();
   await page.reload();
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4');
   await expect(
     page.getByText('novo.organizador@campolivre.test · Pendente de aceite'),
   ).toBeVisible();
@@ -164,6 +174,7 @@ test('responsável convida colaboradores e transfere a responsabilidade explicit
     page.getByRole('button', { name: 'Transferir responsabilidade' }),
   ).toHaveCount(0);
   await page.reload();
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4');
   await expect(page.getByText('Você atua como colaborador')).toBeVisible();
   await expect(page.getByText('Responsável: Juliana Lopes')).toBeVisible();
   await expect(page.getByText('Equipe organizadora')).toHaveCount(0);
@@ -181,7 +192,11 @@ test('responsável convida colaboradores e transfere a responsabilidade explicit
 test('chaveamento usa somente participantes do campeonato e geração integral', async ({
   page,
 }) => {
-  await autenticarEm(page, 'organizador', '/organizador/campeonato/4/chaveamento');
+  await autenticarEm(
+    page,
+    'organizador',
+    '/organizador/campeonato/4/chaveamento',
+  );
 
   await expect(page.getByText('Time A', { exact: true })).toBeVisible();
   await expect(page.getByText('Leões FC', { exact: true })).toBeVisible();
@@ -209,7 +224,7 @@ test('papel e histórico comercial pertencem ao vínculo da conta', async ({
     page.getByRole('button', { name: 'Cancelar campeonato' }),
   ).toHaveCount(0);
 
-  await page.goto('/organizador/perfil');
+  await autenticarEm(page, 'organizador', '/organizador/perfil');
   await expect(
     page
       .getByRole('region', { name: 'Participações como organizador' })
@@ -245,24 +260,28 @@ test('colaborador administra operações permitidas sem receber ações do respo
 test('rotas diretas respeitam o lifecycle do campeonato', async ({ page }) => {
   await autenticarEm(page, 'organizador', '/minha-area');
 
-  await page.goto('/organizador/campeonato/7/reservas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/7/reservas');
   await expect(page.getByText('Histórico somente leitura')).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Solicitar reserva' }),
   ).toHaveCount(0);
 
-  await page.goto('/organizador/campeonato/5/partidas');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/5/partidas');
   await expect(page.getByText('Operações indisponíveis')).toBeVisible();
   await expect(page.getByRole('button', { name: /Registrar WO/ })).toHaveCount(
     0,
   );
 
-  await page.goto('/organizador/campeonato/7/sumula');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/7/sumula');
   await expect(
     page.getByRole('heading', { name: 'Súmula indisponível' }),
   ).toBeVisible();
 
-  await page.goto('/organizador/campeonato/1/chaveamento');
+  await autenticarEm(
+    page,
+    'organizador',
+    '/organizador/campeonato/1/chaveamento',
+  );
   await expect(
     page.getByRole('button', { name: 'Gerar programação completa' }),
   ).toBeDisabled();
@@ -278,6 +297,7 @@ test('agendamento compartilhado persiste e habilita WO após recarregar', async 
     .click();
   await page.getByRole('button', { name: /Salvar agendamento/ }).click();
   await page.reload();
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/partidas');
 
   await expect(
     page.getByRole('button', { name: 'Registrar WO na partida 5' }),
@@ -306,7 +326,7 @@ test('opera somente partidas do campeonato e registra WO sem publicar placar inv
   await expect(page.locator('p[role="status"]')).toHaveText(
     'WO registrado localmente; aguarda persistência e publicação pela API.',
   );
-  await page.goto('/organizador/campeonato/1');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1');
   await page.getByRole('button', { name: 'Finalizar campeonato' }).click();
   await expect(page.getByRole('status')).toContainText(
     'Finalização bloqueada: 3 partidas',
@@ -343,6 +363,7 @@ test('solicita e cancela reserva no contexto do campeonato administrado', async 
     'Solicitação de reserva criada localmente como PENDENTE.',
   );
   await page.reload();
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/reservas');
   await expect(
     page.getByRole('heading', { name: 'Campo Santa Rita' }),
   ).toBeVisible();
@@ -353,13 +374,13 @@ test('bloqueia finalização incompleta e cancela preservando histórico', async
 }) => {
   await autenticarEm(page, 'organizador', '/minha-area');
 
-  await page.goto('/organizador/campeonato/1');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1');
   await page.getByRole('button', { name: 'Finalizar campeonato' }).click();
   await expect(page.getByRole('status')).toContainText(
     'Finalização bloqueada: 4 partidas',
   );
 
-  await page.goto('/organizador/campeonato/4');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/4');
   await page.getByRole('button', { name: 'Cancelar campeonato' }).click();
   await page
     .getByLabel('Motivo do cancelamento')
@@ -401,7 +422,7 @@ test('finaliza quando todas as partidas possuem fato definitivo', async ({
   await page.getByRole('button', { name: 'Registrar WO na partida 7' }).click();
   await page.getByRole('button', { name: 'Confirmar WO' }).click();
 
-  await page.goto('/organizador/campeonato/1/sumula');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1/sumula');
   await page.getByLabel('Partida da súmula').selectOption('1');
   await page.getByLabel('Árbitro', { exact: true }).fill('Carlos Silva');
   await page.getByLabel('Primeiro assistente').fill('Ana Lima');
@@ -413,7 +434,7 @@ test('finaliza quando todas as partidas possuem fato definitivo', async ({
     .click();
   await page.getByRole('button', { name: 'Enviar súmula definitiva' }).click();
 
-  await page.goto('/organizador/campeonato/1');
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1');
   await page.getByRole('button', { name: 'Finalizar campeonato' }).click();
   await expect(page.getByRole('status')).toHaveText(
     'Campeonato encerrado; histórico preservado.',
@@ -439,4 +460,3 @@ test('perfil mostra vínculos e histórico comercial sem score inventado', async
   ).toContainText('PIX · Valor registrado no momento da compra');
   await expect(page.getByText(/score/i)).toHaveCount(0);
 });
-

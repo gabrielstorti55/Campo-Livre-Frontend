@@ -16,11 +16,6 @@ test('visitante vê o resumo de uma partida com resultado publicado', async ({
       .getByRole('region', { name: 'Resumo da partida' })
       .getByText('Resultado publicado'),
   ).toBeVisible();
-
-  const session = await page.evaluate(() =>
-    sessionStorage.getItem('campo-livre:mock-personal-session'),
-  );
-  expect(session).toBeNull();
 });
 
 test('eventos esportivos publicados aparecem no resumo', async ({ page }) => {

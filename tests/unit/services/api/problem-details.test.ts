@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizarProblemDetails } from '@/services/api/problem-details';
+import {
+  mapearErrosDeCampo,
+  normalizarProblemDetails,
+} from '@/services/api/problem-details';
 
 describe('normalizarProblemDetails', () => {
   it('preserva somente campos reconhecidos de uma resposta RFC 9457', () => {
@@ -30,6 +33,23 @@ describe('normalizarProblemDetails', () => {
       title: 'Não foi possível concluir a solicitação',
       status: 503,
       codigo: 'RESPOSTA_INVALIDA',
+    });
+  });
+
+  it('mapeia somente erros pertencentes aos campos conhecidos da tela', () => {
+    const problema = normalizarProblemDetails({
+      status: 400,
+      codigo: 'DADOS_INVALIDOS',
+      erros: [
+        { campo: 'email', mensagem: 'Informe um e-mail válido.' },
+        { campo: 'senha', mensagem: 'A senha é obrigatória.' },
+        { campo: 'campoInterno', mensagem: 'Não deve aparecer.' },
+      ],
+    });
+
+    expect(mapearErrosDeCampo(problema, ['email', 'senha'] as const)).toEqual({
+      email: 'Informe um e-mail válido.',
+      senha: 'A senha é obrigatória.',
     });
   });
 });
