@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
@@ -66,10 +66,12 @@ const formatos: Array<{
 ];
 
 function TituloSecao({
+  id,
   icon: Icone,
   titulo,
   descricao,
 }: {
+  id: string;
   icon: typeof Trophy;
   titulo: string;
   descricao: string;
@@ -80,7 +82,10 @@ function TituloSecao({
         <Icone className="size-4" aria-hidden="true" />
       </span>
       <div>
-        <h2 className="font-display text-xl font-bold tracking-[0.01em] text-foreground uppercase">
+        <h2
+          id={id}
+          className="font-display text-xl font-bold tracking-[0.01em] text-foreground uppercase"
+        >
           {titulo}
         </h2>
         <p className="mt-0.5 text-sm text-muted-foreground">{descricao}</p>
@@ -116,7 +121,7 @@ export function TelaCriarCampeonato() {
     setDados((atual) => ({ ...atual, [campo]: valor }));
   }
 
-  function criarCampeonato(event: React.FormEvent<HTMLFormElement>) {
+  function criarCampeonato(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCriado(true);
   }
@@ -305,6 +310,7 @@ export function TelaCriarCampeonato() {
 
             <section aria-labelledby="identificacao-titulo" className="space-y-5">
               <TituloSecao
+                id="identificacao-titulo"
                 icon={Trophy}
                 titulo="Identificação"
                 descricao="Dê um nome claro para localizar e administrar a competição."
@@ -329,6 +335,7 @@ export function TelaCriarCampeonato() {
               className="space-y-5 border-t border-border pt-7"
             >
               <TituloSecao
+                id="organizacao-titulo"
                 icon={ShieldCheck}
                 titulo="Organização"
                 descricao="Defina em qual contexto o campeonato será administrado."
@@ -404,6 +411,7 @@ export function TelaCriarCampeonato() {
               className="space-y-5 border-t border-border pt-7"
             >
               <TituloSecao
+                id="localizacao-titulo"
                 icon={MapPin}
                 titulo="Localização"
                 descricao="O município define a referência territorial do campeonato."
@@ -434,6 +442,7 @@ export function TelaCriarCampeonato() {
               className="space-y-5 border-t border-border pt-7"
             >
               <TituloSecao
+                id="formato-titulo"
                 icon={ListChecks}
                 titulo="Formato"
                 descricao="Escolha a estrutura geral. Os detalhes das fases serão configurados depois."
@@ -491,6 +500,7 @@ export function TelaCriarCampeonato() {
               className="space-y-5 border-t border-border pt-7"
             >
               <TituloSecao
+                id="previsao-titulo"
                 icon={CalendarDays}
                 titulo="Previsão"
                 descricao="Informe quando a competição está prevista para começar."
@@ -515,7 +525,7 @@ export function TelaCriarCampeonato() {
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-border bg-muted/35 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <Button asChild type="button" variant="ghost">
+            <Button asChild variant="ghost">
               <Link href="/organizador/campeonatos">Cancelar</Link>
             </Button>
             <Button type="submit" variant="campo" tone="green">
