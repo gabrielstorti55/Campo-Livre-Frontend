@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
   CircleDollarSign,
-  ListChecks,
   MapPin,
   ShieldCheck,
   Trophy,
@@ -51,45 +50,33 @@ const formatos: Array<{
   {
     valor: 'PONTOS_CORRIDOS',
     titulo: 'Pontos corridos',
-    descricao: 'Todos disputam uma classificação ao longo da competição.',
+    descricao: 'Classificação única ao longo da competição.',
   },
   {
     valor: 'MATA_MATA',
     titulo: 'Mata-mata',
-    descricao: 'Confrontos eliminatórios até a definição do campeão.',
+    descricao: 'Confrontos eliminatórios até a final.',
   },
   {
     valor: 'GRUPOS_E_MATA_MATA',
     titulo: 'Grupos + mata-mata',
-    descricao: 'Fase de grupos seguida por confrontos eliminatórios.',
+    descricao: 'Grupos primeiro, eliminatórias depois.',
   },
 ];
 
 function TituloSecao({
-  id,
   icon: Icone,
   titulo,
-  descricao,
 }: {
-  id: string;
   icon: typeof Trophy;
   titulo: string;
-  descricao: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border border-green-mid/30 bg-green-pale text-green-dark">
-        <Icone className="size-4" aria-hidden="true" />
-      </span>
-      <div>
-        <h2
-          id={id}
-          className="font-display text-xl font-bold tracking-[0.01em] text-foreground uppercase"
-        >
-          {titulo}
-        </h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">{descricao}</p>
-      </div>
+    <div className="flex items-center gap-2">
+      <Icone className="size-4 text-green-dark" aria-hidden="true" />
+      <h2 className="font-display text-lg font-bold tracking-[0.02em] text-foreground uppercase">
+        {titulo}
+      </h2>
     </div>
   );
 }
@@ -128,193 +115,127 @@ export function TelaCriarCampeonato() {
 
   if (criado) {
     return (
-      <>
+      <div className="mx-auto w-full max-w-2xl">
         <CabecalhoPagina
           title="Campeonato criado"
-          subtitle="As informações iniciais foram registradas. Agora a competição pode ser configurada."
+          subtitle="A competição foi criada e já pode receber as configurações restantes."
         />
 
-        <div className="mt-6 max-w-4xl space-y-5">
-          <Cartao className="overflow-hidden p-0">
-            <div className="border-b border-border bg-green-pale px-5 py-4 sm:px-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2
-                    className="mt-1 size-5 shrink-0 text-green-dark"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <p className="text-xs font-semibold tracking-[0.08em] text-green-dark uppercase">
-                      Em inscrições
-                    </p>
-                    <h2 className="mt-1 font-display text-2xl font-bold text-foreground sm:text-3xl">
-                      {dados.nome}
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Franca - SP ·{' '}
-                      {contextoPrefeitura
-                        ? 'Prefeitura de Franca'
-                        : session?.account.name ?? 'Conta pessoal'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-0 sm:grid-cols-3">
-              <div className="border-b border-border px-5 py-4 sm:border-r sm:border-b-0 sm:px-6">
-                <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                  Formato
-                </p>
-                <p className="mt-1 font-medium text-foreground">
-                  {formatos.find((item) => item.valor === dados.formato)?.titulo}
-                </p>
-              </div>
-              <div className="border-b border-border px-5 py-4 sm:border-r sm:border-b-0 sm:px-6">
-                <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                  Início previsto
-                </p>
-                <p className="mt-1 font-medium text-foreground">
-                  {new Date(`${dados.inicioPrevistoEm}T12:00:00`).toLocaleDateString(
-                    'pt-BR',
-                  )}
-                </p>
-              </div>
-              <div className="px-5 py-4 sm:px-6">
-                <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                  Responsável
-                </p>
-                <p className="mt-1 font-medium text-foreground">
-                  {session?.account.name ?? 'Conta pessoal'}
-                </p>
-              </div>
-            </div>
-          </Cartao>
-
-          <section
-            aria-labelledby="proximos-passos-titulo"
-            className="border-y border-border py-5"
-          >
-            <div className="flex items-start gap-3">
-              <ListChecks
-                className="mt-1 size-5 shrink-0 text-green-dark"
+        <Cartao className="mt-6 overflow-hidden p-0">
+          <div className="border-b border-border bg-green-pale px-5 py-5 sm:px-6">
+            <div className="flex gap-3">
+              <CheckCircle2
+                className="mt-0.5 size-5 shrink-0 text-green-dark"
                 aria-hidden="true"
               />
-              <div>
-                <h2
-                  id="proximos-passos-titulo"
-                  className="font-display text-xl font-bold tracking-[0.01em] text-foreground uppercase"
-                >
-                  Próximos passos
+              <div className="min-w-0">
+                <p className="text-xs font-semibold tracking-[0.08em] text-green-dark uppercase">
+                  Em inscrições
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-bold text-foreground">
+                  {dados.nome}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Complete a configuração antes de iniciar a competição.
+                  Franca - SP ·{' '}
+                  {contextoPrefeitura
+                    ? 'Prefeitura de Franca'
+                    : session?.account.name ?? 'Conta pessoal'}
                 </p>
               </div>
             </div>
-
-            <div className="mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-2">
-              {[
-                'Definir regulamento',
-                'Configurar estrutura das fases',
-                'Ordenar critérios de desempate',
-                'Convidar times participantes',
-                'Validar elencos inscritos',
-                'Preparar distribuição e programação',
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3 text-sm">
-                  <span
-                    className="size-2 shrink-0 rounded-full border border-muted-foreground"
-                    aria-hidden="true"
-                  />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            <Button
-              type="button"
-              variant="campoOutline"
-              tone="green"
-              onClick={() => setCriado(false)}
-            >
-              Voltar ao formulário
-            </Button>
-            <Button asChild variant="campo" tone="green">
-              <Link href="/organizador/campeonatos">Ir para meus campeonatos</Link>
-            </Button>
           </div>
+
+          <div className="grid border-b border-border sm:grid-cols-2">
+            <div className="border-b border-border px-5 py-4 sm:border-r sm:border-b-0 sm:px-6">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Formato
+              </span>
+              <p className="mt-1 text-sm font-medium">
+                {formatos.find((item) => item.valor === dados.formato)?.titulo}
+              </p>
+            </div>
+            <div className="px-5 py-4 sm:px-6">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Início previsto
+              </span>
+              <p className="mt-1 text-sm font-medium">
+                {new Date(`${dados.inicioPrevistoEm}T12:00:00`).toLocaleDateString(
+                  'pt-BR',
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="px-5 py-5 sm:px-6">
+            <h3 className="font-display text-lg font-bold uppercase">
+              Complete a configuração
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Regulamento, fases, critérios, times e programação ficam para a
+              área de gerenciamento do campeonato.
+            </p>
+          </div>
+        </Cartao>
+
+        <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          <Button
+            type="button"
+            variant="campoOutline"
+            tone="green"
+            onClick={() => setCriado(false)}
+          >
+            Voltar ao formulário
+          </Button>
+          <Button asChild variant="campo" tone="green">
+            <Link href="/organizador/campeonatos">Ver meus campeonatos</Link>
+          </Button>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="mx-auto w-full max-w-2xl">
       <CabecalhoPagina
         title="Novo Campeonato"
-        subtitle="Cadastre as informações iniciais. Regulamento, fases e participantes serão configurados depois."
+        subtitle="Preencha apenas os dados iniciais. O restante será configurado depois."
       />
 
-      <form onSubmit={criarCampeonato} className="mt-6 max-w-4xl">
+      <form onSubmit={criarCampeonato} className="mt-6">
         <Cartao className="overflow-hidden p-0">
           <div
             className={cn(
-              'flex gap-3 border-b border-border px-5 py-4 sm:px-6',
-              contextoPrefeitura ? 'bg-green-pale' : 'bg-accent/25',
+              'flex gap-3 border-b border-border px-5 py-3.5 sm:px-6',
+              contextoPrefeitura ? 'bg-green-pale' : 'bg-accent/20',
             )}
           >
             {contextoPrefeitura ? (
               <ShieldCheck
-                className="mt-0.5 size-5 shrink-0 text-green-dark"
+                className="mt-0.5 size-4 shrink-0 text-green-dark"
                 aria-hidden="true"
               />
             ) : (
               <CircleDollarSign
-                className="mt-0.5 size-5 shrink-0 text-warning"
+                className="mt-0.5 size-4 shrink-0 text-warning"
                 aria-hidden="true"
               />
             )}
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {contextoPrefeitura
-                  ? 'Criação institucional'
-                  : comercial.primeiroCampeonatoUtilizado
-                    ? 'Situação comercial da conta'
-                    : 'Primeiro campeonato pessoal gratuito'}
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {contextoPrefeitura
-                  ? 'O campeonato será criado em nome da Prefeitura de Franca e não consome o benefício pessoal.'
-                  : comercial.primeiroCampeonatoUtilizado
-                    ? 'Seu primeiro campeonato gratuito já foi utilizado. A elegibilidade comercial será validada antes da criação.'
-                    : 'Este campeonato utiliza o benefício gratuito disponível para sua conta pessoal.'}
-              </p>
-            </div>
+            <p className="text-sm leading-5 text-foreground">
+              {contextoPrefeitura
+                ? 'Criação institucional pela Prefeitura de Franca, sem consumo do benefício pessoal.'
+                : comercial.primeiroCampeonatoUtilizado
+                  ? 'Seu primeiro campeonato gratuito já foi utilizado. A elegibilidade será validada antes da criação.'
+                  : 'Seu primeiro campeonato pessoal pode ser criado gratuitamente.'}
+            </p>
           </div>
 
-          <div className="space-y-7 px-5 py-6 sm:px-6 sm:py-7">
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">
-                Responsável:{' '}
-                <strong className="font-semibold text-foreground">
-                  {session?.account.name ?? 'Conta pessoal'}
-                </strong>
-              </p>
-              <p className="text-xs font-medium text-muted-foreground">
-                * obrigatório
-              </p>
-            </div>
+          <div className="space-y-6 px-5 py-5 sm:px-6 sm:py-6">
+            <section aria-labelledby="dados-basicos-titulo" className="space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <TituloSecao icon={Trophy} titulo="Dados do campeonato" />
+                <span className="text-xs text-muted-foreground">* obrigatório</span>
+              </div>
 
-            <section aria-labelledby="identificacao-titulo" className="space-y-5">
-              <TituloSecao
-                id="identificacao-titulo"
-                icon={Trophy}
-                titulo="Identificação"
-                descricao="Dê um nome claro para localizar e administrar a competição."
-              />
               <CampoFormulario
                 label="Nome do campeonato *"
                 htmlFor="nome-do-campeonato-field"
@@ -328,212 +249,158 @@ export function TelaCriarCampeonato() {
                   required
                 />
               </CampoFormulario>
-            </section>
 
-            <section
-              aria-labelledby="organizacao-titulo"
-              className="space-y-5 border-t border-border pt-7"
-            >
-              <TituloSecao
-                id="organizacao-titulo"
-                icon={ShieldCheck}
-                titulo="Organização"
-                descricao="Defina em qual contexto o campeonato será administrado."
-              />
-
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium text-foreground">
-                  Organizar como *
-                </legend>
-                <RadioGroup
-                  value={dados.contexto}
-                  onValueChange={(valor) =>
-                    atualizar('contexto', valor as ContextoCampeonato)
-                  }
-                  className="grid gap-3 sm:grid-cols-2"
-                  aria-label="Contexto responsável"
-                >
-                  <label
-                    htmlFor="contexto-pessoal"
-                    className={cn(
-                      'flex min-h-20 cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors',
-                      dados.contexto === 'pessoal'
-                        ? 'border-green-mid bg-green-pale/70'
-                        : 'border-border bg-card hover:border-green-light',
-                    )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <fieldset>
+                  <legend className="mb-1.5 text-sm font-medium text-foreground">
+                    Organizar como *
+                  </legend>
+                  <RadioGroup
+                    value={dados.contexto}
+                    onValueChange={(valor) =>
+                      atualizar('contexto', valor as ContextoCampeonato)
+                    }
+                    className="grid gap-2"
+                    aria-label="Contexto responsável"
                   >
-                    <RadioGroupItem
-                      id="contexto-pessoal"
-                      value="pessoal"
-                      className="mt-0.5"
-                    />
-                    <span>
-                      <span className="block font-semibold text-foreground">
-                        Minha conta
-                      </span>
-                      <span className="mt-1 block text-sm text-muted-foreground">
-                        {session?.account.name ?? 'Conta pessoal'} será o responsável.
-                      </span>
-                    </span>
-                  </label>
-
-                  {podeOrganizarComoPrefeitura ? (
                     <label
-                      htmlFor="contexto-prefeitura"
+                      htmlFor="contexto-pessoal"
                       className={cn(
-                        'flex min-h-20 cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors',
-                        dados.contexto === 'prefeitura'
-                          ? 'border-green-mid bg-green-pale/70'
+                        'flex cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2.5 text-sm transition-colors',
+                        dados.contexto === 'pessoal'
+                          ? 'border-green-mid bg-green-pale/70 font-medium'
                           : 'border-border bg-card hover:border-green-light',
                       )}
                     >
-                      <RadioGroupItem
-                        id="contexto-prefeitura"
-                        value="prefeitura"
-                        className="mt-0.5"
-                      />
-                      <span>
-                        <span className="block font-semibold text-foreground">
-                          Prefeitura de Franca
-                        </span>
-                        <span className="mt-1 block text-sm text-muted-foreground">
-                          Criação vinculada à instituição municipal.
-                        </span>
-                      </span>
+                      <RadioGroupItem id="contexto-pessoal" value="pessoal" />
+                      Minha conta
                     </label>
-                  ) : null}
-                </RadioGroup>
-              </fieldset>
+
+                    {podeOrganizarComoPrefeitura ? (
+                      <label
+                        htmlFor="contexto-prefeitura"
+                        className={cn(
+                          'flex cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2.5 text-sm transition-colors',
+                          dados.contexto === 'prefeitura'
+                            ? 'border-green-mid bg-green-pale/70 font-medium'
+                            : 'border-border bg-card hover:border-green-light',
+                        )}
+                      >
+                        <RadioGroupItem
+                          id="contexto-prefeitura"
+                          value="prefeitura"
+                        />
+                        Prefeitura de Franca
+                      </label>
+                    ) : null}
+                  </RadioGroup>
+                </fieldset>
+
+                <div>
+                  <CampoFormulario label="Município *" htmlFor="municipio-field">
+                    <Select
+                      value={dados.municipioId}
+                      onValueChange={(valor) => atualizar('municipioId', valor)}
+                      disabled={contextoPrefeitura}
+                    >
+                      <SelectTrigger id="municipio-field">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="franca-sp">Franca - SP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </CampoFormulario>
+
+                  <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+                    <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                    <span>
+                      {contextoPrefeitura
+                        ? 'Município definido pelo vínculo institucional.'
+                        : 'UF é obtida automaticamente a partir do município.'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </section>
 
             <section
-              aria-labelledby="localizacao-titulo"
-              className="space-y-5 border-t border-border pt-7"
+              aria-labelledby="formato-inicio-titulo"
+              className="space-y-4 border-t border-border pt-5"
             >
-              <TituloSecao
-                id="localizacao-titulo"
-                icon={MapPin}
-                titulo="Localização"
-                descricao="O município define a referência territorial do campeonato."
-              />
-              <CampoFormulario label="Município *" htmlFor="municipio-field">
-                <Select
-                  value={dados.municipioId}
-                  onValueChange={(valor) => atualizar('municipioId', valor)}
-                  disabled={contextoPrefeitura}
-                >
-                  <SelectTrigger id="municipio-field">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="franca-sp">Franca - SP</SelectItem>
-                  </SelectContent>
-                </Select>
-                {contextoPrefeitura ? (
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    Definido pelo vínculo institucional da Prefeitura.
-                  </p>
-                ) : null}
-              </CampoFormulario>
-            </section>
-
-            <section
-              aria-labelledby="formato-titulo"
-              className="space-y-5 border-t border-border pt-7"
-            >
-              <TituloSecao
-                id="formato-titulo"
-                icon={ListChecks}
-                titulo="Formato"
-                descricao="Escolha a estrutura geral. Os detalhes das fases serão configurados depois."
-              />
+              <TituloSecao icon={CalendarDays} titulo="Formato e início" />
 
               <fieldset>
-                <legend className="sr-only">Formato do campeonato</legend>
+                <legend className="mb-2 text-sm font-medium text-foreground">
+                  Formato *
+                </legend>
                 <RadioGroup
                   value={dados.formato}
                   onValueChange={(valor) =>
                     atualizar('formato', valor as FormatoCampeonato)
                   }
-                  className="grid gap-3 md:grid-cols-3"
+                  className="grid gap-2 sm:grid-cols-3"
                   aria-label="Formato do campeonato"
                 >
                   {formatos.map((formato) => {
                     const selecionado = dados.formato === formato.valor;
-                    const id = `formato-${formato.valor.toLowerCase()}`;
 
                     return (
                       <label
                         key={formato.valor}
-                        htmlFor={id}
+                        htmlFor={`formato-${formato.valor}`}
                         className={cn(
-                          'cursor-pointer rounded-md border p-4 transition-colors',
+                          'cursor-pointer rounded-md border p-3 transition-colors',
                           selecionado
                             ? 'border-green-mid bg-green-pale/70'
                             : 'border-border bg-card hover:border-green-light',
                         )}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-center gap-2">
                           <RadioGroupItem
-                            id={id}
+                            id={`formato-${formato.valor}`}
                             value={formato.valor}
-                            className="mt-0.5"
                           />
-                          <span>
-                            <span className="block font-display text-lg font-bold text-foreground">
-                              {formato.titulo}
-                            </span>
-                            <span className="mt-1.5 block text-sm leading-5 text-muted-foreground">
-                              {formato.descricao}
-                            </span>
+                          <span className="text-sm font-semibold text-foreground">
+                            {formato.titulo}
                           </span>
                         </div>
+                        <p className="mt-1.5 pl-6 text-xs leading-4 text-muted-foreground">
+                          {formato.descricao}
+                        </p>
                       </label>
                     );
                   })}
                 </RadioGroup>
               </fieldset>
-            </section>
 
-            <section
-              aria-labelledby="previsao-titulo"
-              className="space-y-5 border-t border-border pt-7"
-            >
-              <TituloSecao
-                id="previsao-titulo"
-                icon={CalendarDays}
-                titulo="Previsão"
-                descricao="Informe quando a competição está prevista para começar."
-              />
-              <div className="max-w-sm">
-                <CampoFormulario
-                  label="Início previsto *"
-                  htmlFor="data-inicio-field"
-                >
-                  <Input
-                    id="data-inicio-field"
-                    type="date"
-                    value={dados.inicioPrevistoEm}
-                    onChange={(event) =>
-                      atualizar('inicioPrevistoEm', event.target.value)
-                    }
-                    required
-                  />
-                </CampoFormulario>
-              </div>
+              <CampoFormulario
+                label="Data prevista de início *"
+                htmlFor="data-inicio-field"
+              >
+                <Input
+                  id="data-inicio-field"
+                  type="date"
+                  value={dados.inicioPrevistoEm}
+                  onChange={(event) =>
+                    atualizar('inicioPrevistoEm', event.target.value)
+                  }
+                  required
+                />
+              </CampoFormulario>
             </section>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-border bg-muted/35 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <Button asChild variant="ghost">
-              <Link href="/organizador/campeonatos">Cancelar</Link>
-            </Button>
+          <div className="flex flex-col-reverse gap-3 border-t border-border bg-muted/30 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <p className="text-xs text-muted-foreground sm:max-w-xs">
+              Times, regulamento e fases serão configurados após a criação.
+            </p>
             <Button type="submit" variant="campo" tone="green">
               Criar campeonato
             </Button>
           </div>
         </Cartao>
       </form>
-    </>
+    </div>
   );
 }
