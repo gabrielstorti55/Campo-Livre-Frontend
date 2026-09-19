@@ -49,73 +49,71 @@ test('rotas pessoais exigem sessão autenticada', async ({ page }) => {
   await expect(page).toHaveURL((url) => url.pathname === '/login');
   await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
 
-  await page.goto('/times/criar');
-  await expect(page).toHaveURL((url) => url.pathname === '/login');
+  await page.goto('/atleta/time/criar');
+  await expect(page).toHaveURL(
+    (url) => url.pathname === '/login' && url.searchParams.has('returnTo'),
+  );
 });
 
-test('perfil do atleta usa somente fatos esportivos publicados e seus times', async ({
+test('perfil do atleta edita somente os dados pessoais disponíveis no contrato', async ({
   page,
 }) => {
   await autenticarEm(page, 'organizador', '/atleta/perfil');
 
-  const stats = page.getByRole('region', { name: 'Estatísticas publicadas' });
-  await expect(stats.getByText('7', { exact: true })).toBeVisible();
-  await expect(stats.getByText('14', { exact: true })).toBeVisible();
-  await expect(stats.getByText('4', { exact: true })).toBeVisible();
-  await expect(page.getByText('Score futmob')).toHaveCount(0);
-
-  const meusTimes = page.getByRole('region', { name: 'Meus times' });
-  await expect(meusTimes.getByRole('link', { name: /Time A/ })).toBeVisible();
-  await expect(meusTimes.getByText('Leões FC')).toHaveCount(0);
   await expect(
-    page.getByRole('region', { name: 'Histórico de times publicado' }),
-  ).toContainText('Time A');
+    page.getByRole('heading', { name: 'Perfil básico' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Nome público')).toHaveValue('Marcos Oliveira');
+  await expect(page.getByLabel('Biografia')).toBeVisible();
+  await expect(page.getByLabel('Posição principal')).toBeVisible();
+  await expect(page.getByText('Score futmob')).toHaveCount(0);
+  await expect(
+    page.getByRole('region', { name: 'Estatísticas publicadas' }),
+  ).toHaveCount(0);
 });
 
-test('área do atleta mostra somente eventos dos times vinculados', async ({
+test('área do atleta não substitui agenda pessoal ausente pelo catálogo público', async ({
   page,
 }) => {
   await autenticarEm(page, 'organizador', '/atleta/meus-eventos');
-  const eventosAtivos = page.getByRole('tabpanel', { name: 'Ativos' });
   await expect(
-    eventosAtivos.getByRole('link', { name: /Copa Franca 2026/ }),
+    page.getByRole('heading', { name: 'Agenda pessoal ainda indisponível' }),
   ).toBeVisible();
-  await expect(eventosAtivos.getByText('Liga Bairro Sul')).toHaveCount(0);
-
-  await page.getByRole('tab', { name: 'Encerrados' }).click();
-  const eventosEncerrados = page.getByRole('tabpanel', { name: 'Encerrados' });
   await expect(
-    eventosEncerrados.getByRole('link', { name: /Copa Franca 2025/ }),
-  ).toBeVisible();
-  await expect(eventosEncerrados.getByText('Liga Municipal 2025')).toHaveCount(
-    0,
-  );
+    page.getByRole('link', { name: /Copa Franca 2026/ }),
+  ).toHaveCount(0);
+  await expect(page.getByRole('tab')).toHaveCount(0);
 });
 
-test('evento cancelado preserva seu estado no histórico do atleta', async ({
+test('evento cancelado não é inventado sem projeção de agenda pessoal', async ({
   page,
 }) => {
   await autenticarEm(page, 'atletaCancelado', '/atleta/meus-eventos');
-  await page.getByRole('tab', { name: 'Encerrados' }).click();
-  const cancelledEvent = page
-    .getByRole('tabpanel', { name: 'Encerrados' })
-    .getByRole('link', { name: /Copa Municipal Cancelada/ });
-  await expect(cancelledEvent).toContainText('Cancelado');
+  await expect(
+    page.getByRole('heading', { name: 'Agenda pessoal ainda indisponível' }),
+  ).toBeVisible();
+  await expect(page.getByText('Copa Municipal Cancelada')).toHaveCount(0);
 });
 
 test('atleta cria um time e torna-se capitão', async ({ page }) => {
+  await page.goto('/atleta/time/aquecer-rota-dinamica');
+  await expect(page).toHaveURL((url) => url.pathname === '/login');
   await loginWithoutTeam(page);
   await page.getByRole('link', { name: 'Criar um time' }).click();
 
-  const modalidade = page.getByRole('radiogroup', { name: 'Modalidade' });
-  await modalidade.getByRole('radio', { name: 'Campo' }).click();
-
   await page.getByLabel('Nome do time').fill('Falcões da Vila');
-  await page.getByLabel('Cidade').fill('Franca, SP');
+  await page.getByLabel('Sigla').fill('FDV');
+  await page.getByLabel('Município').selectOption({ label: 'Franca/SP' });
   await page
-    .getByLabel('Descrição')
+    .getByLabel('Descrição pública')
     .fill('Equipe criada para disputar campeonatos municipais.');
-  await page
-    .getByRole('button', { name: 'Salvar time e convidar atletas' })
-    .click();
+  await page.getByRole('button', { name: 'Criar Time' }).click();
+  await expect(page).toHaveURL(
+    (url) =>
+      url.pathname.startsWith('/atleta/time/') &&
+      url.pathname !== '/atleta/time/criar',
+  );
+  await expect(
+    page.getByRole('heading', { name: 'Falcões da Vila' }),
+  ).toBeVisible();
 });

@@ -8,11 +8,13 @@ export default tseslint.config(
   {
     ignores: [
       '.next',
+      '.next-e2e-*',
       'dist',
       '.output',
       'playwright-report',
       'test-results',
       'graphify-out',
+      'brag-output*',
       'next-env.d.ts',
     ],
   },

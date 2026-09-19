@@ -12,8 +12,9 @@ export function ControleAcessoPrefeitura({
 }) {
   const { session } = useSessao();
   const hasInstitutionalLink = Boolean(
-    session?.prototipo &&
-    session.links.institutionalOrganizationIds.includes('prefeitura-franca'),
+    session &&
+    (!session.prototipo ||
+      session.links.institutionalOrganizationIds.includes('prefeitura-franca')),
   );
 
   return (

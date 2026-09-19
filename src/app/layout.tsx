@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <body>
         <ProvedoresAplicacao modo={modo}>{children}</ProvedoresAplicacao>
-        {/* <IndicadorModoPrototipo modo={modo} /> */}
+        <IndicadorModoPrototipo modo={modo} />
       </body>
     </html>
   );

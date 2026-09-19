@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 
 import { CampoFormulario } from '@/components/layout/campo-formulario';
 import { CartaoFormulario } from '@/components/layout/cartao-formulario';
@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTimesApi } from '@/contexts/times-api';
 import { useSessao } from '@/hooks/use-sessao';
-import type { AtletaParaConvite, ConviteTimeEnviado } from '@/types/api/times';
+import type {
+  AtletaParaConvite,
+  ConviteTimeEnviado,
+  ConviteTimeEnviadoPendente,
+} from '@/types/api/times';
 
 function novaChave(): string {
   return crypto.randomUUID();
@@ -20,10 +24,32 @@ export function GerenciarConvitesTime({ timeId }: { timeId: string }) {
   const [email, setEmail] = useState('');
   const [atleta, setAtleta] = useState<AtletaParaConvite | null>(null);
   const [convite, setConvite] = useState<ConviteTimeEnviado | null>(null);
+  const [convitesPendentes, setConvitesPendentes] = useState<
+    ConviteTimeEnviadoPendente[]
+  >([]);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
   const chaveEnvio = useRef<string | null>(null);
   const chaveReenvio = useRef<string | null>(null);
+  const chavesReenvioPendentes = useRef(new Map<string, string>());
+
+  useEffect(() => {
+    let ativo = true;
+    void executarAutenticado((accessToken) =>
+      api.listarConvitesEnviados(timeId, accessToken, 1, 20),
+    ).then(
+      (pagina) => {
+        if (ativo) setConvitesPendentes(pagina.itens);
+      },
+      () => {
+        if (ativo)
+          setMensagem('Não foi possível carregar os convites pendentes.');
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [api, executarAutenticado, timeId]);
 
   async function buscar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -118,6 +144,52 @@ export function GerenciarConvitesTime({ timeId }: { timeId: string }) {
     }
   }
 
+  async function reenviarPendente(item: ConviteTimeEnviadoPendente) {
+    const chave =
+      chavesReenvioPendentes.current.get(item.conviteId) ?? novaChave();
+    chavesReenvioPendentes.current.set(item.conviteId, chave);
+    setOcupado(true);
+    setMensagem(null);
+    try {
+      const resposta = await executarAutenticado((accessToken) =>
+        api.reenviarConvite(timeId, item.conviteId, accessToken, chave),
+      );
+      chavesReenvioPendentes.current.delete(item.conviteId);
+      setConvitesPendentes((atuais) =>
+        atuais.map((atual) =>
+          atual.conviteId === item.conviteId
+            ? { ...atual, expiraEm: resposta.expiraEm }
+            : atual,
+        ),
+      );
+      setMensagem(
+        `Convite reenviado. Novo link: ${resposta.linkCompartilhavel}`,
+      );
+    } catch {
+      setMensagem('Não foi possível reenviar o convite.');
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  async function cancelarPendente(item: ConviteTimeEnviadoPendente) {
+    setOcupado(true);
+    setMensagem(null);
+    try {
+      await executarAutenticado((accessToken) =>
+        api.cancelarConvite(timeId, item.conviteId, accessToken),
+      );
+      setConvitesPendentes((atuais) =>
+        atuais.filter((atual) => atual.conviteId !== item.conviteId),
+      );
+      setMensagem('Convite cancelado.');
+    } catch {
+      setMensagem('Não foi possível cancelar o convite.');
+    } finally {
+      setOcupado(false);
+    }
+  }
+
   return (
     <section className="mt-6" aria-labelledby="convites-time-title">
       <CartaoFormulario>
@@ -167,6 +239,49 @@ export function GerenciarConvitesTime({ timeId }: { timeId: string }) {
                 Enviar convite
               </Button>
             ) : null}
+          </div>
+        ) : null}
+
+        {convitesPendentes.length > 0 ? (
+          <div className="space-y-3 border-t border-border pt-4">
+            <h3 className="font-display text-lg font-bold">
+              Convites pendentes
+            </h3>
+            {convitesPendentes.map((item) => (
+              <article
+                key={item.conviteId}
+                className="border-l-2 border-accent pl-3 text-sm"
+              >
+                <p className="font-semibold">{item.destinatario.nome}</p>
+                <p>@{item.destinatario.nomeUsuario}</p>
+                <p>{item.destinatario.emailMascarado}</p>
+                <p>
+                  Expira em {new Date(item.expiraEm).toLocaleString('pt-BR')}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {item.acoesPermitidas.includes('REENVIAR') ? (
+                    <Button
+                      type="button"
+                      variant="campoOutline"
+                      disabled={ocupado}
+                      onClick={() => void reenviarPendente(item)}
+                    >
+                      Reenviar convite para {item.destinatario.nome}
+                    </Button>
+                  ) : null}
+                  {item.acoesPermitidas.includes('CANCELAR') ? (
+                    <Button
+                      type="button"
+                      variant="campoOutline"
+                      disabled={ocupado}
+                      onClick={() => void cancelarPendente(item)}
+                    >
+                      Cancelar convite para {item.destinatario.nome}
+                    </Button>
+                  ) : null}
+                </div>
+              </article>
+            ))}
           </div>
         ) : null}
 

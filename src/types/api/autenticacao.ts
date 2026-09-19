@@ -8,8 +8,8 @@ export type EntradaLogin = {
 
 export type UsuarioAutenticado = {
   id: string;
-  nome: string;
-  nomeUsuario: string;
+  nome: string | null;
+  nomeUsuario: string | null;
   administrador: boolean;
   organizadorHabilitado: boolean;
 };
@@ -37,19 +37,19 @@ export type MinhaConta = {
   emailPendente: string | null;
   emailConfirmado: boolean;
   telefone: string | null;
-  cpf: string;
+  cpf: string | null;
   rg: {
-    numero: string;
-    orgaoExpedidor: string;
-    uf: string;
+    numero: string | null;
+    orgaoExpedidor: string | null;
+    uf: string | null;
   };
-  dataNascimento: string;
-  idade: number;
+  dataNascimento: string | null;
+  idade: number | null;
   municipio: {
     id: string;
     nome: string;
     uf: string;
-  };
+  } | null;
   fotoUrl: string | null;
   biografia: string | null;
   posicaoPrincipal: PosicaoPrincipal | null;
@@ -58,6 +58,18 @@ export type MinhaConta = {
   administrador: boolean;
   criadoEm: string;
   atualizadoEm: string;
+};
+
+export type RespostaAtivacaoOrganizador = {
+  organizadorHabilitado: true;
+  organizadorHabilitadoEm: string;
+};
+
+export type RespostaDesativacaoConta = {
+  contaInativada: true;
+  sessoesRevogadas: true;
+  eliminacaoPrevistaEm: string;
+  prazoDias: number;
 };
 
 export type EntradaAtualizacaoMinhaConta = {
@@ -87,14 +99,11 @@ export type EntradaCadastro = {
   termosAceitos: true;
 };
 
-export type ProximaAcaoCadastro = 'CONFIRMAR_EMAIL' | 'INFORMAR_RESPONSAVEL';
+export type ProximaAcaoCadastro = 'CONFIRMAR_EMAIL';
 
 export type RespostaCadastro = {
   cadastroId: string;
-  cadastroToken: string;
   status: 'PENDENTE_CONFIRMACAO' | 'AGUARDANDO_CONSENTIMENTO';
-  emailConfirmado: false;
-  consentimentoResponsavelNecessario: boolean;
   proximaAcao: ProximaAcaoCadastro;
 };
 

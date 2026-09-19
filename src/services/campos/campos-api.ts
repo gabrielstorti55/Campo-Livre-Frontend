@@ -1,4 +1,6 @@
 import type {
+  CadastroCampo,
+  CampoCriado,
   CampoDetalhado,
   FiltrosCampos,
   PaginaCampos,
@@ -7,4 +9,9 @@ import type {
 export interface CamposApi {
   listarCampos(filtros?: FiltrosCampos): Promise<PaginaCampos>;
   consultarCampo(campoId: string): Promise<CampoDetalhado>;
+  cadastrarCampo(
+    prefeituraId: string,
+    accessToken: string,
+    input: CadastroCampo,
+  ): Promise<CampoCriado>;
 }

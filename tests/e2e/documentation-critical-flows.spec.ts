@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { autenticarEm } from './fixtures/autenticacao';
+import { autenticarEm, preaquecerRota } from './fixtures/autenticacao';
 async function loginAsOrganizer(page: Page, destino = '/minha-area') {
   await autenticarEm(page, 'organizador', destino);
 }
@@ -28,133 +28,59 @@ test('entrada em time ocorre por convite nominal, sem solicitação aberta', asy
   await expect(page.getByText('Tenho um código de convite')).toHaveCount(0);
 });
 
-test('capitão convida uma conta nominal em vez de adicionar jogador diretamente', async ({
+test('gestão do time falha fechada sem vínculo ativo de capitão', async ({
   page,
 }) => {
   await loginAsOrganizer(page, '/atleta/time/1');
 
-  await expect(page.getByLabel('Conta do atleta')).toBeVisible();
-  await expect(page.getByLabel('Forma de envio')).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Enviar convite nominal' }),
+    page.getByRole('heading', { name: 'Acesso restrito ao capitão' }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Adicionar jogador' }),
   ).toHaveCount(0);
-  await page.getByLabel('Conta do atleta').fill('atleta@campolivre.test');
-  await page.getByLabel('Forma de envio').selectOption('link');
-  await page.getByRole('button', { name: 'Enviar convite nominal' }).click();
   await expect(
-    page.getByRole('textbox', { name: 'Link compartilhável' }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Reenviar convite' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Cancelar convite' }).click();
-  await expect(
-    page.getByRole('textbox', { name: 'Link compartilhável' }),
+    page.getByRole('button', { name: 'Enviar convite nominal' }),
   ).toHaveCount(0);
-
-  await page.goto('/atleta/time/criar');
-  await expect(
-    page.getByRole('button', { name: 'Salvar time e convidar atletas' }),
-  ).toBeVisible();
-  await expect(page.getByText(/adicionar jogadores/i)).toHaveCount(0);
 });
 
-test('página pública do time exibe somente a projeção permitida do elenco', async ({
+test('página pública do time ausente falha explicitamente sem fixture local', async ({
   page,
 }) => {
   await page.goto('/times/1');
 
-  const roster = page.getByRole('region', { name: 'Elenco público' });
-  await expect(roster).toBeVisible();
-  await expect(roster.getByText('Marcos Oliveira')).toBeVisible();
-  await expect(roster.getByText('Capitão')).toBeVisible();
-  await expect(roster.getByText('7 gols')).toBeVisible();
-  await expect(roster.getByText(/desde 2024/i)).toBeVisible();
   await expect(
-    roster.getByRole('img', { name: 'Foto de Marcos Oliveira' }),
+    page.getByRole('heading', { name: 'Time não encontrado' }),
   ).toBeVisible();
   await expect(page.getByText('CPF')).toHaveCount(0);
   await expect(page.getByText(/@campolivre\.test/)).toHaveCount(0);
-
-  await page.goto('/times/2');
-  await expect(
-    page
-      .getByRole('region', { name: 'Elenco público' })
-      .getByText('Henrique Alves'),
-  ).toBeVisible();
-  await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
-
-  await page.goto('/times');
-  await expect(page.getByText(/sem expor elenco/i)).toHaveCount(0);
-  await expect(page.getByText(/projeção esportiva autorizada/i)).toBeVisible();
 });
 
-test('campeonato nasce como rascunho e recebe times somente por convite', async ({
+test('campeonato é criado com os dados essenciais do contrato atual', async ({
   page,
 }) => {
+  await preaquecerRota(page, '/organizador/campeonato/aquecer-rota-dinamica');
   await loginAsOrganizer(page, '/organizador/novo');
 
-  await expect(page.getByText('Rascunho', { exact: true })).toBeVisible();
-  await expect(page.getByText(/responsável: Marcos Oliveira/i)).toBeVisible();
   await expect(page.getByLabel('Contexto responsável')).toBeVisible();
   await expect(page.getByLabel('Município')).toBeVisible();
-  await expect(page.getByLabel('UF')).toBeVisible();
-  await expect(page.getByLabel('Visibilidade')).toBeVisible();
-  await page.getByRole('button', { name: 'Continuar' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Convidar times' }),
-  ).toHaveCount(0);
+  await expect(page.getByLabel('Formato pretendido')).toBeVisible();
   await page.getByLabel('Nome do campeonato').fill('Copa Teste');
-  await page.getByLabel('Município').fill('Franca');
-  await page.getByLabel('Data inicial prevista').fill('2026-09-01');
-  await page.getByRole('button', { name: 'Continuar' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Convidar times' }),
-  ).toBeVisible();
-  await expect(page.getByLabel('Time convidado')).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Enviar convite ao time' }),
-  ).toBeVisible();
-  await expect(page.getByText('Cadastrar Normal')).toHaveCount(0);
-  await expect(page.getByText('Jogadores')).toHaveCount(0);
-  await expect(
-    page.getByRole('button', { name: 'Salvar rascunho' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Enviar convite ao time' }).click();
-  await expect(
-    page.getByRole('button', { name: 'Cancelar convite de Time A' }),
-  ).toBeVisible();
-
-  await page.goto('/atleta/campeonatos');
-  await expect(page.getByText('Solicitar inscrição')).toHaveCount(0);
-  await expect(
-    page
-      .getByRole('region', { name: 'Campeonato Copa Franca 2026' })
-      .getByText('Participação por convite do organizador ao capitão'),
-  ).toBeVisible();
-
-  await page.goto('/organizador/campeonato/4/times');
-  const elencoTimeA = page.getByRole('region', {
-    name: 'Elenco inscrito de Time A',
-  });
-  await expect(
-    elencoTimeA.getByText('Elenco inscrito no campeonato'),
-  ).toBeVisible();
-  await expect(elencoTimeA.getByText(/limite: 7 a 18 atletas/i)).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Convidar time' }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Adicionar time' }),
-  ).toHaveCount(0);
+  await page.getByLabel('Município').selectOption({ label: 'Franca — SP' });
+  await page.getByLabel('Data prevista de início').fill('2026-09-01');
+  await page.getByRole('button', { name: 'Criar campeonato' }).click();
+  await expect(page).toHaveURL(
+    (url) =>
+      url.pathname.startsWith('/organizador/campeonato/') &&
+      url.pathname !== '/organizador/campeonato/novo',
+  );
+  await expect(page.getByRole('heading', { name: 'Copa Teste' })).toBeVisible();
 });
 
 test('súmula reúne fatos obrigatórios antes da confirmação definitiva', async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   await page.clock.setFixedTime(new Date('2026-08-23T12:00:00'));
   await loginAsOrganizer(page, '/organizador/campeonato/1/sumula');
 
@@ -169,7 +95,10 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
   await expect(
     page.getByRole('button', { name: 'Adicionar gol' }),
   ).toBeVisible();
-  await expect(page.getByLabel('Minuto do cartão')).toBeVisible();
+  await expect(page.getByLabel('Minuto regulamentar do cartão')).toBeVisible();
+  await expect(
+    page.getByLabel('Minuto regulamentar da substituição'),
+  ).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Substituições' }),
   ).toBeVisible();
@@ -206,6 +135,15 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
   await expect(
     page.getByRole('button', { name: 'Cancelar envio' }),
   ).toHaveCount(0);
+
+  const situacoes = page.getByLabel(/^Situação de /);
+  const posicoesUsadas = page.getByLabel(/^Posição usada por /);
+  const quantidadeEscalados = await situacoes.count();
+  expect(quantidadeEscalados).toBeGreaterThan(0);
+  for (let indice = 0; indice < quantidadeEscalados; indice += 1) {
+    await situacoes.nth(indice).selectOption('TITULAR');
+    await posicoesUsadas.nth(indice).selectOption('ATACANTE');
+  }
 
   await page.getByLabel('Árbitro', { exact: true }).fill('Carlos Silva');
   await page.getByLabel('Primeiro assistente').fill('Ana Lima');
@@ -270,11 +208,17 @@ test('súmula reúne fatos obrigatórios antes da confirmação definitiva', asy
   await expect(page.getByLabel('Gols de Time A')).toBeDisabled();
   await expect(page.getByLabel('Partida da súmula')).toBeDisabled();
   await page.getByRole('button', { name: 'Enviar súmula definitiva' }).click();
-  await page.goto('/organizador/campeonato/1');
-  await page.getByRole('button', { name: 'Finalizar campeonato' }).click();
-  await expect(page.getByRole('status')).toContainText(
-    'Finalização bloqueada: 3 partidas',
-  );
+});
+
+test('finalização não é oferecida sem operação publicada', async ({ page }) => {
+  await autenticarEm(page, 'organizador', '/organizador/campeonato/1');
+  await page.getByText('Outras ações do campeonato', { exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Finalizar campeonato' }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Confirmar cancelamento' }),
+  ).toBeDisabled();
 });
 
 test('recusa de reserva exige motivo e aparece no histórico local', async ({

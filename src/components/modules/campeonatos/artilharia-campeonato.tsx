@@ -1,9 +1,9 @@
-import type { LinhaArtilhariaExibicao } from '@/types/publico';
+import type { ItemArtilharia } from '@/types/api/partidas';
 
 export function ArtilhariaCampeonato({
   ranking,
 }: {
-  ranking: LinhaArtilhariaExibicao[];
+  ranking: ItemArtilharia[];
 }) {
   return (
     <section className="space-y-5" aria-labelledby="titulo-artilharia">
@@ -15,7 +15,7 @@ export function ArtilhariaCampeonato({
           Artilharia
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Gols válidos derivados somente de resultados definitivos deste
+          Gols válidos derivados somente de súmulas definitivas deste
           campeonato.
         </p>
       </div>
@@ -33,14 +33,14 @@ export function ArtilhariaCampeonato({
                 </tr>
               </thead>
               <tbody>
-                {ranking.map((linha, index) => (
+                {ranking.map((linha) => (
                   <tr
-                    key={`${linha.campeonatoId}-${linha.atletaId}`}
+                    key={`${linha.posicao}-${linha.jogador.nomeUsuario ?? linha.jogador.nome}`}
                     className="border-b last:border-0"
                   >
-                    <td className="p-3">{index + 1}º</td>
-                    <td className="p-3 font-semibold">{linha.atleta?.nome}</td>
-                    <td className="p-3">{linha.time?.nome}</td>
+                    <td className="p-3">{linha.posicao}º</td>
+                    <td className="p-3 font-semibold">{linha.jogador.nome}</td>
+                    <td className="p-3">{linha.timeContextual.nome}</td>
                     <td className="p-3 text-center font-semibold">
                       {linha.gols}
                     </td>
@@ -55,7 +55,7 @@ export function ArtilhariaCampeonato({
               Destaque da artilharia
             </h3>
             <p className="mt-3 text-sm">
-              <strong>{ranking[0]?.atleta?.nome}</strong> · {ranking[0]?.gols}{' '}
+              <strong>{ranking[0]?.jogador.nome}</strong> · {ranking[0]?.gols}{' '}
               gols
             </p>
             <p className="mt-2 text-sm text-muted-foreground">

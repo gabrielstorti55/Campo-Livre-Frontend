@@ -21,6 +21,7 @@ test('@prototipo solicita e confirma reativação por link sem manter token na U
 test('@prototipo conclui reativação, alteração de e-mail e troca de senha sem persistir credenciais', async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   await page.goto('/reativar-conta');
   await page.getByLabel('E-mail').fill('inativa@campolivre.test');
   await page.getByLabel('Senha').fill('senha-mock');

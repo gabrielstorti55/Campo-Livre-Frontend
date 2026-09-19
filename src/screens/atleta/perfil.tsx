@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { CampoFormulario } from '@/components/layout/campo-formulario';
@@ -10,8 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutenticacaoApi } from '@/contexts/autenticacao-api';
+import { useMunicipiosApi } from '@/contexts/municipios-api';
 import { useSessao } from '@/hooks/use-sessao';
 import type { MinhaConta, PosicaoPrincipal } from '@/types/api/autenticacao';
+import type { Municipio } from '@/types/api/municipios';
 
 const posicoes: Array<{ value: PosicaoPrincipal; label: string }> = [
   { value: 'GOLEIRO', label: 'Goleiro' },
@@ -23,15 +25,30 @@ const posicoes: Array<{ value: PosicaoPrincipal; label: string }> = [
 
 function EditorPerfil({ conta }: { conta: MinhaConta }) {
   const api = useAutenticacaoApi();
+  const municipiosApi = useMunicipiosApi();
   const { executarAutenticado, recarregarMinhaConta } = useSessao();
+  const municipio = conta.municipio
+    ? `${conta.municipio.nome}/${conta.municipio.uf}`
+    : 'Município não informado';
   const [nome, setNome] = useState(conta.nome);
   const [biografia, setBiografia] = useState(conta.biografia ?? '');
   const [posicao, setPosicao] = useState<PosicaoPrincipal | ''>(
     conta.posicaoPrincipal ?? '',
   );
+  const [municipios, setMunicipios] = useState<Municipio[]>([]);
+  const [municipioId, setMunicipioId] = useState(conta.municipio?.id ?? '');
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+
+  useEffect(() => {
+    void municipiosApi
+      .listarMunicipios({ pagina: 1, tamanho: 100 })
+      .then((pagina) => {
+        setMunicipios(pagina.itens);
+        setMunicipioId((atual) => atual || pagina.itens[0]?.id || '');
+      });
+  }, [municipiosApi]);
 
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -42,6 +59,7 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
         api.atualizarMinhaConta(accessToken, {
           nome: nome.trim(),
           biografia: biografia.trim() || null,
+          municipioId,
           posicaoPrincipal: posicao || null,
         }),
       );
@@ -93,7 +111,7 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
     <>
       <CabecalhoPagina
         title="Perfil básico"
-        subtitle={`@${conta.nomeUsuario} · ${conta.municipio.nome}/${conta.municipio.uf}`}
+        subtitle={`@${conta.nomeUsuario} · ${municipio}`}
         actions={
           <Button variant="campoOutline" asChild>
             <Link href="/minha-conta">Dados privados e segurança</Link>
@@ -139,11 +157,24 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
             </select>
           </CampoFormulario>
 
-          <div className="border-l-2 border-accent pl-3 text-sm text-muted-foreground">
-            Município atual: {conta.municipio.nome}/{conta.municipio.uf}. A
-            alteração fica indisponível até o backend publicar a consulta
-            canônica de municípios e seus UUIDs.
-          </div>
+          <CampoFormulario label="Município" htmlFor="municipio-perfil">
+            <select
+              id="municipio-perfil"
+              value={municipioId}
+              onChange={(event) => setMunicipioId(event.target.value)}
+              className="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              required
+            >
+              <option value="" disabled>
+                Selecione um município
+              </option>
+              {municipios.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nome}/{item.uf}
+                </option>
+              ))}
+            </select>
+          </CampoFormulario>
 
           <Button type="submit" variant="campo" disabled={ocupado}>
             Salvar perfil
@@ -195,10 +226,16 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
       ) : null}
 
       <div className="mt-6 flex flex-wrap gap-4 text-sm font-semibold">
-        <Link href="/alterar-email" className="text-green-dark hover:underline">
+        <Link
+          href="/minha-conta/alterar-email"
+          className="text-green-dark hover:underline"
+        >
           Alterar e-mail
         </Link>
-        <Link href="/alterar-senha" className="text-green-dark hover:underline">
+        <Link
+          href="/minha-conta/seguranca"
+          className="text-green-dark hover:underline"
+        >
           Alterar senha
         </Link>
       </div>
@@ -211,7 +248,7 @@ export function TelaPerfilAtletaAutenticado() {
   if (!session) return <p role="status">Carregando perfil...</p>;
   return (
     <EditorPerfil
-      key={session.minhaConta.atualizadoEm}
+      key={session.minhaConta.id}
       conta={session.minhaConta}
     />
   );

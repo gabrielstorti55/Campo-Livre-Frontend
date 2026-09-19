@@ -25,7 +25,7 @@ describe('CamposHttp', () => {
     ).resolves.toEqual(response);
 
     expect(request).toHaveBeenCalledWith(
-      '/campos?nome=Est%C3%A1dio+Municipal&municipioId=municipio-1&statusOperacional=EM_MANUTENCAO&page=2&size=20',
+      '/campos?nome=Est%C3%A1dio+Municipal&municipioId=municipio-1&statusOperacional=EM_MANUTENCAO&pagina=2&tamanho=20',
     );
   });
 
@@ -35,7 +35,100 @@ describe('CamposHttp', () => {
 
     await api.listarCampos();
 
-    expect(request).toHaveBeenCalledWith('/campos?page=1&size=20');
+    expect(request).toHaveBeenCalledWith('/campos?pagina=1&tamanho=20');
+  });
+
+  it('cadastra um Campo no contexto da Prefeitura autenticada', async () => {
+    const response = {
+      id: 'campo-1',
+      prefeituraId: 'prefeitura-1',
+      municipioId: 'municipio-1',
+      nome: 'Campo Comunitário',
+      descricao: null,
+      endereco: 'Rua do Esporte, 10',
+      statusOperacional: 'ATIVO',
+      criadoEm: '2026-09-16T12:00:00.000Z',
+    };
+    const request = vi.fn().mockResolvedValue(response);
+    const api = new CamposHttp({ request });
+
+    await expect(
+      api.cadastrarCampo('prefeitura-1', 'access-token', {
+        nome: 'Campo Comunitário',
+        endereco: 'Rua do Esporte, 10',
+        descricao: null,
+      }),
+    ).resolves.toEqual(response);
+
+    expect(request).toHaveBeenCalledWith('/prefeituras/prefeitura-1/campos', {
+      method: 'POST',
+      accessToken: 'access-token',
+      body: {
+        nome: 'Campo Comunitário',
+        endereco: 'Rua do Esporte, 10',
+        descricao: null,
+      },
+    });
+  });
+
+  it('edita um Campo conhecido com PATCH autenticado', async () => {
+    const response = {
+      id: 'campo-1',
+      nome: 'Estádio reformado',
+      descricao: null,
+      endereco: 'Rua Nova, 20',
+      atualizadoEm: '2026-09-17T12:00:00.000Z',
+    };
+    const request = vi.fn().mockResolvedValue(response);
+    const api = new CamposHttp({ request });
+
+    await expect(
+      api.atualizarCampo('campo-1', 'access-token', {
+        nome: 'Estádio reformado',
+        descricao: null,
+        endereco: 'Rua Nova, 20',
+      }),
+    ).resolves.toEqual(response);
+
+    expect(request).toHaveBeenCalledWith('/campos/campo-1', {
+      method: 'PATCH',
+      accessToken: 'access-token',
+      body: {
+        nome: 'Estádio reformado',
+        descricao: null,
+        endereco: 'Rua Nova, 20',
+      },
+    });
+  });
+
+  it('altera o estado operacional com motivo e confirmação explícita', async () => {
+    const response = {
+      id: 'campo-1',
+      statusOperacional: 'EM_MANUTENCAO',
+      estadoAnterior: 'ATIVO',
+      alterado: true,
+      alteradoEm: '2026-09-17T12:00:00.000Z',
+    };
+    const request = vi.fn().mockResolvedValue(response);
+    const api = new CamposHttp({ request });
+
+    await expect(
+      api.alterarEstadoOperacional('campo-1', 'access-token', {
+        statusOperacional: 'EM_MANUTENCAO',
+        motivo: 'Reparo do gramado',
+        confirmacao: true,
+      }),
+    ).resolves.toEqual(response);
+
+    expect(request).toHaveBeenCalledWith('/campos/campo-1/estado-operacional', {
+      method: 'POST',
+      accessToken: 'access-token',
+      body: {
+        statusOperacional: 'EM_MANUTENCAO',
+        motivo: 'Reparo do gramado',
+        confirmacao: true,
+      },
+    });
   });
 
   it('consulta o detalhe público sem credencial', async () => {

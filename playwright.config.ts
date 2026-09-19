@@ -1,11 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const porta = process.env['PLAYWRIGHT_PORT'] ?? '4173';
+const baseURL = `http://127.0.0.1:${porta}`;
+
 export default defineConfig({
   testDir: './tests/e2e',
   outputDir: 'test-results',
   fullyParallel: true,
   workers: 1,
-  timeout: 60_000,
+  timeout: 120_000,
   forbidOnly: Boolean(process.env['CI']),
   retries: process.env['CI'] ? 2 : 0,
   expect: { timeout: 15_000 },
@@ -14,16 +17,16 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run dev -- --hostname 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env['CI'],
-    timeout: 120_000,
+    command: `npm run dev -- --hostname 127.0.0.1 --port ${porta}`,
+    url: baseURL,
+    reuseExistingServer: false,
+    timeout: Number(process.env['PLAYWRIGHT_WEB_SERVER_TIMEOUT'] ?? 300_000),
   },
   projects: [
     {

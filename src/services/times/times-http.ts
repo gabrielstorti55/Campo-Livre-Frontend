@@ -1,20 +1,27 @@
 import type {
   AtletaParaConvite,
+  AceiteConviteTime,
   AtualizacaoTime,
   CancelamentoConviteTime,
   ConviteTimeEnviado,
+  ConviteTimePorToken,
+  CriacaoTime,
   DesativacaoTime,
   EncerramentoMembroTime,
   FiltrosTimes,
   PaginaConvitesTime,
+  PaginaConvitesTimeEnviados,
   PaginaElenco,
   PaginaHistoricoElenco,
   PaginaTimes,
+  PaginaTimesDaConta,
   RespostaAtualizacaoTime,
   RespostaEscudoTime,
+  RecusaConviteTime,
   ReativacaoTime,
   ReenvioConviteTime,
   SaidaVoluntariaTime,
+  TimeCriado,
   TimeDetalhado,
   TransferenciaCapitania,
 } from '@/types/api/times';
@@ -25,6 +32,64 @@ type ClienteTimes = {
 
 export class TimesHttp {
   constructor(private readonly client: ClienteTimes) {}
+
+  consultarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<ConviteTimePorToken> {
+    return this.client.request(`/convites-time/${encodeURIComponent(token)}`, {
+      accessToken,
+    });
+  }
+
+  aceitarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<AceiteConviteTime> {
+    return this.client.request(
+      `/convites-time/${encodeURIComponent(token)}/aceite`,
+      { method: 'POST', accessToken },
+    );
+  }
+
+  recusarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<RecusaConviteTime> {
+    return this.client.request(
+      `/convites-time/${encodeURIComponent(token)}/recusa`,
+      { method: 'POST', accessToken },
+    );
+  }
+
+  criarTime(
+    accessToken: string,
+    input: CriacaoTime,
+    idempotencyKey: string,
+  ): Promise<TimeCriado> {
+    return this.client.request('/times', {
+      method: 'POST',
+      accessToken,
+      headers: { 'Idempotency-Key': idempotencyKey },
+      body: {
+        ...input,
+        nome: input.nome.trim().replace(/\s+/g, ' '),
+        sigla: input.sigla.trim().toUpperCase(),
+        descricao: input.descricao?.trim() || null,
+      },
+    });
+  }
+
+  listarMeusTimes(
+    accessToken: string,
+    pagina = 1,
+    tamanho = 20,
+  ): Promise<PaginaTimesDaConta> {
+    return this.client.request<PaginaTimesDaConta>(
+      `/minha-conta/times?pagina=${pagina}&tamanho=${tamanho}`,
+      { accessToken },
+    );
+  }
 
   removerAtleta(
     timeId: string,
@@ -70,8 +135,8 @@ export class TimesHttp {
     tamanho = 20,
   ): Promise<PaginaHistoricoElenco> {
     const query = new URLSearchParams({
-      page: String(pagina),
-      size: String(tamanho),
+      pagina: String(pagina),
+      tamanho: String(tamanho),
     });
     return this.client.request<PaginaHistoricoElenco>(
       `/times/${timeId}/historico-elenco?${query.toString()}`,
@@ -125,6 +190,18 @@ export class TimesHttp {
         headers: { 'Idempotency-Key': idempotencyKey },
         body: { usuarioDestinatarioId },
       },
+    );
+  }
+
+  listarConvitesEnviados(
+    timeId: string,
+    accessToken: string,
+    pagina = 1,
+    tamanho = 20,
+  ): Promise<PaginaConvitesTimeEnviados> {
+    return this.client.request<PaginaConvitesTimeEnviados>(
+      `/times/${encodeURIComponent(timeId)}/convites?pagina=${pagina}&tamanho=${tamanho}`,
+      { accessToken },
     );
   }
 
@@ -198,7 +275,7 @@ export class TimesHttp {
     tamanho = 20,
   ): Promise<PaginaElenco> {
     return this.client.request<PaginaElenco>(
-      `/times/${timeId}/elenco?page=${pagina}&size=${tamanho}`,
+      `/times/${timeId}/elenco?pagina=${pagina}&tamanho=${tamanho}`,
     );
   }
 
@@ -213,8 +290,8 @@ export class TimesHttp {
     if (nome) query.set('nome', nome);
     if (municipioId) query.set('municipioId', municipioId);
     if (uf) query.set('uf', uf);
-    query.set('page', String(pagina));
-    query.set('size', String(tamanho));
+    query.set('pagina', String(pagina));
+    query.set('tamanho', String(tamanho));
 
     return this.client.request<PaginaTimes>(`/times?${query.toString()}`);
   }
@@ -225,8 +302,8 @@ export class TimesHttp {
     tamanho = 20,
   ): Promise<PaginaConvitesTime> {
     const query = new URLSearchParams({
-      page: String(pagina),
-      size: String(tamanho),
+      pagina: String(pagina),
+      tamanho: String(tamanho),
     });
     return this.client.request<PaginaConvitesTime>(
       `/minha-conta/convites-time?${query.toString()}`,

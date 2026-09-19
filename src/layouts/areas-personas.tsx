@@ -77,7 +77,7 @@ export function LayoutPrefeitura({ children }: { children: ReactNode }) {
       icon: MapPinned,
     },
     {
-      label: 'Organizadores',
+      label: 'Funcionários',
       to: '/prefeitura/organizadores',
       icon: Users,
     },

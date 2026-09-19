@@ -54,7 +54,7 @@ describe('CoordenadorRefresh', () => {
     expect(renovar).toHaveBeenCalledTimes(2);
   });
 
-  it('renova e repete uma requisição 401 somente uma vez', async () => {
+  it('renova e repete uma requisição NAO_AUTENTICADO somente uma vez', async () => {
     const renovar = vi.fn().mockResolvedValue(renewal());
     const coordinator = new CoordenadorRefresh({ renovar });
     const request = vi
@@ -62,9 +62,9 @@ describe('CoordenadorRefresh', () => {
       .mockRejectedValueOnce(
         new ErroApi({
           type: 'about:blank',
-          title: 'Access expirado',
+          title: 'Não autenticado',
           status: 401,
-          codigo: 'ACCESS_TOKEN_EXPIRADO',
+          codigo: 'NAO_AUTENTICADO',
         }),
       )
       .mockResolvedValueOnce('ok');

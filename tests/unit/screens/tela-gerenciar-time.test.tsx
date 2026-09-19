@@ -35,6 +35,55 @@ const atualizarTime = vi.fn().mockResolvedValue({
   descricao: 'Nova descrição',
   atualizadoEm: '2030-01-01T12:00:00.000Z',
 });
+const listarElenco = vi.fn().mockResolvedValue({
+  itens: [],
+  pagina: 1,
+  tamanho: 100,
+  totalItens: 0,
+  totalPaginas: 0,
+});
+const listarHistoricoElenco = vi.fn().mockResolvedValue({
+  itens: [],
+  pagina: 1,
+  tamanho: 20,
+  totalItens: 0,
+  totalPaginas: 0,
+});
+const listarConvitesEnviados = vi.fn().mockResolvedValue({
+  itens: [],
+  pagina: 1,
+  tamanho: 20,
+  totalItens: 0,
+  totalPaginas: 0,
+});
+const listarMeusTimes = vi.fn().mockResolvedValue({
+  itens: [
+    {
+      membroId: 'membro-capitao',
+      funcao: 'CAPITAO',
+      entrouEm: '2030-01-01T12:00:00.000Z',
+      time: {
+        id: '2',
+        nome: 'Leões FC',
+        sigla: 'LEO',
+        escudoUrl: null,
+        status: 'ATIVO',
+      },
+    },
+  ],
+  pagina: 1,
+  tamanho: 100,
+  totalItens: 1,
+  totalPaginas: 1,
+});
+const timesApi = {
+  listarMeusTimes,
+  consultarTime,
+  atualizarTime,
+  listarElenco,
+  listarHistoricoElenco,
+  listarConvitesEnviados,
+};
 const executarAutenticado = vi.fn(
   <T,>(operacao: (accessToken: string) => Promise<T>) =>
     operacao('access-capitao'),
@@ -44,10 +93,19 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ id: '2' }),
 }));
 vi.mock('@/contexts/times-api', () => ({
-  useTimesApi: () => ({ consultarTime, atualizarTime }),
+  useTimesApi: () => timesApi,
 }));
+const sessaoCapitao = {
+  sessionId: 'sessao-capitao',
+  account: { id: 'conta-capitao' },
+};
+
 vi.mock('@/hooks/use-sessao', () => ({
-  useSessao: () => ({ executarAutenticado }),
+  useSessao: () => ({
+    hydrated: true,
+    session: sessaoCapitao,
+    executarAutenticado,
+  }),
 }));
 
 describe('TelaGerenciarTime', () => {
@@ -73,5 +131,37 @@ describe('TelaGerenciarTime', () => {
       sigla: 'LDN',
       descricao: 'Nova descrição',
     });
+  });
+
+  it('nega o deep link sem vínculo de capitão antes de consultar ou montar mutações', async () => {
+    listarMeusTimes.mockResolvedValueOnce({
+      itens: [
+        {
+          membroId: 'membro-atleta',
+          funcao: 'ATLETA',
+          entrouEm: '2030-01-01T12:00:00.000Z',
+          time: {
+            id: '2',
+            nome: 'Leões FC',
+            sigla: 'LEO',
+            escudoUrl: null,
+            status: 'ATIVO',
+          },
+        },
+      ],
+      pagina: 1,
+      tamanho: 100,
+      totalItens: 1,
+      totalPaginas: 1,
+    });
+    consultarTime.mockClear();
+
+    render(<TelaGerenciarTime />);
+
+    expect(await screen.findByText('Acesso restrito ao capitão')).toBeVisible();
+    expect(consultarTime).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole('button', { name: 'Salvar alterações' }),
+    ).not.toBeInTheDocument();
   });
 });

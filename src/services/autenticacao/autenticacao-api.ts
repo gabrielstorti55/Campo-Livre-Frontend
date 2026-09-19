@@ -7,7 +7,9 @@ import type {
   EntradaReativacaoConta,
   MinhaConta,
   RespostaAlteracaoSenha,
+  RespostaAtivacaoOrganizador,
   RespostaCadastro,
+  RespostaDesativacaoConta,
   RespostaFotoMinhaConta,
   RespostaConfirmacaoAlteracaoEmail,
   RespostaConfirmacaoEmail,
@@ -22,9 +24,11 @@ import type {
 } from '@/types/api/autenticacao';
 
 export interface AutenticacaoApi {
+  ativarOrganizador(accessToken: string): Promise<RespostaAtivacaoOrganizador>;
+  desativarConta(accessToken: string): Promise<RespostaDesativacaoConta>;
   login(input: EntradaLogin): Promise<RespostaLogin>;
   renovar(): Promise<RespostaRenovacao>;
-  logout(): Promise<void>;
+  logout(accessToken?: string): Promise<void>;
   consultarMinhaConta(accessToken: string): Promise<MinhaConta>;
   atualizarMinhaConta(
     accessToken: string,
@@ -60,6 +64,6 @@ export interface AutenticacaoApi {
   cadastrar(input: EntradaCadastro): Promise<RespostaCadastro>;
   confirmarEmail(token: string): Promise<RespostaConfirmacaoEmail>;
   reenviarConfirmacaoEmail(
-    cadastroToken: string,
+    email: string,
   ): Promise<RespostaReenvioConfirmacaoEmail>;
 }

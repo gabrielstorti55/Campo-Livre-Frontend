@@ -9,7 +9,9 @@ import type {
   EntradaReativacaoConta,
   MinhaConta,
   RespostaAlteracaoSenha,
+  RespostaAtivacaoOrganizador,
   RespostaCadastro,
+  RespostaDesativacaoConta,
   RespostaFotoMinhaConta,
   RespostaConfirmacaoAlteracaoEmail,
   RespostaConfirmacaoEmail,
@@ -45,11 +47,13 @@ function validarRenovacaoWeb(value: unknown): RespostaRenovacao {
 function validarLoginWeb(value: unknown): RespostaLogin {
   const renewal = validarRenovacaoWeb(value);
   const usuario = (value as Partial<RespostaLogin>).usuario;
+  const textoNullable = (campo: unknown) =>
+    typeof campo === 'string' || campo === null;
   if (
     !usuario ||
     typeof usuario.id !== 'string' ||
-    typeof usuario.nome !== 'string' ||
-    typeof usuario.nomeUsuario !== 'string' ||
+    !textoNullable(usuario.nome) ||
+    !textoNullable(usuario.nomeUsuario) ||
     typeof usuario.administrador !== 'boolean' ||
     typeof usuario.organizadorHabilitado !== 'boolean'
   ) {
@@ -60,6 +64,22 @@ function validarLoginWeb(value: unknown): RespostaLogin {
 
 export class AutenticacaoHttp implements AutenticacaoApi {
   constructor(private readonly client: TransporteApi) {}
+
+  ativarOrganizador(accessToken: string): Promise<RespostaAtivacaoOrganizador> {
+    return this.client.request('/minha-conta/organizador', {
+      method: 'POST',
+      accessToken,
+      body: { confirmacao: true },
+    });
+  }
+
+  desativarConta(accessToken: string): Promise<RespostaDesativacaoConta> {
+    return this.client.request('/minha-conta/desativacao', {
+      method: 'POST',
+      accessToken,
+      body: { confirmacao: true },
+    });
+  }
 
   async login(input: EntradaLogin): Promise<RespostaLogin> {
     const response = await this.client.request<unknown>('/login', {
@@ -79,9 +99,10 @@ export class AutenticacaoHttp implements AutenticacaoApi {
     return validarRenovacaoWeb(response);
   }
 
-  logout(): Promise<void> {
+  logout(accessToken?: string): Promise<void> {
     return this.client.request('/logout', {
       method: 'POST',
+      ...(accessToken ? { accessToken } : {}),
       credentials: 'include',
     });
   }
@@ -200,16 +221,17 @@ export class AutenticacaoHttp implements AutenticacaoApi {
   confirmarEmail(token: string): Promise<RespostaConfirmacaoEmail> {
     return this.client.request('/confirmacoes-email', {
       method: 'POST',
+      credentials: 'include',
       body: { token },
     });
   }
 
   reenviarConfirmacaoEmail(
-    cadastroToken: string,
+    email: string,
   ): Promise<RespostaReenvioConfirmacaoEmail> {
     return this.client.request('/confirmacoes-email/reenvios', {
       method: 'POST',
-      body: { cadastroToken },
+      body: { email: email.trim().toLowerCase() },
     });
   }
 }

@@ -80,11 +80,13 @@ test('conta autenticada usa a mesma página canônica com acesso à sua área', 
     page.getByRole('heading', { name: 'Copa Franca 2026' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Minha área' })).toBeVisible();
-  await expect(page.getByText('Próximo jogo')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Agenda publicada' }),
+  ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
 });
 
-test('campeonato público mostra classificação e resultados sem dados pessoais', async ({
+test('campeonato público mostra agenda e acessos esportivos sem dados pessoais', async ({
   page,
 }) => {
   await page.goto('/campeonatos/1');
@@ -95,20 +97,23 @@ test('campeonato público mostra classificação e resultados sem dados pessoais
   await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
   await expect(page.getByText('João Silva')).toHaveCount(0);
 
-  await page.getByRole('tab', { name: 'Classificação' }).click();
-  const painel = page.getByRole('tabpanel', { name: 'Classificação' });
-  await expect(painel.getByRole('table')).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: /Times participantes/ }),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: /Artilharia/ })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Agenda publicada' }),
+  ).toBeVisible();
 });
 
-test('classificação pública permanece legível sem estourar a página no mobile', async ({
+test('detalhe público permanece legível sem estourar a página no mobile', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/campeonatos/1');
-  await expect(page.getByText('Deslize para ver mais abas')).toBeVisible();
-  await page.getByRole('tab', { name: 'Classificação' }).click();
-
-  await expect(page.getByRole('table')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Agenda publicada' }),
+  ).toBeVisible();
 
   const pageOverflows = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
@@ -119,11 +124,13 @@ test('classificação pública permanece legível sem estourar a página no mobi
 test('times públicos expõem somente o elenco esportivo permitido', async ({
   page,
 }) => {
-  await page.goto('/times/1');
+  await page.goto('/times/2');
 
-  await expect(page.getByRole('heading', { name: 'Time A' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Leões FC' })).toBeVisible();
   const elenco = page.getByRole('region', { name: 'Elenco público' });
-  await expect(elenco.getByText('Marcos Oliveira')).toBeVisible();
+  await expect(
+    elenco.getByRole('heading', { name: 'Rafael Lima' }),
+  ).toBeVisible();
   await expect(page.getByText(/@campolivre\.test/)).toHaveCount(0);
 });
 

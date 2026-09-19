@@ -1,193 +1,78 @@
-# Questões a acertar — frontend e contratos
-
-Esta lista contém somente lacunas ainda abertas após a reconciliação do Drive vivo em 26/08/2026. Nenhum item altera a fonte canônica: uma resposta passa a orientar a integração somente depois de ser materializada por Thales na pasta canônica do CampoLivre.
-
-## Q-001 — Consulta pública de municípios
-
-**Afeta:** cadastro pessoal, alteração de município, criação de time, criação pessoal de campeonato e filtros.
-
-Os contratos exigem o UUID interno `municipioId`, mas o catálogo não publica uma rota para descobri-lo. Publicar:
-
-- rota pública de consulta;
-- filtros por nome e UF;
-- paginação e ordenação;
-- projeção com `id`, `nome`, `uf` e, se aplicável, `codigoIbge`;
-- política para municípios ativos/elegíveis;
-- erros de filtro e município inexistente.
-
-A API do IBGE não substitui esse contrato porque retorna código IBGE, não o UUID interno do CampoLivre.
-
-**Status:** pendente de contrato.
-
-## Q-002 — Times e vínculos esportivos da própria conta
-
-**Afeta:** “meus times”, seleção de contexto, dashboard do atleta, agenda pessoal e autorização contextual.
-
-Não existe projeção privada que liste os vínculos ativos e históricos da conta autenticada, com `timeId`, `membroId`, função `ATLETA | CAPITAO`, estado e dados mínimos de exibição. A listagem pública de times não comprova vínculo.
-
-Confirmar também se a agenda pessoal deve ser composta no frontend consultando `GET /partidas` para os times vinculados ou se haverá uma projeção privada própria. A solução precisa continuar recuperável após login, reload e uso em outro dispositivo.
-
-**Status:** pendente de contrato.
-
-## Q-003 — Consulta segura do convite de time aberto por token
-
-**Afeta:** apresentação, aceite e recusa de convite recebido por link.
-
-Aceite e recusa usam `{token}`, mas não existe `GET` correspondente que devolva os dados mínimos do convite antes da confirmação. Publicar uma projeção autenticada por token que informe time, destinatário minimizado, estado e expiração, sem expor hash ou credenciais internas.
-
-A listagem `GET /minha-conta/convites-time` deve continuar sem devolver tokens.
-
-**Status:** pendente de contrato.
-
-## Q-004 — Convites de time enviados pelo capitão
-
-**Afeta:** reenvio e cancelamento depois de recarregar a página.
-
-O catálogo publica criação, reenvio e cancelamento, mas não permite recuperar os convites enviados por um time. Publicar uma consulta privada e paginada contendo ao menos:
-
-- `conviteId`;
-- destinatário minimizado;
-- modo de entrega;
-- estado e expiração;
-- datas operacionais;
-- indicação de quais ações ainda são permitidas.
-
-Tokens e hashes não devem integrar essa listagem.
-
-**Status:** pendente de contrato.
-
-## Q-005 — Restrições de nome e sigla do time
-
-**Afeta:** criação e atualização dos dados públicos do time.
-
-Nome e sigla são obrigatórios, mas faltam limites de tamanho, caracteres aceitos, normalização e regras de unicidade. A descrição pública já possui limite explícito; nome e sigla precisam do mesmo nível de definição para que o frontend não invente validações autoritativas.
-
-**Status:** pendente de regra e contrato.
-
-## Q-006 — DTOs internos do detalhe público do time
-
-**Afeta:** histórico de partidas, estatísticas por campeonato, posições em leaderboards, títulos e colocações.
-
-`GET /times/{timeId}` publica arrays sem schema para:
-
-- `elencoResumo`;
-- `historicoPartidas`;
-- `estatisticasPorCampeonato`;
-- `posicoesLeaderboards`;
-- `titulosEColocacoes`.
-
-Publicar os DTOs dos itens, identificadores, ordenação, estados vazios e regras de anonimização de referências históricas.
-
-**Status:** pendente de DTO.
-
-## Q-007 — Coerência final do contrato de Campeonatos
-
-**Afeta:** listagem pública, criação, área do organizador e adapters HTTP de Campeonato.
-
-O catálogo e o resumo agora estão `validado`, mas ainda existem duas contradições:
-
-1. `GET /campeonatos` usa `itens` com envelope `paginacao` e campos `page`, `size`, `totalItems` e `totalPages`, enquanto as convenções globais definem resposta plana com `pagina`, `tamanho`, `totalItens` e `totalPaginas`;
-2. inventário e UCs de Campeonato ainda podem permanecer `em-definicao` ou declarar o contrato adiado, apesar do gate bottom-up aprovado.
-
-Escolher uma única paginação e propagar o estado aprovado para UCs, convenções, catálogo e resumo. A semântica comercial do primeiro campeonato gratuito e dos adicionais com pagamento próprio já está resolvida e não faz parte desta questão.
-
-**Status:** pendente de reconciliação documental.
-
-## Q-008 — Projeções privadas de Prefeitura
-
-**Afeta:** descoberta do contexto institucional, painel de Prefeitura, funcionários, convites e mutações de Campos.
-
-Não existe consulta da própria conta que informe:
-
-- Prefeitura vinculada;
-- `membroId`;
-- papel `RESPONSAVEL | MEMBRO`;
-- estado do vínculo;
-- capacidades institucionais;
-- dados mínimos de navegação.
-
-Também faltam listagens recuperáveis de convites institucionais recebidos pela conta e enviados pela Prefeitura. Os comandos de criação e reenvio não substituem projeções consultáveis após reload.
-
-**Status:** pendente de contrato.
-
-## Q-009 — Restrições e concorrência nas mutações de Campos
-
-**Afeta:** cadastro, atualização e alteração de estado operacional; não bloqueia listagem e detalhe públicos.
-
-Definir:
-
-- opcionalidade individual dos campos do `PATCH`;
-- comportamento de payload vazio;
-- limites de nome, endereço e descrição;
-- unicidade e normalização;
-- estratégia de atualização concorrente;
-- limites de `page`/`size` e ordenação estável.
-
-Não adicionar infraestrutura, coordenadas, mapa, piso, capacidade, agenda ou reservas: esses itens permanecem fora do MVP.
-
-**Status:** pendente de complemento contratual.
-
-## Q-010 — DTOs e promoção dos UCs de Partidas e Súmulas
-
-**Afeta:** agenda, detalhe público, agendamento, escalação, súmula, WO, classificação, artilharia e estatísticas.
-
-O gate bottom-up e o catálogo validado materializaram 11 rotas, mas diversos UCs `PAR` ainda estão `em-definicao` e dizem que o contrato foi adiado. Além disso, o catálogo descreve respostas como “200 com a projeção” sem publicar o JSON completo.
-
-Publicar os DTOs exatos para:
-
-- item e página de `GET /partidas`, incluindo nomes dos filtros e estados aceitos;
-- detalhe público da partida;
-- times, campeonato, fase, grupo, rodada, campo e agendamento;
-- placares regulamentar, prorrogação e pênaltis;
-- escalações e eventos publicados;
-- resumo público da súmula;
-- agendamento/reagendamento, adiamento e cancelamento;
-- escalação do time;
-- súmula definitiva e estado do PDF;
-- WO;
-- classificação, artilharia e estatísticas do atleta.
-
-Reconciliar explicitamente a visibilidade: detalhe e resumo publicado são públicos; texto administrativo permanece privado; confirmar que o PDF oficial não integra a projeção pública. Promover os UCs aprovados e remover o texto de contrato adiado.
-
-**Status:** pendente de DTO e propagação documental.
-
-## Q-011 — DTOs e identificador público de Perfis e Leaderboards
-
-**Afeta:** perfil esportivo, históricos e rankings públicos.
-
-As cinco rotas foram materializadas, mas o catálogo ainda não apresenta JSON completo para perfil, históricos e leaderboards. Publicar:
-
-- DTO do perfil esportivo e campos opcionais/nulos;
-- itens e paginação dos históricos de times e campeonatos;
-- itens, componentes objetivos, posição, empate e paginação dos leaderboards;
-- recortes aceitos e regra “exatamente um recorte”;
-- anonimização e comportamento para conta eliminada;
-- `atualizadoEm` quando houver cache.
-
-Também reconciliar o identificador público: as convenções dizem que jogadores usam `nomeUsuario` na URL, enquanto o catálogo usa `{atletaId}` nas rotas de perfil, históricos e estatísticas.
-
-**Status:** pendente de DTO e decisão de identificador.
-
-## Q-012 — DTOs de situação comercial e pagamentos
-
-**Afeta:** painel comercial do organizador, checkout e histórico de pagamentos.
-
-As rotas de Monetização foram materializadas, mas suas entradas e saídas permanecem descritivas. Publicar JSON completo para:
-
-- `GET /minha-conta/situacao-comercial`;
-- `POST /campeonatos/{campeonatoId}/pagamentos`;
-- `GET /minha-conta/pagamentos`.
-
-Definir identificadores, estados, valor/moeda, campeonato vinculado, URL e expiração do checkout, datas, paginação e comportamento após retorno do provedor. O navegador nunca deve confirmar pagamento; o webhook permanece responsabilidade exclusiva do backend.
-
-**Status:** pendente de DTO.
-
-## Q-013 — Idempotência do ciclo de Times e Elenco
-
-**Afeta:** saída voluntária, desativação e reativação repetidas após timeout ou resposta perdida.
-
-Os UCs descrevem repetição idempotente, mas o catálogo publica conflitos como `VINCULO_JA_ENCERRADO`, `TIME_JA_DESATIVADO` e `TIME_JA_ATIVO`. Definir se a repetição com o mesmo efeito reapresenta o estado existente ou retorna conflito.
-
-Esclarecer também se a verificação de inscrição ativa antecede ou integra atomicamente a desativação do time.
-
-**Status:** pendente de reconciliação entre UC e catálogo.
+# Questões contratuais a acertar
+
+**Atualizado em:** 2026-08-28
+**Fonte canônica:** pasta viva do CampoLivre no Google Drive
+**Catálogo de rotas:** validado em 2026-08-28
+
+Este arquivo registra apenas lacunas ainda abertas. Projeções e comandos já publicados no Drive não devem permanecer descritos como pendentes.
+
+## Resolvido pela revisão de 28/08/2026
+
+A documentação canônica publicou contratos recuperáveis para:
+
+- `GET /api/v1/minha-conta/campeonatos`;
+- `GET /api/v1/campeonatos/{campeonatoId}/administracao`;
+- `GET /api/v1/campeonatos/{campeonatoId}/organizadores`;
+- `GET /api/v1/usuarios/busca-organizadores`;
+- `GET /api/v1/campeonatos/{campeonatoId}/convites`;
+- `GET /api/v1/campeonatos/{campeonatoId}/times/{timeId}/elenco`;
+- `GET /api/v1/campeonatos/{campeonatoId}/fases`;
+- `GET /api/v1/campeonatos/{campeonatoId}/distribuicao`;
+- `GET /api/v1/campeonatos/{campeonatoId}/estrutura`;
+- agenda e detalhe administrativo de Partidas;
+- agendamento/reagendamento, adiamento, cancelamento e WO;
+- escalação, súmula, classificação e PDF oficial em suas jornadas próprias.
+
+Esses itens agora são implementáveis no frontend via adapters HTTP. O modo integrado não deve recorrer a catálogos locais para preencher essas projeções.
+
+## Q-001 — Leitura integral do Regulamento
+
+- **Status:** aberta; bloqueia edição recuperável segura.
+- **Comando existente:** `PUT /api/v1/campeonatos/{campeonatoId}/regulamento`.
+- **Projeção ausente:** leitura que devolva integralmente:
+  - `regulamentoTexto`;
+  - `permiteWo`;
+  - placar de WO;
+  - `criterioBye`;
+  - demais campos editáveis do formulário.
+- **Risco:** após reload, o frontend não consegue distinguir formulário vazio de configuração já persistida. Um novo `PUT` poderia sobrescrever regras vigentes sem apresentá-las ao organizador.
+- **Comportamento do frontend:** edição fail-closed no modo integrado, com explicação explícita. Não preencher o formulário com mock nem apresentar sucesso local como persistência.
+- **Decisão necessária no Drive:** publicar `GET /campeonatos/{id}/regulamento` ou incorporar todos os campos à projeção administrativa.
+
+## Q-002 — Leitura integral dos parâmetros das fases
+
+- **Status:** parcialmente aberta.
+- **Projeção existente:** `GET /api/v1/campeonatos/{campeonatoId}/fases` recupera IDs, ordem, tipo, turnos, classificados, grupos e estado de materialização.
+- **Campos ainda não recuperáveis:**
+  - pontos por vitória, empate e derrota;
+  - número de partidas por confronto;
+  - prorrogação;
+  - pênaltis;
+  - gol de ouro;
+  - critérios de desempate vigentes.
+- **Risco:** a estrutura materializada pode ser exibida corretamente, mas o formulário completo anterior à geração não pode ser reconstruído com fidelidade.
+- **Comportamento do frontend:** consultar e exibir fases/distribuição/confrontos persistidos; não simular os parâmetros ausentes. Quando uma configuração já persistida não puder ser reconstruída integralmente, impedir substituição cega e explicar a limitação.
+- **Decisão necessária no Drive:** ampliar a projeção de fases ou publicar uma projeção de configuração esportiva completa, incluindo os critérios de desempate.
+
+## Q-003 — Identificador duplicado `UC-CMP-019`
+
+- **Status:** aberta; problema documental.
+- Existem documentos com o mesmo identificador para:
+  - abrir inscrições;
+  - finalizar inscrições.
+- O fluxo vigente utiliza **Finalizar inscrições**, que leva de `EM_INSCRICOES` para `AGUARDANDO_SORTEIO` e congela participantes/configuração.
+- **Decisão necessária:** renumerar ou arquivar o documento duplicado para evitar rastreabilidade ambígua.
+
+## Regras que permanecem vigentes
+
+- A criação continua exigindo formato pretendido.
+- Formatos do MVP:
+  - `PONTOS_CORRIDOS`;
+  - `MATA_MATA`;
+  - `GRUPOS_E_MATA_MATA`.
+- Convite não inscreve o Time automaticamente; depende do aceite do capitão.
+- Equipe representa organizadores administrativos, não Times participantes.
+- Estrutura define fases, distribuição e confrontos.
+- Partidas agenda e opera confrontos já materializados.
+- CampoLivre confirma autorização externa do Campo, mas não administra reservas ou disponibilidade municipal.
+- Produção é exclusivamente HTTP; dados de protótipo devem ser identificados como simulados e não persistentes.

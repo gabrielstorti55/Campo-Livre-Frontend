@@ -2,7 +2,13 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { type FormEvent, useEffect, useState } from 'react';
+import {
+  type FormEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { CampoFormulario } from '@/components/layout/campo-formulario';
@@ -20,10 +26,11 @@ import type { TimeDetalhado } from '@/types/api/times';
 export function TelaGerenciarTime() {
   const { id } = useParams<{ id: string }>();
   const api = useTimesApi();
-  const { executarAutenticado } = useSessao();
+  const { executarAutenticado, hydrated, session } = useSessao();
   const [detalhe, setDetalhe] = useState<TimeDetalhado | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [falhou, setFalhou] = useState(false);
+  const [autorizado, setAutorizado] = useState<boolean | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState<'sucesso' | 'erro' | null>(null);
   const [nome, setNome] = useState('');
@@ -34,29 +41,78 @@ export function TelaGerenciarTime() {
   const [mensagemEscudo, setMensagemEscudo] = useState<
     'upload' | 'remocao' | 'arquivo-invalido' | 'erro' | null
   >(null);
+  const identidadeSessao = `${id}:${session?.sessionId ?? ''}:${session?.account.id ?? ''}`;
+  const identidadeSessaoAtual = useRef(identidadeSessao);
+  const geracao = useRef(0);
+
+  useLayoutEffect(() => {
+    identidadeSessaoAtual.current = identidadeSessao;
+    geracao.current += 1;
+    let cancelado = false;
+    queueMicrotask(() => {
+      if (cancelado) return;
+      setAutorizado(null);
+      setDetalhe(null);
+      setCarregando(true);
+      setFalhou(false);
+      setMensagem(null);
+      setMensagemEscudo(null);
+      setArquivoEscudo(null);
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [identidadeSessao]);
 
   useEffect(() => {
-    let ativo = true;
-    void api.consultarTime(id).then(
-      (time) => {
-        if (!ativo) return;
+    if (!hydrated) return;
+    const identidade = identidadeSessao;
+    const geracaoAtual = ++geracao.current;
+    const aindaAtual = () =>
+      identidadeSessaoAtual.current === identidade &&
+      geracao.current === geracaoAtual;
+
+    if (!session) {
+      void Promise.resolve().then(() => {
+        if (!aindaAtual()) return;
+        setAutorizado(false);
+        setCarregando(false);
+      });
+      return () => {
+        geracao.current += 1;
+      };
+    }
+
+    void executarAutenticado((accessToken) =>
+      api.listarMeusTimes(accessToken, 1, 100),
+    )
+      .then(async (pagina) => {
+        if (!aindaAtual()) return;
+        const vinculo = pagina.itens.find((item) => item.time.id === id);
+        if (!vinculo || vinculo.funcao !== 'CAPITAO') {
+          setAutorizado(false);
+          setCarregando(false);
+          return;
+        }
+
+        const time = await api.consultarTime(id);
+        if (!aindaAtual()) return;
+        setAutorizado(true);
         setDetalhe(time);
         setNome(time.nome);
         setSigla(time.sigla);
         setDescricao(time.descricao ?? '');
         setCarregando(false);
-      },
-      () => {
-        if (ativo) {
-          setFalhou(true);
-          setCarregando(false);
-        }
-      },
-    );
+      })
+      .catch(() => {
+        if (!aindaAtual()) return;
+        setFalhou(true);
+        setCarregando(false);
+      });
     return () => {
-      ativo = false;
+      geracao.current += 1;
     };
-  }, [api, id]);
+  }, [api, executarAutenticado, hydrated, id, identidadeSessao, session]);
 
   async function salvar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -136,8 +192,27 @@ export function TelaGerenciarTime() {
     }
   }
 
-  if (carregando) return <p role="status">Carregando dados do time...</p>;
-  if (falhou || !detalhe) {
+  if (!hydrated || carregando)
+    return <p role="status">Validando seu vínculo com o time...</p>;
+  if (falhou) {
+    return (
+      <EstadoRecurso
+        kind="error"
+        title="Não foi possível validar seu vínculo"
+        description="Tente novamente antes de acessar a gestão do time."
+      />
+    );
+  }
+  if (!autorizado) {
+    return (
+      <EstadoRecurso
+        kind="error"
+        title="Acesso restrito ao capitão"
+        description="A gestão deste time exige um vínculo ativo de capitão. Use a página pública para consultar o time."
+      />
+    );
+  }
+  if (!detalhe) {
     return (
       <EstadoRecurso
         kind="error"
@@ -284,8 +359,9 @@ export function TelaGerenciarTime() {
         </CartaoFormulario>
       </form>
 
-      <GerenciarConvitesTime timeId={id} />
+      <GerenciarConvitesTime key={`convites:${identidadeSessao}`} timeId={id} />
       <OperacoesTime
+        key={`operacoes:${identidadeSessao}`}
         timeId={id}
         status={detalhe.status}
         onStatusChange={(status) =>

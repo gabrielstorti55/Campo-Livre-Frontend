@@ -4,7 +4,12 @@ export type ContextoOrganizacao =
   | { tipo: 'PREFEITURA'; nome: string; prefeituraId: string };
 
 export type EstadoCampeonatoOperacional =
-  'EM_CONFIGURACAO' | 'EM_ANDAMENTO' | 'ENCERRADO' | 'CANCELADO';
+  | 'EM_CONFIGURACAO'
+  | 'EM_INSCRICOES'
+  | 'AGUARDANDO_SORTEIO'
+  | 'EM_ANDAMENTO'
+  | 'ENCERRADO'
+  | 'CANCELADO';
 
 export type CampeonatoOrganizador = {
   id: number;

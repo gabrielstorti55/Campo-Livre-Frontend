@@ -69,7 +69,9 @@ describe('TelaDetalhesTime', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Leões FC' }),
     ).toBeVisible();
-    expect(screen.getByText(/Rafael Lima/)).toBeVisible();
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Rafael Lima' }),
+    ).toBeVisible();
     expect(screen.getAllByText(/12 partidas/).length).toBeGreaterThan(0);
     expect(consultarTime).toHaveBeenCalledWith('2');
     expect(listarElenco).toHaveBeenCalledWith('2', 1, 20);

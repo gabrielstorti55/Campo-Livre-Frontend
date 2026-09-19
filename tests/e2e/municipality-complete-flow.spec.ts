@@ -4,14 +4,12 @@ import { autenticarEm } from './fixtures/autenticacao';
 
 async function loginAsMunicipality(page: Page, destino = '/prefeitura/painel') {
   await autenticarEm(page, 'prefeitura', destino);
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Prefeitura de Franca' }),
-  ).toBeVisible();
+  await expect(page.getByText('Gestão pública municipal')).toBeVisible();
 }
 
 test('rotas municipais exigem vínculo institucional', async ({ page }) => {
   await page.goto('/prefeitura/painel');
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login(?:\?returnTo=.*)?$/);
 
   await autenticarEm(page, 'semTime', '/prefeitura/painel');
   await expect(page).toHaveURL(/\/minha-area$/);
@@ -22,9 +20,9 @@ test('rotas municipais exigem vínculo institucional', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   await page.getByRole('button', { name: 'Sair da conta' }).click();
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login(?:\?returnTo=.*)?$/);
   await page.goto('/prefeitura/aprovacoes');
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login(?:\?returnTo=.*)?$/);
 });
 
 test('prefeitura cadastra campo, persiste e controla disponibilidade', async ({
@@ -109,7 +107,7 @@ test('decisão municipal atualiza calendário e retorna ao organizador', async (
   await page.getByLabel('Hora inicial').fill('09:00');
   await page.getByLabel('Hora final').fill('11:00');
   await page.getByRole('button', { name: 'Solicitar reserva' }).click();
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('main').getByRole('status')).toHaveText(
     'Solicitação de reserva criada localmente como PENDENTE.',
   );
 
@@ -163,7 +161,7 @@ test('campo com reserva aprovada não entra em manutenção', async ({ page }) =
   await field
     .getByRole('button', { name: 'Colocar Campo Vera Cruz em manutenção' })
     .click();
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('main').getByRole('status')).toHaveText(
     'Manutenção bloqueada: o campo possui reservas aprovadas.',
   );
   await expect(field).toContainText('Disponível');
@@ -179,10 +177,10 @@ test('campo em manutenção bloqueia aprovação sem consumir a solicitação', 
     .getByRole('button', { name: 'Colocar Campo Aeroporto em manutenção' })
     .click();
 
-  await page.goto('/prefeitura/aprovacoes');
+  await loginAsMunicipality(page, '/prefeitura/aprovacoes');
   const request = page.getByRole('article', { name: /Copa Verão 2026/ });
   await request.getByRole('button', { name: 'Aprovar solicitação' }).click();
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('main').getByRole('status')).toHaveText(
     'Aprovação bloqueada: o campo está em manutenção.',
   );
   await expect(request).toContainText('Pendente');
@@ -239,7 +237,7 @@ test('recusa restaura o foco ao cancelar e o move para o retorno ao confirmar', 
     .getByLabel('Motivo da recusa')
     .fill('Agenda municipal indisponível.');
   await request.getByRole('button', { name: 'Confirmar recusa' }).click();
-  await expect(page.getByRole('status')).toBeFocused();
+  await expect(page.locator('main').getByRole('status')).toBeFocused();
 });
 
 test('aprovação revalida a antecedência mínima de 24 horas', async ({
@@ -262,7 +260,7 @@ test('aprovação revalida a antecedência mínima de 24 horas', async ({
   });
   await request.getByRole('button', { name: 'Aprovar solicitação' }).click();
 
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('main').getByRole('status')).toHaveText(
     'Aprovação bloqueada: a reserva não possui mais 24 horas de antecedência.',
   );
   await expect(request).toContainText('Pendente');

@@ -27,7 +27,7 @@ test('entrada pública prioriza campeonatos em andamento e suas partidas', async
   await expect(proximasPartidas).toBeVisible();
   await expect(proximasPartidas.getByText('14 de ago.')).toHaveCount(0);
   await expect(
-    proximasPartidas.getByRole('link', { name: /Time A.*Leões FC/ }),
+    proximasPartidas.getByRole('link', { name: /Mandante.*Visitante/ }),
   ).toBeVisible();
   await expect(
     proximasPartidas.getByRole('link', { name: 'Ver agenda completa' }),

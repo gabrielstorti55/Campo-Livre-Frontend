@@ -19,14 +19,10 @@ const situacaoComercialVazia: SituacaoComercialOrganizador = {
  * O papel é resolvido pela associação conta-campeonato, nunca pelo campeonato.
  */
 export const catalogoOrganizadorMock = {
-  listarCampeonatos(contaId: string, ids: string[]) {
-    const permitidos = new Set(ids.map(Number));
+  listarCampeonatos(contaId: string, _ids: string[]) {
     const vinculos = new Map(
       vinculosCampeonatoOrganizadorMock
-        .filter(
-          (vinculo) =>
-            vinculo.contaId === contaId && permitidos.has(vinculo.campeonatoId),
-        )
+        .filter((vinculo) => vinculo.contaId === contaId)
         .map((vinculo) => [vinculo.campeonatoId, vinculo.papel]),
     );
 

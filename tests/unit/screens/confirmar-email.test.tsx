@@ -44,4 +44,21 @@ describe('TelaConfirmarEmail', () => {
     ).toBeVisible();
     expect(confirmarEmail).not.toHaveBeenCalled();
   });
+
+  it('não oferece login enquanto a conta aguarda consentimento do responsável', async () => {
+    window.history.replaceState({}, '', '/confirmar-email?token=token-menor');
+    const confirmarEmail = vi.fn().mockResolvedValue({
+      emailConfirmado: true,
+      statusConta: 'AGUARDANDO_CONSENTIMENTO',
+      consentimentoResponsavelNecessario: true,
+    });
+    renderizar({ confirmarEmail } as unknown as AutenticacaoApi);
+
+    expect(
+      await screen.findByText(/ainda aguarda o consentimento do responsável/i),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('link', { name: 'Ir para o acesso' }),
+    ).not.toBeInTheDocument();
+  });
 });

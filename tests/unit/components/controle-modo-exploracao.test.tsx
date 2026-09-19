@@ -28,11 +28,27 @@ describe('ControleModoExploracao', () => {
     expect(screen.getByText('Detalhe público')).toBeVisible();
   });
 
-  it('mantém campeonato e partidas simulados bloqueados', () => {
+  it('libera os catálogos migrados e mantém subrota sem contrato bloqueada', () => {
     pathname = '/campeonatos';
-    render(
+    const { rerender } = render(
       <ControleModoExploracao modo="integrado">
-        <p>Catálogo simulado</p>
+        <p>Catálogo integrado</p>
+      </ControleModoExploracao>,
+    );
+    expect(screen.getByText('Catálogo integrado')).toBeVisible();
+
+    pathname = '/partidas/partida-1';
+    rerender(
+      <ControleModoExploracao modo="integrado">
+        <p>Partida integrada</p>
+      </ControleModoExploracao>,
+    );
+    expect(screen.getByText('Partida integrada')).toBeVisible();
+
+    pathname = '/campeonatos/camp-1/estrutura';
+    rerender(
+      <ControleModoExploracao modo="integrado">
+        <p>Estrutura sem contrato</p>
       </ControleModoExploracao>,
     );
     expect(
@@ -40,6 +56,6 @@ describe('ControleModoExploracao', () => {
         name: 'Funcionalidade ainda não integrada',
       }),
     ).toBeVisible();
-    expect(screen.queryByText('Catálogo simulado')).toBeNull();
+    expect(screen.queryByText('Estrutura sem contrato')).toBeNull();
   });
 });

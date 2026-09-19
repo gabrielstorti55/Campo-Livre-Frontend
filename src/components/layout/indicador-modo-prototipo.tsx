@@ -6,7 +6,7 @@ export function IndicadorModoPrototipo({ modo }: { modo: ModoAplicacao }) {
   return (
     <div
       role="status"
-      className="fixed right-3 bottom-3 z-[100] max-w-xs border border-accent/60 bg-navy-dark px-3 py-2 text-xs leading-5 text-white shadow-lg"
+      className="pointer-events-none fixed right-3 bottom-3 z-[100] max-w-xs border border-accent/60 bg-navy-dark px-3 py-2 text-xs leading-5 text-white shadow-lg"
     >
       <strong className="font-display tracking-wide uppercase">
         Modo de demonstração

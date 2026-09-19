@@ -1,0 +1,142 @@
+[
+  {
+    "name": "01-publico-inicio",
+    "chapter": "publico",
+    "route": "/",
+    "finalUrl": "http://127.0.0.1:4199/",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "02-publico-campeonatos",
+    "chapter": "publico",
+    "route": "/campeonatos",
+    "finalUrl": "http://127.0.0.1:4199/campeonatos",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "03-publico-artilharia",
+    "chapter": "publico",
+    "route": "/campeonatos/1/artilharia",
+    "finalUrl": "http://127.0.0.1:4199/campeonatos/1/artilharia",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "04-publico-partida",
+    "chapter": "publico",
+    "route": "/partidas/3",
+    "finalUrl": "http://127.0.0.1:4199/partidas/3",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "05-atleta-inicio",
+    "chapter": "atleta",
+    "route": "/atleta/inicio",
+    "finalUrl": "http://127.0.0.1:4199/atleta/inicio",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "06-atleta-buscar-times",
+    "chapter": "atleta",
+    "route": "/atleta/time/buscar",
+    "finalUrl": "http://127.0.0.1:4199/atleta/time/buscar",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "07-atleta-criar-time",
+    "chapter": "atleta",
+    "route": "/atleta/time/criar",
+    "finalUrl": "http://127.0.0.1:4199/atleta/time/criar",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "08-atleta-perfil",
+    "chapter": "atleta",
+    "route": "/atleta/perfil",
+    "finalUrl": "http://127.0.0.1:4199/atleta/perfil",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "09-organizador-inicio",
+    "chapter": "organizador",
+    "route": "/organizador/inicio",
+    "finalUrl": "http://127.0.0.1:4199/organizador/inicio",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "10-organizador-workspace",
+    "chapter": "organizador",
+    "route": "/organizador/campeonato/4",
+    "finalUrl": "http://127.0.0.1:4199/organizador/campeonato/4",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "11-organizador-times",
+    "chapter": "organizador",
+    "route": "/organizador/campeonato/4/times",
+    "finalUrl": "http://127.0.0.1:4199/organizador/campeonato/4/times",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "12-organizador-chaveamento",
+    "chapter": "organizador",
+    "route": "/organizador/campeonato/4/chaveamento",
+    "finalUrl": "http://127.0.0.1:4199/organizador/campeonato/4/chaveamento",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "13-organizador-partidas",
+    "chapter": "organizador",
+    "route": "/organizador/campeonato/1/partidas",
+    "finalUrl": "http://127.0.0.1:4199/organizador/campeonato/1/partidas",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "14-organizador-reservas",
+    "chapter": "organizador",
+    "route": "/organizador/campeonato/1/reservas",
+    "finalUrl": "http://127.0.0.1:4199/organizador/campeonato/1/reservas",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "14b-organizador-sumula",
+    "chapter": "organizador",
+    "route": "/organizador/campeonato/1/sumula",
+    "finalUrl": "http://127.0.0.1:4199/organizador/campeonato/1/sumula",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "15-prefeitura-painel",
+    "chapter": "prefeitura",
+    "route": "/prefeitura/painel",
+    "finalUrl": "http://127.0.0.1:4199/prefeitura/painel",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "16-prefeitura-campos",
+    "chapter": "prefeitura",
+    "route": "/prefeitura/campos",
+    "finalUrl": "http://127.0.0.1:4199/prefeitura/campos",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "17-prefeitura-aprovacoes",
+    "chapter": "prefeitura",
+    "route": "/prefeitura/aprovacoes",
+    "finalUrl": "http://127.0.0.1:4199/prefeitura/aprovacoes",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "18-prefeitura-calendario",
+    "chapter": "prefeitura",
+    "route": "/prefeitura/calendario",
+    "finalUrl": "http://127.0.0.1:4199/prefeitura/calendario",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  },
+  {
+    "name": "19-prefeitura-organizadores",
+    "chapter": "prefeitura",
+    "route": "/prefeitura/organizadores",
+    "finalUrl": "http://127.0.0.1:4199/prefeitura/organizadores",
+    "title": "CampoLivre — Futebol local, jogo aberto"
+  }
+]

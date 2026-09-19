@@ -19,6 +19,12 @@ export function AcoesSegurancaConta() {
         >
           Alterar senha
         </Link>
+        <Link
+          href="/minha-conta/desativar"
+          className="inline-flex border border-danger/60 px-4 py-2 text-sm font-semibold text-danger hover:border-danger"
+        >
+          Desativar conta
+        </Link>
       </div>
     </section>
   );

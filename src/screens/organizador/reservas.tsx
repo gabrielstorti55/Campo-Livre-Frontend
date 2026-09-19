@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSessao } from '@/hooks/use-sessao';
 import { catalogoOrganizadorMock } from '@/services/organizador/catalogo-organizador.mock';
 import { respeitaAntecedenciaMinima } from '@/services/reservas/regras-horario-reserva';
+import { proximoIdLocalReserva } from '@/services/reservas/proximo-id-local-reserva';
 import { useEstadoOperacionalOrganizador } from '@/stores/estado-operacional-organizador';
 import {
   cancelarReservaMunicipal,
@@ -119,8 +120,10 @@ export function TelaReservasCampeonato({
       setFeedback('O horário final deve ser posterior ao horário inicial.');
       return;
     }
-    const reservationId =
-      Math.max(0, ...reservasLocais.map((item) => item.id)) + 1;
+    const reservationId = proximoIdLocalReserva(
+      reservasLocais.map((item) => item.id),
+      reservasCompartilhadas.map((item) => item.localReservationId),
+    );
     const field = municipal.state.fields.find((item) => item.id === fieldId);
     if (!field || field.status !== 'AVAILABLE') {
       setFeedback('Selecione um campo municipal disponível.');

@@ -1,105 +1,118 @@
 'use client';
 
-import {
-  CalendarDays,
-  CheckSquare,
-  ChevronRight,
-  MapPinned,
-  Users,
-} from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-import { useEstadoOperacionalPrefeitura } from '@/stores/estado-operacional-prefeitura';
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
+import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { Secao } from '@/components/layout/secao';
-import { CartaoEstatistica } from '@/components/layout/cartao-estatistica';
+import { usePrefeiturasApi } from '@/contexts/prefeituras-api';
+import { useSessao } from '@/hooks/use-sessao';
+import type { PaginaPrefeiturasDaConta } from '@/types/api/prefeituras';
 
 export function TelaPainelPrefeitura() {
-  const { state } = useEstadoOperacionalPrefeitura();
-  const pending = state.reservations.filter(
-    (item) => item.status === 'PENDING',
-  ).length;
-  const approved = state.reservations.filter(
-    (item) => item.status === 'APPROVED',
-  ).length;
-  const rejected = state.reservations.filter(
-    (item) => item.status === 'REJECTED',
-  ).length;
-  const available = state.fields.filter(
-    (item) => item.status === 'AVAILABLE',
-  ).length;
-  const activeOrganizers = state.organizers.filter(
-    (item) => item.status === 'ACTIVE',
-  ).length;
-  const actions = [
-    {
-      to: '/prefeitura/campos',
-      icon: MapPinned,
-      title: 'Campos municipais',
-      hint: `${state.fields.length} equipamentos cadastrados`,
-    },
-    {
-      to: '/prefeitura/calendario',
-      icon: CalendarDays,
-      title: 'Agenda de reservas',
-      hint: `${approved} reservas aprovadas`,
-    },
-    {
-      to: '/prefeitura/organizadores',
-      icon: Users,
-      title: 'Organizadores credenciados',
-      hint: `${activeOrganizers} cadastros ativos`,
-    },
-    {
-      to: '/prefeitura/aprovacoes',
-      icon: CheckSquare,
-      title: 'Aprovações',
-      hint: `${pending} solicitações aguardando análise`,
-    },
-  ] as const;
+  const api = usePrefeiturasApi();
+  const { session, executarAutenticado } = useSessao();
+  const identidade = session?.account.id ?? null;
+  const [estado, setEstado] = useState<{
+    identidade: string | null;
+    pagina: PaginaPrefeiturasDaConta | null;
+    falhou: boolean;
+  }>({ identidade: null, pagina: null, falhou: false });
+
+  useEffect(() => {
+    if (!session) return;
+    let ativo = true;
+    void executarAutenticado((accessToken) =>
+      api.listarMinhasPrefeituras(accessToken, 1, 100),
+    ).then(
+      (resultado) => {
+        if (ativo) {
+          setEstado({ identidade, pagina: resultado, falhou: false });
+        }
+      },
+      () => {
+        if (ativo) {
+          setEstado({ identidade, pagina: null, falhou: true });
+        }
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [api, executarAutenticado, identidade, session]);
+
+  const pagina = estado.identidade === identidade ? estado.pagina : null;
+  const falhou = estado.identidade === identidade && estado.falhou;
 
   return (
     <>
       <CabecalhoPagina
-        title="Prefeitura de Franca"
-        subtitle="Gestão municipal do esporte amador · dados demonstrativos"
+        title="Gestão municipal"
+        subtitle="Vínculos institucionais confirmados pela API do CampoLivre"
       />
 
-      <Secao title="Situação operacional">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
-          <CartaoEstatistica label="Pendentes" value={pending} tone="navy" />
-          <CartaoEstatistica label="Aprovados" value={approved} tone="navy" />
-          <CartaoEstatistica
-            label="Disponíveis"
-            value={available}
-            tone="navy"
-          />
-          <CartaoEstatistica label="Reprovados" value={rejected} tone="navy" />
-        </div>
-      </Secao>
+      {!pagina && !falhou ? (
+        <p role="status">Carregando seus vínculos institucionais...</p>
+      ) : null}
 
-      <Secao title="Gestão municipal">
-        <div className="border-t border-border">
-          {actions.map((action) => (
-            <Link
-              key={action.to}
-              href={action.to}
-              className="group flex items-center gap-4 border-b border-border py-5"
-            >
-              <action.icon className="h-5 w-5 shrink-0 text-navy-mid" />
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-foreground group-hover:text-navy-mid">
-                  {action.title}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {action.hint}
-                </p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          ))}
-        </div>
-      </Secao>
+      {falhou ? (
+        <EstadoRecurso
+          kind="error"
+          title="Não foi possível carregar seus vínculos"
+          description="Tente novamente em alguns instantes."
+        />
+      ) : null}
+
+      {pagina?.itens.length === 0 ? (
+        <EstadoRecurso
+          kind="empty"
+          title="Nenhuma Prefeitura vinculada"
+          description="Sua conta está ativa, mas não possui vínculo institucional municipal."
+        />
+      ) : null}
+
+      {pagina && pagina.itens.length > 0 ? (
+        <Secao title="Prefeituras vinculadas">
+          <div className="divide-y divide-border border-y border-border">
+            {pagina.itens.map((vinculo) => (
+              <article key={vinculo.membroId} className="py-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-foreground">
+                      {vinculo.prefeitura.nomeOficial}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {vinculo.prefeitura.municipio.nome}/
+                      {vinculo.prefeitura.municipio.uf}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-navy-mid">
+                    {vinculo.papel === 'RESPONSAVEL'
+                      ? 'Responsável institucional'
+                      : 'Membro institucional'}
+                  </span>
+                </div>
+                <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-muted-foreground">Situação</dt>
+                    <dd className="font-medium">
+                      {vinculo.prefeitura.status === 'ATIVA'
+                        ? 'Ativa'
+                        : 'Inativa'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Contato público</dt>
+                    <dd className="font-medium">
+                      {vinculo.prefeitura.emailContatoPublico}
+                    </dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        </Secao>
+      ) : null}
     </>
   );
 }

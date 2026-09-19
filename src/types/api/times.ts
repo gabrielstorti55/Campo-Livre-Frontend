@@ -1,3 +1,45 @@
+export type CriacaoTime = {
+  nome: string;
+  sigla: string;
+  municipioId: string;
+  descricao: string | null;
+};
+
+export type TimeCriado = CriacaoTime & {
+  id: string;
+  escudoUrl: null;
+  status: 'ATIVO';
+  capitaoMembroId: string;
+};
+
+export type ConviteTimePorToken = {
+  conviteId: string;
+  time: {
+    id: string;
+    nome: string;
+    sigla: string;
+    escudoUrl: string | null;
+  };
+  destinatario: { emailMascarado: string };
+  status: 'PENDENTE';
+  expiraEm: string;
+  acoesPermitidas: Array<'ACEITAR' | 'RECUSAR'>;
+};
+
+export type AceiteConviteTime = {
+  conviteId: string;
+  status: 'ACEITO';
+  timeId: string;
+  membroTimeId: string;
+  entrouEm: string;
+};
+
+export type RecusaConviteTime = {
+  conviteId: string;
+  status: 'RECUSADO';
+  respondidoEm: string;
+};
+
 export type ConviteTimePendente = {
   id: string;
   time: {
@@ -42,6 +84,27 @@ export type FiltrosTimes = {
 
 export type PaginaTimes = {
   itens: TimeResumido[];
+  pagina: number;
+  tamanho: number;
+  totalItens: number;
+  totalPaginas: number;
+};
+
+export type VinculoTimeDaConta = {
+  membroId: string;
+  funcao: 'ATLETA' | 'CAPITAO';
+  entrouEm: string;
+  time: {
+    id: string;
+    nome: string;
+    sigla: string;
+    escudoUrl: string | null;
+    status: 'ATIVO' | 'DESATIVADO';
+  };
+};
+
+export type PaginaTimesDaConta = {
+  itens: VinculoTimeDaConta[];
   pagina: number;
   tamanho: number;
   totalItens: number;
@@ -128,6 +191,30 @@ export type ConviteTimeEnviado = {
   linkCompartilhavel: string;
   expiraEm: string;
   emailEnvioAceito: boolean;
+};
+
+export type ConviteTimeEnviadoPendente = {
+  conviteId: string;
+  destinatario: {
+    usuarioId: string;
+    nome: string;
+    nomeUsuario: string;
+    fotoUrl: string | null;
+    emailMascarado: string;
+  };
+  status: 'PENDENTE';
+  enviadoEm: string;
+  reenviadoEm: string | null;
+  expiraEm: string;
+  acoesPermitidas: Array<'REENVIAR' | 'CANCELAR'>;
+};
+
+export type PaginaConvitesTimeEnviados = {
+  itens: ConviteTimeEnviadoPendente[];
+  pagina: number;
+  tamanho: number;
+  totalItens: number;
+  totalPaginas: number;
 };
 
 export type ReenvioConviteTime = {

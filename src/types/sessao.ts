@@ -1,4 +1,7 @@
-import type { MinhaConta } from '@/types/api/autenticacao';
+import type {
+  MinhaConta,
+  RespostaDesativacaoConta,
+} from '@/types/api/autenticacao';
 
 export type ContextoPessoal = 'atleta' | 'organizador';
 
@@ -50,6 +53,7 @@ export type ValorContextoSessao = {
   recarregarMinhaConta: () => Promise<MinhaConta>;
   linkTeam: (teamId: string) => void;
   createTeam: (input: Omit<VinculoTimeCriado, 'id' | 'role'>) => string;
-  enableOrganizer: () => void;
+  enableOrganizer: () => Promise<void>;
+  desativarConta: () => Promise<RespostaDesativacaoConta>;
   switchContext: (context: ContextoPessoal) => void;
 };

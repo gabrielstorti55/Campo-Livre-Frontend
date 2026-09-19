@@ -19,5 +19,6 @@ describe('IndicadorModoPrototipo', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       'Dados simulados e não persistidos',
     );
+    expect(screen.getByRole('status')).toHaveClass('pointer-events-none');
   });
 });

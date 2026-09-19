@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>CampoLivre — Produto em campo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Barlow Condensed';
+        src: url('assets/fonts/barlow-condensed-700.woff2') format('woff2');
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans';
+        src: url('assets/fonts/ibm-plex-sans-400.woff2') format('woff2');
+        font-weight: 400;
+      }
+      :root {
+        --green-deep: #173f2f;
+        --green: #216447;
+        --night: #142438;
+        --yellow: #f2c94c;
+        --cream: #f5f1e6;
+        --paper: #fbfaf4;
+        --ink: #17241d;
+        --line: #c9c8bc;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        overflow: hidden;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: 'IBM Plex Sans', sans-serif;
+      }
+      #stage {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .display {
+        margin: 0;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 0.88;
+        text-transform: uppercase;
+      }
+      .eyebrow {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .field-grid {
+        background-color: var(--cream);
+        background-image:
+          linear-gradient(rgb(23 63 47 / 6%) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(23 63 47 / 6%) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+      .field-frame {
+        position: absolute;
+        inset: 52px;
+        border: 3px solid rgb(33 100 71 / 42%);
+      }
+      .field-frame::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 3px;
+        background: rgb(33 100 71 / 38%);
+      }
+      .field-frame::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 300px;
+        height: 300px;
+        border: 3px solid rgb(33 100 71 / 38%);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .hook-content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        padding: 100px 116px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .hook-title {
+        width: 1480px;
+        margin-top: 25px;
+        font-size: 184px;
+      }
+      .hook-title span { display: block; }
+      .hook-title .yellow {
+        width: fit-content;
+        margin-top: 15px;
+        padding: 2px 30px 20px;
+        background: var(--yellow);
+      }
+      .hook-side {
+        position: absolute;
+        right: 116px;
+        bottom: 104px;
+        width: 450px;
+        border-left: 3px solid var(--yellow);
+        padding-left: 22px;
+        color: #5f675f;
+        font-size: 22px;
+        line-height: 1.5;
+      }
+      .ui-scene { background: var(--night); }
+      .browser-frame {
+        position: absolute;
+        top: 41px;
+        left: 120px;
+        width: 1680px;
+        height: 997px;
+        border: 2px solid rgb(245 241 230 / 30%);
+        background: var(--paper);
+        overflow: hidden;
+      }
+      .browser-bar {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 0 20px;
+        background: var(--night);
+        color: var(--cream);
+        border-bottom: 1px solid rgb(245 241 230 / 25%);
+      }
+      .dots { display: flex; gap: 8px; }
+      .dots i {
+        width: 10px;
+        height: 10px;
+        display: block;
+        border-radius: 50%;
+        background: rgb(245 241 230 / 35%);
+      }
+      .address {
+        flex: 1;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+      }
+      .prototype-label {
+        border: 1px solid var(--yellow);
+        padding: 7px 12px;
+        color: var(--yellow);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .browser-view {
+        position: relative;
+        width: 1680px;
+        height: 945px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .capture {
+        display: block;
+        width: 1680px;
+        height: 945px;
+        object-fit: cover;
+        transform-origin: center center;
+        will-change: transform;
+      }
+      .lower-third {
+        position: absolute;
+        z-index: 3;
+        left: 170px;
+        bottom: 76px;
+        width: 850px;
+        display: flex;
+        align-items: stretch;
+        background: var(--green-deep);
+        color: white;
+      }
+      .lower-third::before {
+        content: '';
+        width: 12px;
+        flex: 0 0 12px;
+        background: var(--yellow);
+      }
+      .lower-copy { padding: 23px 30px 25px; }
+      .lower-copy .eyebrow { color: var(--yellow); font-size: 15px; }
+      .lower-copy h2 {
+        margin: 7px 0 0;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 47px;
+        line-height: 0.98;
+        text-transform: uppercase;
+      }
+      .cursor {
+        position: absolute;
+        z-index: 8;
+        top: 0;
+        left: 0;
+        width: 30px;
+        height: 30px;
+        border: 4px solid white;
+        border-radius: 50%;
+        background: var(--green-deep);
+        box-shadow: 0 0 0 4px rgb(20 36 56 / 30%);
+      }
+      .cursor::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 54px;
+        height: 54px;
+        border: 3px solid var(--yellow);
+        border-radius: 50%;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+      .cursor.clicked::after {
+        opacity: 1;
+      }
+      .transition-band {
+        z-index: 20;
+        background: var(--yellow);
+        transform-origin: left center;
+      }
+      .transition-band.green { background: var(--green-deep); }
+      .transition-band.night { background: var(--night); }
+      #scene-brand {
+        background: var(--green-deep);
+        color: var(--cream);
+      }
+      .brand-field {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 760px;
+        height: 760px;
+        border: 3px solid rgb(245 241 230 / 15%);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .brand-field::before,
+      .brand-field::after {
+        content: '';
+        position: absolute;
+        background: rgb(245 241 230 / 14%);
+      }
+      .brand-field::before { top: 50%; left: -300px; width: 1360px; height: 3px; }
+      .brand-field::after { top: -300px; left: 50%; width: 3px; height: 1360px; }
+      .brand-content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .brand-name { font-size: 216px; }
+      .brand-tagline {
+        margin: 18px 0 0;
+        color: var(--yellow);
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .brand-proof {
+        margin-top: 52px;
+        border-top: 1px solid rgb(245 241 230 / 30%);
+        padding-top: 20px;
+        font-size: 17px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="stage" data-composition-id="campolivre-brag-v2" data-start="0" data-duration="36" data-width="1920" data-height="1080">
+      <section id="scene-hook" class="clip field-grid" data-start="0" data-duration="4" data-track-index="0">
+        <div id="hook-field" class="field-frame"></div>
+        <div class="hook-content">
+          <p id="hook-eye" class="eyebrow" style="color: var(--green)">CampoLivre apresenta</p>
+          <h1 class="display hook-title">
+            <span id="hook-a">Futebol local,</span>
+            <span id="hook-b" class="yellow">jogo aberto.</span>
+          </h1>
+          <p id="hook-side" class="hook-side">Agora com o produto em campo: navegação real, campeonatos e partidas públicas.</p>
+        </div>
+      </section>
+
+      <section id="scene-home" class="clip ui-scene" data-start="4" data-duration="6" data-track-index="0">
+        <div id="frame-home" class="browser-frame">
+          <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="address">campolivre.local</span><span class="prototype-label">Interface real · modo protótipo</span></div>
+          <div class="browser-view"><img id="capture-home" class="capture" data-layout-allow-overflow src="assets/captures/01-inicio.png" alt="Tela inicial real do CampoLivre" /></div>
+        </div>
+        <div id="lower-home" class="lower-third"><div class="lower-copy"><p class="eyebrow">Entrada pública</p><h2>O futebol da cidade começa aqui.</h2></div></div>
+        <div id="cursor-home" class="cursor"></div>
+      </section>
+
+      <section id="scene-catalog" class="clip ui-scene" data-start="10" data-duration="7" data-track-index="0">
+        <div id="frame-catalog" class="browser-frame">
+          <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="address">campolivre.local/campeonatos</span><span class="prototype-label">Interface real · modo protótipo</span></div>
+          <div class="browser-view"><img id="capture-catalog" class="capture" data-layout-allow-overflow src="assets/captures/02-campeonatos.png" alt="Catálogo real de campeonatos" /></div>
+        </div>
+        <div id="lower-catalog" class="lower-third"><div class="lower-copy"><p class="eyebrow">Campeonatos públicos</p><h2>Encontre competições. Veja o que está em andamento.</h2></div></div>
+        <div id="cursor-catalog" class="cursor"></div>
+      </section>
+
+      <section id="scene-championship" class="clip ui-scene" data-start="17" data-duration="6" data-track-index="0">
+        <div id="frame-championship" class="browser-frame">
+          <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="address">campolivre.local/campeonatos/1</span><span class="prototype-label">Interface real · modo protótipo</span></div>
+          <div class="browser-view"><img id="capture-championship" class="capture" data-layout-allow-overflow src="assets/captures/03-campeonato-detalhe.png" alt="Detalhe real da Copa Franca 2026" /></div>
+        </div>
+        <div id="lower-championship" class="lower-third"><div class="lower-copy"><p class="eyebrow">Copa Franca 2026</p><h2>Participantes, artilharia e agenda em um só lugar.</h2></div></div>
+      </section>
+
+      <section id="scene-matches" class="clip ui-scene" data-start="23" data-duration="5" data-track-index="0">
+        <div id="frame-matches" class="browser-frame">
+          <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="address">campolivre.local/partidas</span><span class="prototype-label">Interface real · modo protótipo</span></div>
+          <div class="browser-view"><img id="capture-matches" class="capture" data-layout-allow-overflow src="assets/captures/04-partidas.png" alt="Agenda real de partidas" /></div>
+        </div>
+        <div id="lower-matches" class="lower-third"><div class="lower-copy"><p class="eyebrow">Agenda pública</p><h2>Da rodada ao campo.</h2></div></div>
+        <div id="cursor-matches" class="cursor"></div>
+      </section>
+
+      <section id="scene-match" class="clip ui-scene" data-start="28" data-duration="5" data-track-index="0">
+        <div id="frame-match" class="browser-frame">
+          <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="address">campolivre.local/partidas/1</span><span class="prototype-label">Interface real · modo protótipo</span></div>
+          <div class="browser-view"><img id="capture-match" class="capture" data-layout-allow-overflow src="assets/captures/05-partida-detalhe.png" alt="Detalhe real de uma partida" /></div>
+        </div>
+        <div id="lower-match" class="lower-third"><div class="lower-copy"><p class="eyebrow">Partida em detalhe</p><h2>Acompanhe o jogo. Consulte o resumo publicado.</h2></div></div>
+      </section>
+
+      <section id="scene-brand" class="clip" data-start="33" data-duration="3" data-track-index="0">
+        <div id="brand-field" class="brand-field"></div>
+        <div class="brand-content">
+          <h2 id="brand-name" class="display brand-name">CampoLivre</h2>
+          <p id="brand-tagline" class="brand-tagline">Futebol local, jogo aberto</p>
+          <p id="brand-proof" class="brand-proof">Campeonatos · Partidas · Comunidade</p>
+        </div>
+      </section>
+
+      <div id="transition-1" class="clip transition-band green" data-start="3.65" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-2" class="clip transition-band" data-start="9.65" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-3" class="clip transition-band green" data-start="16.65" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-4" class="clip transition-band" data-start="22.65" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-5" class="clip transition-band night" data-start="27.65" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-6" class="clip transition-band green" data-start="32.65" data-duration="0.5" data-track-index="5"></div>
+
+      <audio id="music-bed" data-start="0" data-duration="36" data-track-index="10" data-volume="0.23" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+      <audio id="sfx-hook" data-start="0.45" data-duration="0.18" data-track-index="11" data-volume="0.58" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-click-home" data-start="8.65" data-duration="0.01" data-track-index="12" data-volume="0.58" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-click-catalog" data-start="15.45" data-duration="0.01" data-track-index="13" data-volume="0.58" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-click-match" data-start="26.8" data-duration="0.01" data-track-index="14" data-volume="0.58" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-match-impact" data-start="29.1" data-duration="0.15" data-track-index="15" data-volume="0.60" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-brand" data-start="33.55" data-duration="0.18" data-track-index="16" data-volume="0.56" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+    </main>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from('#hook-field', { opacity: 0, scale: 0.95, duration: 0.8, ease: 'power3.out' }, 0.1);
+      tl.from('#hook-eye', { opacity: 0, y: 24, duration: 0.45, ease: 'power2.out' }, 0.35);
+      tl.from('#hook-a', { opacity: 0, x: -130, duration: 0.72, ease: 'expo.out' }, 0.48);
+      tl.from('#hook-b', { opacity: 0, x: 130, duration: 0.72, ease: 'power4.out' }, 0.76);
+      tl.from('#hook-side', { opacity: 0, y: 24, duration: 0.55, ease: 'power2.out' }, 1.25);
+
+      tl.from('#transition-1', { scaleX: 0, duration: 0.36, ease: 'power4.in' }, 3.65);
+      tl.from('#frame-home', { opacity: 0, scale: 0.94, duration: 0.65, ease: 'power4.out' }, 4.08);
+      tl.from('#lower-home', { opacity: 0, x: -90, duration: 0.58, ease: 'expo.out' }, 4.62);
+      tl.fromTo('#capture-home', { scale: 1.0, x: 0, y: 0 }, { scale: 1.065, x: -36, y: -36, duration: 4.8, ease: 'power1.inOut' }, 4.55);
+      tl.fromTo('#cursor-home', { opacity: 0, x: 410, y: 760 }, { opacity: 1, x: 1532, y: 458, duration: 2.0, ease: 'power2.inOut' }, 6.3);
+      tl.to('#cursor-home', { scale: 0.72, duration: 0.09, ease: 'power2.in' }, 8.58);
+      tl.to('#cursor-home', { scale: 1, duration: 0.14, ease: 'back.out(1.8)' }, 8.67);
+
+      tl.from('#transition-2', { scaleX: 0, transformOrigin: 'right center', duration: 0.36, ease: 'power4.in' }, 9.65);
+      tl.from('#frame-catalog', { opacity: 0, scale: 0.95, duration: 0.62, ease: 'power4.out' }, 10.08);
+      tl.from('#lower-catalog', { opacity: 0, x: -90, duration: 0.58, ease: 'expo.out' }, 10.55);
+      tl.fromTo('#capture-catalog', { scale: 1, x: 0, y: 0 }, { scale: 1.085, x: -42, y: -54, duration: 5.7, ease: 'power1.inOut' }, 10.45);
+      tl.fromTo('#cursor-catalog', { opacity: 0, x: 1510, y: 350 }, { opacity: 1, x: 890, y: 708, duration: 2.2, ease: 'power2.inOut' }, 12.45);
+      tl.to('#cursor-catalog', { scale: 0.72, duration: 0.09, ease: 'power2.in' }, 15.38);
+      tl.to('#cursor-catalog', { scale: 1, duration: 0.14, ease: 'back.out(1.8)' }, 15.47);
+
+      tl.from('#transition-3', { scaleX: 0, duration: 0.36, ease: 'power4.in' }, 16.65);
+      tl.from('#frame-championship', { opacity: 0, scale: 0.95, duration: 0.62, ease: 'power4.out' }, 17.08);
+      tl.from('#lower-championship', { opacity: 0, x: -90, duration: 0.58, ease: 'expo.out' }, 17.52);
+      tl.fromTo('#capture-championship', { scale: 1.02, x: 0, y: 0 }, { scale: 1.11, x: -22, y: -95, duration: 4.9, ease: 'power1.inOut' }, 17.25);
+
+      tl.from('#transition-4', { scaleX: 0, transformOrigin: 'right center', duration: 0.36, ease: 'power4.in' }, 22.65);
+      tl.from('#frame-matches', { opacity: 0, scale: 0.95, duration: 0.58, ease: 'power4.out' }, 23.08);
+      tl.from('#lower-matches', { opacity: 0, x: -90, duration: 0.52, ease: 'expo.out' }, 23.48);
+      tl.fromTo('#capture-matches', { scale: 1, x: 0, y: 0 }, { scale: 1.12, x: 95, y: -115, duration: 3.9, ease: 'power1.inOut' }, 23.35);
+      tl.fromTo('#cursor-matches', { opacity: 0, x: 1420, y: 720 }, { opacity: 1, x: 640, y: 718, duration: 1.7, ease: 'power2.inOut' }, 24.72);
+      tl.to('#cursor-matches', { scale: 0.72, duration: 0.09, ease: 'power2.in' }, 26.72);
+      tl.to('#cursor-matches', { scale: 1, duration: 0.14, ease: 'back.out(1.8)' }, 26.81);
+
+      tl.from('#transition-5', { scaleX: 0, duration: 0.36, ease: 'power4.in' }, 27.65);
+      tl.from('#frame-match', { opacity: 0, scale: 0.95, duration: 0.58, ease: 'power4.out' }, 28.08);
+      tl.from('#lower-match', { opacity: 0, x: -90, duration: 0.52, ease: 'expo.out' }, 28.48);
+      tl.fromTo('#capture-match', { scale: 1, x: 0, y: 0 }, { scale: 1.12, x: -65, y: -80, duration: 3.9, ease: 'power1.inOut' }, 28.32);
+
+      tl.from('#transition-6', { scaleX: 0, transformOrigin: 'right center', duration: 0.36, ease: 'power4.in' }, 32.65);
+      tl.from('#brand-field', { opacity: 0, scale: 0.72, duration: 0.72, ease: 'power3.out' }, 33.04);
+      tl.from('#brand-name', { opacity: 0, y: 44, duration: 0.62, ease: 'expo.out' }, 33.12);
+      tl.from('#brand-tagline', { opacity: 0, y: 18, duration: 0.44, ease: 'power2.out' }, 33.48);
+      tl.from('#brand-proof', { opacity: 0, y: 15, duration: 0.45, ease: 'back.out(1.2)' }, 33.78);
+      tl.to('#scene-brand', { opacity: 0.97, duration: 0.3, ease: 'power1.inOut' }, 35.62);
+
+      window.__timelines['campolivre-brag-v2'] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

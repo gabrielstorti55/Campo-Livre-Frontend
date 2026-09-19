@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { CampoFormulario } from '@/components/layout/campo-formulario';
 import { Button } from '@/components/ui/button';
@@ -12,25 +12,46 @@ import {
   type ModoAplicacao,
 } from '@/config/modo-aplicacao';
 import { useAutenticacaoApi } from '@/contexts/autenticacao-api';
+import { useMunicipiosApi } from '@/contexts/municipios-api';
 import { LayoutAutenticacao } from '@/layouts/autenticacao';
 import { ErroApi } from '@/services/api/problem-details';
 import type { RespostaCadastro } from '@/types/api/autenticacao';
-
-const MUNICIPIO_FRANCA_PROTOTIPO = '00000000-0000-4000-8000-000000000001';
+import type { Municipio } from '@/types/api/municipios';
 
 function somenteDigitos(value: string): string {
   return value.replace(/\D/g, '');
 }
 
+function normalizarRg(value: string): string {
+  return value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+}
+
+function senhaAtendePolitica(value: string): boolean {
+  return (
+    value.length >= 8 &&
+    value.length <= 128 &&
+    /[A-Z]/.test(value) &&
+    /[a-z]/.test(value) &&
+    /\d/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
+  );
+}
+
 function mensagemCadastro(error: unknown): string {
   if (error instanceof ErroApi) {
     const mensagens: Record<string, string> = {
+      DADOS_INVALIDOS:
+        error.problem.erros?.[0]?.mensagem ??
+        'Revise os dados informados e tente novamente.',
       EMAIL_INDISPONIVEL: 'Este e-mail não está disponível.',
       NOME_USUARIO_INDISPONIVEL: 'Este nome de usuário não está disponível.',
       CPF_INDISPONIVEL: 'Este CPF já está associado a uma conta.',
       RG_INDISPONIVEL: 'Este RG já está associado a uma conta.',
+      MUNICIPIO_NAO_ENCONTRADO: 'O município informado não está disponível.',
       MUNICIPIO_INATIVO: 'O município informado não está disponível.',
       TERMOS_NAO_ACEITOS: 'É necessário aceitar os termos de uso.',
+      LIMITE_EXCEDIDO:
+        'Muitas tentativas foram realizadas. Aguarde antes de tentar novamente.',
     };
     const mensagem = mensagens[error.problem.codigo ?? ''];
     if (mensagem) return mensagem;
@@ -44,41 +65,41 @@ export function TelaCadastro({
   modo?: ModoAplicacao;
 }) {
   const api = useAutenticacaoApi();
+  const municipiosApi = useMunicipiosApi();
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [cadastro, setCadastro] = useState<RespostaCadastro | null>(null);
+  const [emailCadastro, setEmailCadastro] = useState('');
   const [reenvio, setReenvio] = useState<string | null>(null);
-  const integradoBloqueado = modo === 'integrado';
+  const [municipios, setMunicipios] = useState<Municipio[]>([]);
+  const [municipioId, setMunicipioId] = useState('');
+  const [carregandoMunicipios, setCarregandoMunicipios] = useState(true);
+  const [erroMunicipios, setErroMunicipios] = useState<string | null>(null);
 
-  if (
-    cadastro?.status === 'AGUARDANDO_CONSENTIMENTO' ||
-    cadastro?.proximaAcao === 'INFORMAR_RESPONSAVEL' ||
-    cadastro?.consentimentoResponsavelNecessario
-  ) {
-    return (
-      <LayoutAutenticacao>
-        <div aria-live="polite">
-          <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-warning uppercase">
-            Fluxo indisponível nesta etapa
-          </p>
-          <h1 className="font-display text-3xl font-semibold text-foreground">
-            Cadastro de menor não concluído
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            A API informou que este cadastro exige o fluxo do responsável. Essa
-            jornada ainda depende das definições canônicas de consentimento e
-            não será simulada pelo frontend.
-          </p>
-          <Link
-            href="/login"
-            className="mt-7 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
-          >
-            Voltar ao acesso
-          </Link>
-        </div>
-      </LayoutAutenticacao>
-    );
-  }
+  useEffect(() => {
+    let ativo = true;
+    municipiosApi
+      .listarMunicipios({ pagina: 1, tamanho: 100 })
+      .then((pagina) => {
+        if (!ativo) return;
+        setMunicipios(pagina.itens);
+        setMunicipioId((atual) => atual || pagina.itens[0]?.id || '');
+      })
+      .catch(() => {
+        if (ativo) {
+          setErroMunicipios(
+            'Não foi possível carregar os municípios disponíveis.',
+          );
+        }
+      })
+      .finally(() => {
+        if (ativo) setCarregandoMunicipios(false);
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [municipiosApi]);
 
   if (cadastro) {
     return (
@@ -102,7 +123,7 @@ export function TelaCadastro({
             onClick={async () => {
               setReenvio(null);
               try {
-                await api.reenviarConfirmacaoEmail(cadastro.cadastroToken);
+                await api.reenviarConfirmacaoEmail(emailCadastro);
                 setReenvio('Um novo envio foi solicitado.');
               } catch {
                 setReenvio('Não foi possível solicitar um novo envio agora.');
@@ -118,7 +139,7 @@ export function TelaCadastro({
           ) : null}
           {modo === 'prototipo' ? (
             <Link
-              href={`/confirmar-email?token=${encodeURIComponent(cadastro.cadastroToken)}`}
+              href={`/confirmar-email?token=${encodeURIComponent(`prototipo:${cadastro.cadastroId}`)}`}
               className="mt-6 block text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
             >
               Abrir confirmação simulada
@@ -142,25 +163,11 @@ export function TelaCadastro({
         associados a ela.
       </p>
 
-      {integradoBloqueado ? (
-        <p
-          role="status"
-          className="mt-5 border-l-2 border-warning pl-3 text-sm text-muted-foreground"
-        >
-          O cadastro integrado aguarda o catálogo público de municípios exigido
-          para selecionar o `municipioId`. Nenhum cadastro será simulado.
-        </p>
-      ) : (
-        <p className="mt-5 text-sm text-muted-foreground">
-          Município de demonstração: Franca, SP.
-        </p>
-      )}
-
       <form
         className="mt-8 space-y-5"
         onSubmit={async (event) => {
           event.preventDefault();
-          if (enviando || integradoBloqueado) return;
+          if (enviando || !municipioId) return;
           const form = new FormData(event.currentTarget);
           const senha = String(form.get('senha') ?? '');
           const confirmacao = String(form.get('confirmarSenha') ?? '');
@@ -168,6 +175,16 @@ export function TelaCadastro({
             setErro('As senhas informadas não coincidem.');
             return;
           }
+          if (!senhaAtendePolitica(senha)) {
+            setErro(
+              'A senha deve ter de 8 a 128 caracteres, com maiúscula, minúscula, número e símbolo.',
+            );
+            return;
+          }
+
+          const email = String(form.get('email') ?? '')
+            .trim()
+            .toLowerCase();
 
           setErro(null);
           setEnviando(true);
@@ -175,12 +192,10 @@ export function TelaCadastro({
             const response = await api.cadastrar({
               nome: String(form.get('nome') ?? '').trim(),
               nomeUsuario: String(form.get('nomeUsuario') ?? '').trim(),
-              email: String(form.get('email') ?? '')
-                .trim()
-                .toLowerCase(),
+              email,
               telefone: String(form.get('telefone') ?? '').trim() || null,
               cpf: somenteDigitos(String(form.get('cpf') ?? '')),
-              rgNumero: somenteDigitos(String(form.get('rgNumero') ?? '')),
+              rgNumero: normalizarRg(String(form.get('rgNumero') ?? '')),
               rgOrgaoExpedidor: String(
                 form.get('rgOrgaoExpedidor') ?? '',
               ).trim(),
@@ -188,10 +203,11 @@ export function TelaCadastro({
                 .trim()
                 .toUpperCase(),
               dataNascimento: String(form.get('dataNascimento') ?? ''),
-              municipioId: MUNICIPIO_FRANCA_PROTOTIPO,
+              municipioId,
               senha,
               termosAceitos: true,
             });
+            setEmailCadastro(email);
             setCadastro(response);
           } catch (error) {
             setErro(mensagemCadastro(error));
@@ -257,12 +273,41 @@ export function TelaCadastro({
             required
           />
         </CampoFormulario>
+        <CampoFormulario label="Município" htmlFor="municipio-field">
+          <select
+            id="municipio-field"
+            name="municipioId"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={municipioId}
+            onChange={(event) => setMunicipioId(event.target.value)}
+            disabled={carregandoMunicipios || Boolean(erroMunicipios)}
+            required
+          >
+            <option value="">
+              {carregandoMunicipios
+                ? 'Carregando municípios...'
+                : 'Selecione um município'}
+            </option>
+            {municipios.map((municipio) => (
+              <option key={municipio.id} value={municipio.id}>
+                {municipio.nome} — {municipio.uf}
+              </option>
+            ))}
+          </select>
+          {erroMunicipios ? (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              {erroMunicipios}
+            </p>
+          ) : null}
+        </CampoFormulario>
         <CampoFormulario label="Senha" htmlFor="senha-field">
           <Input
             id="senha-field"
             name="senha"
             type="password"
             autoComplete="new-password"
+            minLength={8}
+            maxLength={128}
             required
           />
         </CampoFormulario>
@@ -275,6 +320,8 @@ export function TelaCadastro({
             name="confirmarSenha"
             type="password"
             autoComplete="new-password"
+            minLength={8}
+            maxLength={128}
             required
           />
         </CampoFormulario>
@@ -295,7 +342,7 @@ export function TelaCadastro({
         <Button
           variant="campo"
           type="submit"
-          disabled={enviando || integradoBloqueado}
+          disabled={enviando || carregandoMunicipios || !municipioId}
           className="h-11 w-full"
         >
           {enviando ? 'Criando…' : 'Criar conta pessoal'}

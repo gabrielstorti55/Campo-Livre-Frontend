@@ -7,7 +7,22 @@ import { PaginaEstado } from '@/components/layout/pagina-estado';
 import type { ModoAplicacao } from '@/config/modo-aplicacao';
 
 function rotaIntegrada(pathname: string): boolean {
-  if (pathname === '/times' || pathname === '/campos') return true;
+  if (
+    /^\/campeonatos\/[^/]+\/(artilharia|participantes)$/.test(pathname) ||
+    /^\/campeonatos\/[^/]+$/.test(pathname)
+  ) {
+    return true;
+  }
+  if (
+    pathname === '/' ||
+    pathname === '/campeonatos' ||
+    pathname === '/partidas' ||
+    /^\/partidas\/[^/]+$/.test(pathname) ||
+    /^\/convites-time\/[^/]+$/.test(pathname) ||
+    pathname === '/times' ||
+    pathname === '/campos'
+  )
+    return true;
   if (/^\/(times|campos)\/[^/]+$/.test(pathname)) {
     return pathname !== '/times/criar';
   }

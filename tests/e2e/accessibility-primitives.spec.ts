@@ -26,15 +26,15 @@ test('apresenta a identidade CampoLivre sem aparência de card genérico', async
     }),
   ).toBeVisible();
 
-  await page.evaluate(() => document.fonts.ready);
-  expect(
-    await page.evaluate(() => document.fonts.check('400 16px "IBM Plex Sans"')),
-  ).toBe(true);
-  expect(
-    await page.evaluate(() =>
-      document.fonts.check('700 32px "Barlow Condensed"'),
-    ),
-  ).toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.fonts.check('400 16px "IBM Plex Sans"') &&
+          document.fonts.check('700 32px "Barlow Condensed"'),
+      ),
+    )
+    .toBe(true);
   await expect(page.locator('body')).toHaveCSS('font-family', /IBM Plex Sans/);
   await expect(
     page.getByRole('heading', { name: 'Entre no CampoLivre' }),
@@ -89,46 +89,38 @@ test('mantém o cadastro pessoal acessível sem seleção de papel global', asyn
   await expect(page.getByLabel('Perfil')).toHaveCount(0);
 });
 
-test('agenda data, horário e partida com primitivas de seleção acessíveis', async ({
+test('expõe operações de partida e formulário de agendamento acessíveis', async ({
   page,
 }) => {
   await autenticarEm(page, 'organizador', '/organizador/campeonato/1/partidas');
 
-  const calendar = page.getByRole('grid', { name: /agosto 2026/i });
-  await expect(calendar).toBeVisible();
-  await calendar.getByRole('button', { name: /20 de agosto de 2026/i }).click();
-
-  const horarios = page.getByRole('radiogroup', {
-    name: 'Selecione o horário',
+  await expect(page.getByRole('heading', { name: /Partidas ·/ })).toBeVisible();
+  const agendar = page.getByRole('button', { name: 'Agendar partida 1' });
+  const cancelar = page.getByRole('button', { name: 'Cancelar partida 1' });
+  const registrarWo = page.getByRole('button', {
+    name: 'Registrar WO na partida 1',
   });
-  await horarios.getByRole('radio', { name: '17:00' }).click();
-  await expect(horarios.getByRole('radio', { name: '17:00' })).toHaveAttribute(
-    'data-state',
-    'on',
-  );
+  await expect(agendar).toBeVisible();
+  await expect(cancelar).toBeVisible();
+  await expect(registrarWo).toBeVisible();
 
-  const pendentes = page.getByRole('radiogroup', {
-    name: 'Partidas pendentes de agendamento',
-  });
-  const primeiraPartida = pendentes.getByRole('radio').first();
-  await primeiraPartida.click();
-  await expect(primeiraPartida).toBeChecked();
-  const partidaBox = await primeiraPartida.boundingBox();
-  expect(partidaBox?.height).toBeLessThan(160);
+  for (const controle of [agendar, cancelar, registrarWo]) {
+    const caixa = await controle.boundingBox();
+    expect(caixa?.height).toBeGreaterThanOrEqual(32);
+  }
 
+  await agendar.click();
+  await expect(page.getByLabel('Nova data')).toHaveAttribute('type', 'date');
+  await expect(page.getByLabel('Novo horário')).toHaveAttribute('type', 'time');
+  await expect(page.getByLabel('Campo (UUID)')).toBeVisible();
   await expect(
-    calendar.getByRole('button', { name: /julho|setembro/i }),
-  ).toHaveCount(0);
+    page.getByLabel(
+      'Confirmo que o campo e o horário foram autorizados externamente',
+    ),
+  ).toBeVisible();
   await expect(
-    calendar.getByRole('button', {
-      name: /previous|next|anterior|próximo/i,
-    }),
-  ).toHaveCount(0);
-
-  const salvar = page.getByRole('button', { name: /20\/08\/2026 às 17:00/ });
-  await expect(salvar).toBeVisible();
-  const salvarBox = await salvar.boundingBox();
-  expect(salvarBox?.height).toBeGreaterThanOrEqual(40);
+    page.getByRole('button', { name: 'Confirmar agendamento' }),
+  ).toBeDisabled();
 });
 
 test('expõe o calendário da prefeitura com semântica de grade', async ({

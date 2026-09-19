@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>CampoLivre — Futebol local, jogo aberto</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Barlow Condensed';
+        src: url('assets/fonts/barlow-condensed-700.woff2') format('woff2');
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: 'IBM Plex Sans';
+        src: url('assets/fonts/ibm-plex-sans-400.woff2') format('woff2');
+        font-weight: 400;
+      }
+      :root {
+        --green-deep: #173f2f;
+        --green: #216447;
+        --green-soft: #dfe8d9;
+        --navy: #142438;
+        --yellow: #f2c94c;
+        --cream: #f5f1e6;
+        --paper: #fbfaf4;
+        --ink: #17241d;
+        --muted: #5f675f;
+        --line: #c9c8bc;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        margin: 0;
+        overflow: hidden;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: 'IBM Plex Sans', sans-serif;
+      }
+      #stage {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .scene-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 92px 116px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        overflow: hidden;
+      }
+      .display {
+        margin: 0;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        line-height: 0.86;
+        letter-spacing: -0.02em;
+      }
+      .eyebrow {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .field-grid {
+        background-color: var(--cream);
+        background-image:
+          linear-gradient(rgb(23 63 47 / 6%) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(23 63 47 / 6%) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+      .field-frame {
+        position: absolute;
+        inset: 52px;
+        border: 3px solid var(--green);
+        opacity: 0.35;
+      }
+      .field-midline {
+        position: absolute;
+        top: 52px;
+        bottom: 52px;
+        left: 50%;
+        width: 3px;
+        background: var(--green);
+        opacity: 0.35;
+        transform-origin: center top;
+      }
+      .field-circle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 310px;
+        height: 310px;
+        border: 3px solid var(--green);
+        border-radius: 50%;
+        opacity: 0.35;
+        transform: translate(-50%, -50%);
+      }
+      #scene-hook .scene-content {
+        justify-content: center;
+      }
+      .hook-title {
+        max-width: 1360px;
+        font-size: 176px;
+      }
+      .hook-line {
+        display: block;
+      }
+      .hook-accent {
+        color: var(--green-deep);
+      }
+      .hook-open {
+        display: inline-block;
+        margin-top: 22px;
+        background: var(--yellow);
+        padding: 8px 24px 18px;
+      }
+      .hook-note {
+        width: 560px;
+        margin: 18px 0 0 auto;
+        border-left: 3px solid var(--yellow);
+        padding: 8px 0 8px 22px;
+        color: var(--muted);
+        font-size: 25px;
+        line-height: 1.45;
+      }
+      #scene-campeonatos {
+        background: var(--paper);
+      }
+      .section-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        border-bottom: 3px solid var(--green-deep);
+        padding-bottom: 34px;
+      }
+      .section-title {
+        font-size: 105px;
+      }
+      .section-place {
+        color: var(--green);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .competition-row {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1.18fr 1fr 1fr;
+        gap: 18px;
+        align-items: stretch;
+      }
+      .competition {
+        min-width: 0;
+        border-top: 6px solid var(--green-deep);
+        background: var(--cream);
+        padding: 42px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .competition.featured {
+        position: relative;
+        background: var(--green-deep);
+        color: white;
+        overflow: hidden;
+      }
+      .competition.featured::before {
+        content: '';
+        position: absolute;
+        inset: 22px;
+        border: 2px solid rgb(245 241 230 / 22%);
+      }
+      .competition.featured::after {
+        content: '';
+        position: absolute;
+        top: 22px;
+        bottom: 22px;
+        left: 50%;
+        width: 2px;
+        background: rgb(245 241 230 / 18%);
+      }
+      .competition > * {
+        position: relative;
+        z-index: 1;
+      }
+      .competition-index {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 34px;
+        color: var(--yellow);
+      }
+      .competition:not(.featured) .competition-index {
+        color: #8a5a00;
+      }
+      .competition-name {
+        margin: auto 0 28px;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 64px;
+        line-height: 0.96;
+        text-transform: uppercase;
+      }
+      .competition-meta {
+        border-top: 1px solid currentColor;
+        padding-top: 18px;
+        font-size: 20px;
+      }
+      #scene-agenda {
+        background: var(--cream);
+      }
+      .agenda-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .agenda-title {
+        font-size: 112px;
+      }
+      .agenda-date {
+        background: var(--yellow);
+        padding: 18px 26px;
+        color: var(--ink);
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .fixture {
+        position: relative;
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 54px;
+        border-top: 3px solid var(--navy);
+        border-bottom: 3px solid var(--navy);
+        background: var(--paper);
+        padding: 70px 88px;
+      }
+      .team {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 88px;
+        line-height: 0.96;
+        text-transform: uppercase;
+      }
+      .team.away {
+        text-align: right;
+      }
+      .versus {
+        width: 104px;
+        height: 104px;
+        display: grid;
+        place-items: center;
+        background: var(--green-deep);
+        color: white;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 50px;
+        font-weight: 700;
+      }
+      .fixture-info {
+        position: absolute;
+        right: 88px;
+        bottom: 36px;
+        left: 88px;
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--line);
+        padding-top: 18px;
+        color: var(--muted);
+        font-size: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .round-line {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 10px;
+        background: var(--yellow);
+        transform-origin: left center;
+      }
+      #scene-score {
+        background: var(--navy);
+        color: var(--cream);
+      }
+      .score-field {
+        position: absolute;
+        inset: 46px;
+        border: 2px solid rgb(245 241 230 / 20%);
+      }
+      .score-field::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        background: rgb(245 241 230 / 17%);
+      }
+      .score-field::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 270px;
+        height: 270px;
+        border: 2px solid rgb(245 241 230 / 17%);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .score-content {
+        position: relative;
+        z-index: 1;
+        justify-content: center;
+        align-items: center;
+      }
+      .score-label {
+        color: var(--yellow);
+      }
+      .scoreboard {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 430px 1fr;
+        align-items: center;
+        gap: 50px;
+      }
+      .score-team {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 74px;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+      .score-team:first-child {
+        text-align: right;
+      }
+      .score-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 34px;
+        border-top: 4px solid var(--yellow);
+        border-bottom: 4px solid var(--yellow);
+        padding: 18px 0 30px;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 212px;
+        line-height: 0.86;
+        font-variant-numeric: tabular-nums;
+      }
+      .score-x {
+        color: var(--yellow);
+        font-size: 68px;
+      }
+      .published {
+        margin-top: 24px;
+        border-left: 4px solid var(--yellow);
+        padding: 12px 22px;
+        font-size: 24px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      #scene-brand {
+        background: var(--green-deep);
+        color: var(--cream);
+      }
+      .brand-content {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+      .brand-mark {
+        position: absolute;
+        width: 740px;
+        height: 740px;
+        border: 3px solid rgb(245 241 230 / 16%);
+        border-radius: 50%;
+      }
+      .brand-mark::before,
+      .brand-mark::after {
+        content: '';
+        position: absolute;
+        background: rgb(245 241 230 / 14%);
+      }
+      .brand-mark::before {
+        top: 50%;
+        left: -160px;
+        width: 1060px;
+        height: 3px;
+      }
+      .brand-mark::after {
+        top: -160px;
+        left: 50%;
+        width: 3px;
+        height: 1060px;
+      }
+      .brand-name {
+        position: relative;
+        z-index: 1;
+        font-size: 210px;
+      }
+      .brand-tagline {
+        position: relative;
+        z-index: 1;
+        margin: 16px 0 0;
+        color: var(--yellow);
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .brand-features {
+        position: relative;
+        z-index: 1;
+        margin-top: 52px;
+        border-top: 1px solid rgb(245 241 230 / 28%);
+        padding-top: 20px;
+        font-size: 19px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .transition-band {
+        z-index: 20;
+        transform-origin: left center;
+        background: var(--yellow);
+      }
+      #transition-2,
+      #transition-4 {
+        background: var(--green-deep);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="stage"
+      data-composition-id="campolivre-brag"
+      data-start="0"
+      data-duration="20"
+      data-width="1920"
+      data-height="1080"
+    >
+      <section id="scene-hook" class="clip field-grid" data-start="0" data-duration="4.5" data-track-index="0">
+        <div id="hook-frame" class="field-frame"></div>
+        <div id="hook-midline" class="field-midline"></div>
+        <div id="hook-circle" class="field-circle"></div>
+        <div class="scene-content">
+          <p id="hook-eyebrow" class="eyebrow hook-accent">CampoLivre apresenta</p>
+          <h1 class="display hook-title">
+            <span id="hook-local" class="hook-line">Futebol local,</span>
+            <span id="hook-open" class="hook-line hook-open">jogo aberto.</span>
+          </h1>
+          <p id="hook-note" class="hook-note">Campeonatos, partidas e histórias da comunidade no mesmo campo.</p>
+        </div>
+      </section>
+
+      <section id="scene-campeonatos" class="clip" data-start="4.5" data-duration="4.2" data-track-index="0">
+        <div class="scene-content">
+          <div class="section-head">
+            <div>
+              <p id="comp-eyebrow" class="eyebrow" style="color: var(--green)">Competições públicas</p>
+              <h2 id="comp-title" class="display section-title">Campeonatos em andamento</h2>
+            </div>
+            <p id="comp-place" class="section-place">Franca · SP</p>
+          </div>
+          <div class="competition-row">
+            <article id="competition-1" class="competition featured">
+              <span class="competition-index">01</span>
+              <h3 class="competition-name">Copa Municipal</h3>
+              <p class="competition-meta">Em andamento · 12 times</p>
+            </article>
+            <article id="competition-2" class="competition">
+              <span class="competition-index">02</span>
+              <h3 class="competition-name">Liga Regional</h3>
+              <p class="competition-meta">Em andamento · 8 times</p>
+            </article>
+            <article id="competition-3" class="competition">
+              <span class="competition-index">03</span>
+              <h3 class="competition-name">Taça da Comunidade</h3>
+              <p class="competition-meta">Publicada · 16 times</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-agenda" class="clip" data-start="8.7" data-duration="4.4" data-track-index="0">
+        <div class="scene-content">
+          <div class="agenda-top">
+            <div>
+              <p id="agenda-eyebrow" class="eyebrow" style="color: var(--green)">Agenda pública · Rodada 5</p>
+              <h2 id="agenda-title" class="display agenda-title">Agenda de partidas</h2>
+            </div>
+            <div id="agenda-date" class="agenda-date">18 SET · 20:00</div>
+          </div>
+          <div id="fixture" class="fixture">
+            <div id="home-team" class="team">União Francana</div>
+            <div id="versus" class="versus">×</div>
+            <div id="away-team" class="team away">Vila Nova</div>
+            <div id="fixture-info" class="fixture-info">
+              <span>Estádio Municipal</span>
+              <span>Franca · SP</span>
+              <span>Partida agendada</span>
+            </div>
+            <div id="round-line" class="round-line"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="scene-score" class="clip" data-start="13.1" data-duration="3.8" data-track-index="0">
+        <div class="score-field"></div>
+        <div class="scene-content score-content">
+          <p id="score-label" class="eyebrow score-label">Resultado definitivo</p>
+          <div class="scoreboard">
+            <div id="score-home" class="score-team">União Francana</div>
+            <div id="score-number" class="score-number"><span>2</span><span class="score-x">×</span><span>1</span></div>
+            <div id="score-away" class="score-team">Vila Nova</div>
+          </div>
+          <p id="published" class="published">Resumo da súmula publicado</p>
+        </div>
+      </section>
+
+      <section id="scene-brand" class="clip" data-start="16.9" data-duration="3.1" data-track-index="0">
+        <div class="scene-content brand-content">
+          <div id="brand-mark" class="brand-mark"></div>
+          <h2 id="brand-name" class="display brand-name">CampoLivre</h2>
+          <p id="brand-tagline" class="brand-tagline">Futebol local, jogo aberto</p>
+          <p id="brand-features" class="brand-features">Campeonatos · Partidas · Comunidade</p>
+        </div>
+      </section>
+
+      <div id="transition-1" class="clip transition-band" data-start="4.15" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-2" class="clip transition-band" data-start="8.35" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-3" class="clip transition-band" data-start="12.75" data-duration="0.5" data-track-index="5"></div>
+      <div id="transition-4" class="clip transition-band" data-start="16.55" data-duration="0.5" data-track-index="5"></div>
+
+      <audio id="music" data-start="0" data-duration="20" data-track-index="10" data-volume="0.24" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3"></audio>
+      <audio id="sfx-hook" data-start="0.55" data-duration="0.18" data-track-index="11" data-volume="0.58" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-agenda" data-start="8.74" data-duration="0.01" data-track-index="12" data-volume="0.52" src="assets/sfx/interface/click_003.ogg"></audio>
+      <audio id="sfx-score" data-start="13.11" data-duration="0.15" data-track-index="13" data-volume="0.62" src="assets/sfx/impact/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-brand" data-start="17.47" data-duration="0.18" data-track-index="14" data-volume="0.54" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from('#hook-frame', { opacity: 0, scale: 0.96, duration: 0.8, ease: 'power2.out' }, 0.15);
+      tl.from('#hook-midline', { scaleY: 0, duration: 0.75, ease: 'power3.inOut' }, 0.2);
+      tl.from('#hook-circle', { opacity: 0, scale: 0.55, duration: 0.7, ease: 'back.out(1.3)' }, 0.32);
+      tl.from('#hook-eyebrow', { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' }, 0.45);
+      tl.from('#hook-local', { opacity: 0, x: -120, duration: 0.72, ease: 'expo.out' }, 0.58);
+      tl.from('#hook-open', { opacity: 0, x: 120, duration: 0.72, ease: 'power4.out' }, 0.85);
+      tl.from('#hook-note', { opacity: 0, y: 26, duration: 0.58, ease: 'power2.out' }, 1.35);
+
+      tl.from('#transition-1', { scaleX: 0, duration: 0.36, ease: 'power4.in' }, 4.15);
+      tl.from('#comp-eyebrow', { opacity: 0, y: 20, duration: 0.45, ease: 'power2.out' }, 4.58);
+      tl.from('#comp-title', { opacity: 0, x: -70, duration: 0.62, ease: 'expo.out' }, 4.66);
+      tl.from('#comp-place', { opacity: 0, y: 22, duration: 0.5, ease: 'back.out(1.2)' }, 4.82);
+      tl.from('#competition-1', { opacity: 0, y: 80, duration: 0.62, ease: 'power4.out' }, 5.12);
+      tl.from('#competition-2', { opacity: 0, y: 80, duration: 0.62, ease: 'power3.out' }, 5.38);
+      tl.from('#competition-3', { opacity: 0, y: 80, duration: 0.62, ease: 'power2.out' }, 5.64);
+
+      tl.from('#transition-2', { scaleX: 0, transformOrigin: 'right center', duration: 0.36, ease: 'power4.in' }, 8.35);
+      tl.from('#agenda-eyebrow', { opacity: 0, y: 20, duration: 0.42, ease: 'power2.out' }, 8.78);
+      tl.from('#agenda-title', { opacity: 0, x: -80, duration: 0.58, ease: 'expo.out' }, 8.84);
+      tl.from('#agenda-date', { opacity: 0, scale: 0.85, duration: 0.52, ease: 'back.out(1.5)' }, 9.02);
+      tl.from('#fixture', { opacity: 0, y: 65, duration: 0.66, ease: 'power4.out' }, 9.25);
+      tl.from('#home-team', { opacity: 0, x: -55, duration: 0.52, ease: 'power3.out' }, 9.7);
+      tl.from('#versus', { opacity: 0, scale: 0.55, duration: 0.46, ease: 'back.out(1.7)' }, 9.85);
+      tl.from('#away-team', { opacity: 0, x: 55, duration: 0.52, ease: 'power3.out' }, 9.96);
+      tl.from('#fixture-info', { opacity: 0, y: 16, duration: 0.45, ease: 'power2.out' }, 10.35);
+      tl.from('#round-line', { scaleX: 0, duration: 1.0, ease: 'power2.inOut' }, 10.48);
+
+      tl.from('#transition-3', { scaleX: 0, duration: 0.36, ease: 'power4.in' }, 12.75);
+      tl.from('#score-label', { opacity: 0, y: 18, duration: 0.45, ease: 'power2.out' }, 13.18);
+      tl.from('#score-home', { opacity: 0, x: -65, duration: 0.58, ease: 'expo.out' }, 13.3);
+      tl.from('#score-away', { opacity: 0, x: 65, duration: 0.58, ease: 'expo.out' }, 13.3);
+      tl.from('#score-number', { opacity: 0, scale: 0.68, duration: 0.65, ease: 'back.out(1.45)' }, 13.45);
+      tl.from('#published', { opacity: 0, y: 22, duration: 0.5, ease: 'power3.out' }, 14.15);
+
+      tl.from('#transition-4', { scaleX: 0, transformOrigin: 'right center', duration: 0.36, ease: 'power4.in' }, 16.55);
+      tl.from('#brand-mark', { opacity: 0, scale: 0.72, duration: 0.8, ease: 'power3.out' }, 17.0);
+      tl.from('#brand-name', { opacity: 0, y: 48, duration: 0.7, ease: 'expo.out' }, 17.12);
+      tl.from('#brand-tagline', { opacity: 0, y: 18, duration: 0.48, ease: 'power2.out' }, 17.55);
+      tl.from('#brand-features', { opacity: 0, y: 16, duration: 0.5, ease: 'back.out(1.15)' }, 17.85);
+      tl.to('#scene-brand', { opacity: 0.96, duration: 0.4, ease: 'power1.inOut' }, 19.55);
+
+      window.__timelines['campolivre-brag'] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

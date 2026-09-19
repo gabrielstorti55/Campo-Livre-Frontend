@@ -8,6 +8,11 @@ import type { TimesApi } from '@/services/times/times-api';
 describe('ProvedorTimesApi', () => {
   it('entrega à tela somente o contrato do domínio', () => {
     const api: TimesApi = {
+      consultarConvitePorToken: vi.fn(),
+      aceitarConvitePorToken: vi.fn(),
+      recusarConvitePorToken: vi.fn(),
+      criarTime: vi.fn(),
+      listarMeusTimes: vi.fn(),
       removerAtleta: vi.fn(),
       sairDoTime: vi.fn(),
       transferirCapitania: vi.fn(),
@@ -16,6 +21,7 @@ describe('ProvedorTimesApi', () => {
       reativarTime: vi.fn(),
       buscarAtletaParaConvite: vi.fn(),
       enviarConvite: vi.fn(),
+      listarConvitesEnviados: vi.fn(),
       reenviarConvite: vi.fn(),
       cancelarConvite: vi.fn(),
       enviarEscudo: vi.fn(),

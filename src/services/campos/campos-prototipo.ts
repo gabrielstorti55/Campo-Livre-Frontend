@@ -1,5 +1,7 @@
 import type { CamposApi } from '@/services/campos/campos-api';
 import type {
+  CadastroCampo,
+  CampoCriado,
   CampoDetalhado,
   FiltrosCampos,
   PaginaCampos,
@@ -59,5 +61,36 @@ export class CamposPrototipo implements CamposApi {
     const campo = campos.find((item) => item.id === campoId);
     if (!campo) throw new Error('CAMPO_NAO_ENCONTRADO');
     return campo;
+  }
+
+  async cadastrarCampo(
+    prefeituraId: string,
+    _accessToken: string,
+    input: CadastroCampo,
+  ): Promise<CampoCriado> {
+    const id = `campo-prototipo-${campos.length + 1}`;
+    const criadoEm = new Date().toISOString();
+    campos.push({
+      id,
+      nome: input.nome,
+      descricao: input.descricao,
+      endereco: input.endereco,
+      municipio: { id: 'municipio-franca', nome: 'Franca', uf: 'SP' },
+      statusOperacional: 'ATIVO',
+      prefeitura: {
+        nomeOficial: 'Prefeitura Municipal de Franca',
+        emailInstitucional: 'esportes@franca.sp.gov.br',
+      },
+      aviso:
+        'Cadastro informativo; não representa reserva ou autorização de uso.',
+    });
+    return {
+      id,
+      prefeituraId,
+      municipioId: 'municipio-franca',
+      ...input,
+      statusOperacional: 'ATIVO',
+      criadoEm,
+    };
   }
 }

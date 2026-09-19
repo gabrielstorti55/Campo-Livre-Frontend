@@ -1,315 +1,389 @@
 'use client';
 
-import { useState } from 'react';
-import { ptBR } from 'date-fns/locale';
-
-import { useSessao } from '@/hooks/use-sessao';
-import { catalogoOrganizadorMock } from '@/services/organizador/catalogo-organizador.mock';
-import { podeRegistrarWo } from '@/services/organizador/permissoes-partidas';
-import { useEstadoOperacionalOrganizador } from '@/stores/estado-operacional-organizador';
 import {
-  obterNomeCampoPartida,
-  obterNomeTimePublico,
-  catalogoPublicoMock,
-} from '@/services/publico/catalogo-publico.mock';
-import { CampoFormulario } from '@/components/layout/campo-formulario';
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
-import { Secao } from '@/components/layout/secao';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/utils/classes';
+import { usePartidasApi } from '@/contexts/partidas-api';
+import { useSessao } from '@/hooks/use-sessao';
+import { carregarPartidasAdministrativas } from '@/services/partidas/carregar-partidas-administrativas';
+import type {
+  DetalheAdministrativoPartida,
+  ItemAgendaPartida,
+  RegistroWo,
+} from '@/types/api/partidas';
 
-const agosto2026 = new Date(2026, 7, 1);
-const horarios = ['09:00', '11:00', '14:00', '15:00', '17:00', '19:00'];
-type OperacaoPartida = 'AGENDAR' | 'REAGENDAR' | 'ADIAR' | 'CANCELAR';
+type EstadoCarregamento = 'carregando' | 'pronto' | 'erro';
+type Operacao = 'AGENDAR' | 'REAGENDAR' | 'ADIAR' | 'CANCELAR';
+type CategoriaCancelamento =
+  'DECISAO_ADMINISTRATIVA' | 'DESISTENCIA' | 'FORCA_MAIOR';
+
+const doisDigitos = (valor: number) => String(valor).padStart(2, '0');
+
+function obterDataHoraLocal(dataIso: string | null) {
+  if (!dataIso) return { data: '', hora: '' };
+  const inicio = new Date(dataIso);
+  return {
+    data: `${inicio.getFullYear()}-${doisDigitos(inicio.getMonth() + 1)}-${doisDigitos(inicio.getDate())}`,
+    hora: `${doisDigitos(inicio.getHours())}:${doisDigitos(inicio.getMinutes())}`,
+  };
+}
 
 export function TelaGerenciarPartidas({
   campeonatoId,
+  incorporada = false,
 }: {
   campeonatoId: string;
+  incorporada?: boolean;
 }) {
-  const { session, hydrated } = useSessao();
-  const operacional = useEstadoOperacionalOrganizador(Number(campeonatoId));
-  const campeonato = catalogoOrganizadorMock.obterCampeonato(
-    campeonatoId,
-    session?.account.id ?? '',
-    session?.links.organizedChampionshipIds ?? [],
-  );
-  const partidas = catalogoPublicoMock
-    .listarPartidas()
-    .filter((partida) => partida.campeonatoId === Number(campeonatoId));
-  const [partidaWO, setPartidaWO] = useState<number | null>(null);
-  const [vencedorWO, setVencedorWO] = useState('');
-  const [justificativaWO, setJustificativaWO] = useState(
+  const partidasApi = usePartidasApi();
+  const { hydrated, session, executarAutenticado } = useSessao();
+  const [agenda, setAgenda] = useState<ItemAgendaPartida[]>([]);
+  const [detalhes, setDetalhes] = useState<
+    Record<string, DetalheAdministrativoPartida>
+  >({});
+  const [estadoCarregamento, setEstadoCarregamento] =
+    useState<EstadoCarregamento>('carregando');
+  const [operacao, setOperacao] = useState<{
+    tipo: Operacao;
+    partidaId: string;
+  } | null>(null);
+  const [data, setData] = useState('');
+  const [hora, setHora] = useState('');
+  const [campoId, setCampoId] = useState('');
+  const [autorizacaoExternaConfirmada, setAutorizacaoExternaConfirmada] =
+    useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [categoriaCancelamento, setCategoriaCancelamento] =
+    useState<CategoriaCancelamento>('DECISAO_ADMINISTRATIVA');
+  const [enviando, setEnviando] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [partidaWo, setPartidaWo] = useState<ItemAgendaPartida | null>(null);
+  const [vencedorWo, setVencedorWo] = useState('');
+  const [justificativaWo, setJustificativaWo] = useState(
     'Ausência da equipe adversária',
   );
-  const [confirmandoWo, setConfirmandoWo] = useState(false);
-  const [data, setData] = useState(new Date(2026, 7, 14));
-  const [hora, setHora] = useState('15:00');
-  const [campo, setCampo] = useState('1');
-  const [selecionada, setSelecionada] = useState<string | null>(null);
-  const [operacao, setOperacao] = useState<{
-    partidaId: number;
-    tipo: OperacaoPartida;
+  const [revisaoWo, setRevisaoWo] = useState<{
+    partidaId: string;
+    input: RegistroWo;
   } | null>(null);
-  const [motivo, setMotivo] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const estadoDaPartida = (partidaId: number) =>
-    operacional.estado?.partidaEstados[partidaId] ??
-    partidas.find((partida) => partida.id === partidaId)?.estado ??
-    'A_DEFINIR';
+  const chaveWo = useRef<string | null>(null);
+  const geracaoCarregamento = useRef(0);
+  const controleCarregamento = useRef<AbortController | null>(null);
+  const identidadeSessao = `${campeonatoId}:${session?.sessionId ?? ''}:${session?.account.id ?? ''}`;
+  const identidadeSessaoAtual = useRef(identidadeSessao);
+  useLayoutEffect(() => {
+    controleCarregamento.current?.abort();
+    identidadeSessaoAtual.current = identidadeSessao;
+    geracaoCarregamento.current += 1;
+  }, [identidadeSessao]);
 
-  if (!hydrated) return <p role="status">Carregando partidas...</p>;
-  if (!campeonato) return <h1>Sem acesso administrativo</h1>;
-  if ((operacional.estado?.estado ?? campeonato.estado) !== 'EM_ANDAMENTO') {
+  const iniciarCarregamento = useCallback(() => {
+    controleCarregamento.current?.abort();
+    const controller = new AbortController();
+    controleCarregamento.current = controller;
+    return {
+      controller,
+      geracao: ++geracaoCarregamento.current,
+    };
+  }, []);
+
+  const abrirOperacao = (
+    tipo: Operacao,
+    partida: ItemAgendaPartida,
+    detalhe: DetalheAdministrativoPartida,
+  ) => {
+    const inicioLocal = obterDataHoraLocal(detalhe.agendamento.inicioEm);
+    setData(inicioLocal.data);
+    setHora(inicioLocal.hora);
+    setCampoId(detalhe.agendamento.campoId ?? partida.campo?.id ?? '');
+    setAutorizacaoExternaConfirmada(false);
+    setMotivo('');
+    setCategoriaCancelamento('DECISAO_ADMINISTRATIVA');
+    setFeedback('');
+    setOperacao({ tipo, partidaId: partida.partidaId });
+  };
+
+  const buscarPartidas = useCallback(
+    (signal: AbortSignal) =>
+      carregarPartidasAdministrativas({
+        api: partidasApi,
+        campeonatoId,
+        executarAutenticado,
+        signal,
+      }),
+    [campeonatoId, executarAutenticado, partidasApi],
+  );
+
+  const carregar = useCallback(
+    async (identidadeEsperada = identidadeSessao) => {
+      const { controller, geracao: geracaoEsperada } = iniciarCarregamento();
+      setEstadoCarregamento('carregando');
+      try {
+        const { partidas, detalhes } = await buscarPartidas(controller.signal);
+        if (
+          identidadeSessaoAtual.current !== identidadeEsperada ||
+          geracaoCarregamento.current !== geracaoEsperada
+        )
+          return;
+        setAgenda(partidas);
+        setDetalhes(
+          Object.fromEntries(
+            detalhes.map((detalhe) => [detalhe.partidaId, detalhe]),
+          ),
+        );
+        setEstadoCarregamento('pronto');
+      } catch {
+        if (
+          identidadeSessaoAtual.current === identidadeEsperada &&
+          geracaoCarregamento.current === geracaoEsperada
+        )
+          setEstadoCarregamento('erro');
+      }
+    },
+    [buscarPartidas, identidadeSessao, iniciarCarregamento],
+  );
+
+  const atualizarAposMutacao = useCallback(
+    async (identidadeEsperada: string) => {
+      const { controller, geracao: geracaoEsperada } = iniciarCarregamento();
+      try {
+        const { partidas, detalhes } = await buscarPartidas(controller.signal);
+        if (
+          identidadeSessaoAtual.current !== identidadeEsperada ||
+          geracaoCarregamento.current !== geracaoEsperada
+        )
+          return false;
+        setAgenda(partidas);
+        setDetalhes(
+          Object.fromEntries(
+            detalhes.map((detalhe) => [detalhe.partidaId, detalhe]),
+          ),
+        );
+        return true;
+      } catch (error) {
+        if (
+          controller.signal.aborted ||
+          identidadeSessaoAtual.current !== identidadeEsperada ||
+          geracaoCarregamento.current !== geracaoEsperada
+        ) {
+          return false;
+        }
+        throw error;
+      }
+    },
+    [buscarPartidas, iniciarCarregamento],
+  );
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const identidadeEsperada = identidadeSessao;
+    const { controller, geracao: geracaoEsperada } = iniciarCarregamento();
+    void Promise.resolve().then(() => {
+      if (controller.signal.aborted) return;
+      setAgenda([]);
+      setDetalhes({});
+      setEstadoCarregamento('carregando');
+      setOperacao(null);
+      setData('');
+      setHora('');
+      setCampoId('');
+      setAutorizacaoExternaConfirmada(false);
+      setMotivo('');
+      setCategoriaCancelamento('DECISAO_ADMINISTRATIVA');
+      setEnviando(false);
+      setFeedback('');
+      setPartidaWo(null);
+      setVencedorWo('');
+      setJustificativaWo('Ausência da equipe adversária');
+      setRevisaoWo(null);
+      chaveWo.current = null;
+    });
+    void buscarPartidas(controller.signal).then(
+      ({ partidas, detalhes }) => {
+        if (
+          controller.signal.aborted ||
+          identidadeSessaoAtual.current !== identidadeEsperada ||
+          geracaoCarregamento.current !== geracaoEsperada
+        )
+          return;
+        setAgenda(partidas);
+        setDetalhes(
+          Object.fromEntries(
+            detalhes.map((detalhe) => [detalhe.partidaId, detalhe]),
+          ),
+        );
+        setEstadoCarregamento('pronto');
+      },
+      () => {
+        if (
+          !controller.signal.aborted &&
+          identidadeSessaoAtual.current === identidadeEsperada &&
+          geracaoCarregamento.current === geracaoEsperada
+        )
+          setEstadoCarregamento('erro');
+      },
+    );
+    return () => {
+      controller.abort();
+    };
+  }, [buscarPartidas, hydrated, identidadeSessao, iniciarCarregamento]);
+
+  if (!hydrated || estadoCarregamento === 'carregando') {
+    return <p role="status">Carregando partidas...</p>;
+  }
+
+  if (estadoCarregamento === 'erro') {
     return (
-      <>
-        <CabecalhoPagina
-          title={`Partidas · ${campeonato.nome}`}
-          subtitle="Histórico operacional somente leitura"
-        />
-        <Card className="p-5">
-          <h2 className="font-display text-xl font-semibold">
-            Operações indisponíveis
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Agendamento, reagendamento, adiamento, cancelamento e WO exigem um
-            campeonato em andamento.
-          </p>
-        </Card>
-      </>
+      <Card className="p-5">
+        <h1 className="font-display text-xl font-semibold">
+          Não foi possível carregar as partidas
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Confira sua conexão e tente novamente.
+        </p>
+        <Button
+          className="mt-4"
+          variant="campoOutline"
+          onClick={() => void carregar(identidadeSessao)}
+        >
+          Tentar novamente
+        </Button>
+      </Card>
     );
   }
 
+  const nomeCampeonato = agenda[0]?.campeonato.nome ?? 'Campeonato';
+
   return (
     <>
-      <CabecalhoPagina
-        title={`Partidas · ${campeonato.nome}`}
-        subtitle="Agendamento e exceções sem alterar fatos já publicados"
-      />
+      {!incorporada ? (
+        <CabecalhoPagina
+          title={`Partidas · ${nomeCampeonato}`}
+          subtitle="Agendamento e exceções conforme as permissões publicadas"
+        />
+      ) : (
+        <div className="mb-6">
+          <h2 className="font-display text-2xl font-semibold">Partidas</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Agendamento e exceções conforme as permissões publicadas.
+          </p>
+        </div>
+      )}
 
-      <div className="mb-8 grid gap-6 lg:grid-cols-2">
+      {agenda.length === 0 ? (
         <Card className="p-5">
-          <p className="mb-3 font-display font-semibold">Selecione a data</p>
-          <Calendar
-            mode="single"
-            locale={ptBR}
-            month={agosto2026}
-            hideNavigation
-            showOutsideDays={false}
-            selected={data}
-            onSelect={(nextDate) => nextDate && setData(nextDate)}
-            className="p-0"
-          />
+          <h2 className="font-display text-xl font-semibold">
+            Nenhuma partida encontrada
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A programação aparecerá aqui quando os confrontos forem publicados.
+          </p>
         </Card>
-        <Card className="p-5">
-          <p className="mb-3 font-display font-semibold">Selecione o horário</p>
-          <ToggleGroup
-            type="single"
-            value={hora}
-            onValueChange={(nextHora) => nextHora && setHora(nextHora)}
-            aria-label="Selecione o horário"
-            variant="outline"
-            className="grid grid-cols-3 gap-2"
-          >
-            {horarios.map((horario) => (
-              <ToggleGroupItem key={horario} value={horario}>
-                {horario}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          <div className="mt-4">
-            <CampoFormulario label="Campo" htmlFor="campo-agendamento">
-              <Select value={campo} onValueChange={setCampo}>
-                <SelectTrigger id="campo-agendamento">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Campo Vera Cruz</SelectItem>
-                  <SelectItem value="2">Campo Santa Rita</SelectItem>
-                </SelectContent>
-              </Select>
-            </CampoFormulario>
-          </div>
-        </Card>
-      </div>
-
-      <Secao title="Partidas pendentes de agendamento">
-        <RadioGroup
-          value={selecionada}
-          onValueChange={setSelecionada}
-          aria-label="Partidas pendentes de agendamento"
-          className="gap-3"
-        >
-          {partidas
-            .filter((partida) => estadoDaPartida(partida.id) === 'A_DEFINIR')
-            .map((partida) => (
-              <RadioGroupItem
-                key={partida.id}
-                value={String(partida.id)}
-                aria-label={`${obterNomeTimePublico(partida.timeCasaId)} vs ${obterNomeTimePublico(partida.timeForaId)}, ${partida.rodada}`}
-                className="h-auto w-full rounded-lg border-0 text-left"
-              >
-                <Card
-                  className={cn(
-                    'flex w-full items-center justify-between gap-3 p-4',
-                    selecionada === String(partida.id) &&
-                      'border-green-mid bg-green-pale',
-                  )}
-                >
-                  <span className="font-display text-sm font-semibold">
-                    {obterNomeTimePublico(partida.timeCasaId)} vs{' '}
-                    {obterNomeTimePublico(partida.timeForaId)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {partida.rodada}
-                  </span>
-                </Card>
-              </RadioGroupItem>
-            ))}
-        </RadioGroup>
-        <Button
-          variant="campo"
-          className="mt-4 w-full"
-          aria-label={`Salvar agendamento para ${String(data.getDate()).padStart(2, '0')}/08/2026 às ${hora}`}
-          disabled={!selecionada}
-          onClick={() => {
-            operacional.atualizarEstadoPartida(Number(selecionada), 'AGENDADA');
-            setFeedback(
-              `Agendamento preparado localmente para ${String(data.getDate()).padStart(2, '0')}/08/2026 às ${hora}.`,
-            );
-          }}
-        >
-          Salvar Data e Horário
-        </Button>
-      </Secao>
-
-      <div className="space-y-4">
-        {partidas.map((partida) => {
-          const casa = obterNomeTimePublico(partida.timeCasaId);
-          const fora = obterNomeTimePublico(partida.timeForaId);
-          const podeOperar =
-            !partida.resultadoPublicado &&
-            !operacional.estado?.fatosDefinitivos[partida.id] &&
-            estadoDaPartida(partida.id) !== 'AGUARDANDO_PUBLICACAO' &&
-            estadoDaPartida(partida.id) !== 'CANCELADA';
-          return (
-            <Card key={partida.id} className="p-5">
-              <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                <div>
-                  <h2 className="font-display text-lg font-semibold">
-                    {casa} × {fora}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Partida {partida.id} · {partida.rodada} ·{' '}
-                    {estadoDaPartida(partida.id)}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {partida.data ?? 'Data a definir'} ·{' '}
-                    {partida.hora ?? 'Horário a definir'} ·{' '}
-                    {obterNomeCampoPartida(partida.campoId)}
-                  </p>
-                  {partida.resultadoPublicado ? (
-                    <p className="mt-2 text-sm font-semibold text-green-dark">
-                      Resultado publicado: {partida.golsCasa} ×{' '}
-                      {partida.golsFora}
+      ) : (
+        <div className="space-y-4">
+          {agenda.map((partida) => {
+            const detalhe = detalhes[partida.partidaId];
+            if (!detalhe) return null;
+            const permite = (operacao: string) =>
+              detalhe.operacoesPermitidas.includes(operacao);
+            return (
+              <Card key={partida.partidaId} className="p-5">
+                <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                  <div>
+                    <h2 className="font-display text-lg font-semibold">
+                      {partida.mandante.nome} × {partida.visitante.nome}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Rodada {partida.rodada} ·{' '}
+                      {detalhe?.estado ?? partida.estado}
                     </p>
-                  ) : null}
-                </div>
-                {podeOperar ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {partida.inicioEm
+                        ? new Date(partida.inicioEm).toLocaleString('pt-BR')
+                        : 'Data e horário a definir'}{' '}
+                      · {partida.campo?.nome ?? 'Campo a definir'}
+                    </p>
+                  </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="campoOutline"
-                      aria-label={`${estadoDaPartida(partida.id) === 'A_DEFINIR' ? 'Agendar' : 'Reagendar'} partida ${partida.id}`}
-                      onClick={() => {
-                        setMotivo('');
-                        setOperacao({
-                          partidaId: partida.id,
-                          tipo:
-                            estadoDaPartida(partida.id) === 'A_DEFINIR'
-                              ? 'AGENDAR'
-                              : 'REAGENDAR',
-                        });
-                      }}
-                    >
-                      {estadoDaPartida(partida.id) === 'A_DEFINIR'
-                        ? 'Agendar'
-                        : 'Reagendar'}
-                    </Button>
-                    {estadoDaPartida(partida.id) === 'AGENDADA' ? (
+                    {permite('AGENDAR') ? (
                       <Button
                         size="sm"
                         variant="campoOutline"
-                        onClick={() => {
-                          setMotivo('');
-                          setOperacao({ partidaId: partida.id, tipo: 'ADIAR' });
-                        }}
+                        aria-label={`Agendar partida ${partida.partidaId}`}
+                        onClick={() =>
+                          abrirOperacao('AGENDAR', partida, detalhe)
+                        }
+                      >
+                        Agendar
+                      </Button>
+                    ) : null}
+                    {permite('REAGENDAR') ? (
+                      <Button
+                        size="sm"
+                        variant="campoOutline"
+                        aria-label={`Reagendar partida ${partida.partidaId}`}
+                        onClick={() =>
+                          abrirOperacao('REAGENDAR', partida, detalhe)
+                        }
+                      >
+                        Reagendar
+                      </Button>
+                    ) : null}
+                    {permite('ADIAR') ? (
+                      <Button
+                        size="sm"
+                        variant="campoOutline"
+                        aria-label={`Adiar partida ${partida.partidaId}`}
+                        onClick={() => abrirOperacao('ADIAR', partida, detalhe)}
                       >
                         Adiar
                       </Button>
                     ) : null}
-                    {estadoDaPartida(partida.id) !== 'A_DEFINIR' ? (
+                    {permite('CANCELAR') ? (
                       <Button
                         size="sm"
                         variant="campoOutline"
-                        aria-label={`Cancelar partida ${partida.id}`}
-                        onClick={() => {
-                          setMotivo('');
-                          setOperacao({
-                            partidaId: partida.id,
-                            tipo: 'CANCELAR',
-                          });
-                        }}
+                        aria-label={`Cancelar partida ${partida.partidaId}`}
+                        onClick={() =>
+                          abrirOperacao('CANCELAR', partida, detalhe)
+                        }
                       >
                         Cancelar
                       </Button>
                     ) : null}
-                    {estadoDaPartida(partida.id) === 'AGENDADA' &&
-                    podeRegistrarWo(campeonato.papelDaConta) ? (
+                    {permite('REGISTRAR_WO') ? (
                       <Button
                         size="sm"
                         variant="campo"
-                        aria-label={`Registrar WO na partida ${partida.id}`}
+                        aria-label={`Registrar WO na partida ${partida.partidaId}`}
                         onClick={() => {
-                          setPartidaWO(partida.id);
-                          setVencedorWO(String(partida.timeCasaId));
+                          chaveWo.current = null;
+                          setPartidaWo(partida);
+                          setVencedorWo(partida.mandante.timeId);
+                          setJustificativaWo('Ausência da equipe adversária');
+                          setRevisaoWo(null);
+                          setFeedback('');
                         }}
                       >
                         Registrar WO
                       </Button>
                     ) : null}
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {partida.resultadoPublicado
-                      ? 'Fato publicado e bloqueado para edição'
-                      : 'Aguardando publicação ou partida cancelada'}
-                  </p>
-                )}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {operacao ? (
         <Card className="mt-6 p-5">
@@ -321,21 +395,21 @@ export function TelaGerenciarPartidas({
               <Input
                 aria-label="Nova data"
                 type="date"
-                defaultValue="2026-08-28"
+                value={data}
+                onChange={(event) => setData(event.target.value)}
               />
               <Input
                 aria-label="Novo horário"
                 type="time"
-                defaultValue="15:00"
+                value={hora}
+                onChange={(event) => setHora(event.target.value)}
               />
-              <select
-                aria-label="Novo campo"
-                className="h-10 rounded-md border border-input bg-background px-3"
-                defaultValue="1"
-              >
-                <option value="1">Campo Vera Cruz</option>
-                <option value="2">Campo Santa Rita</option>
-              </select>
+              <Input
+                aria-label="Campo (UUID)"
+                value={campoId}
+                onChange={(event) => setCampoId(event.target.value)}
+                placeholder="UUID do campo autorizado"
+              />
             </div>
           ) : null}
           {operacao.tipo !== 'AGENDAR' ? (
@@ -352,23 +426,146 @@ export function TelaGerenciarPartidas({
               />
             </label>
           ) : null}
+          {operacao.tipo === 'AGENDAR' || operacao.tipo === 'REAGENDAR' ? (
+            <label className="mt-4 flex items-start gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={autorizacaoExternaConfirmada}
+                onChange={(event) =>
+                  setAutorizacaoExternaConfirmada(event.target.checked)
+                }
+              />
+              Confirmo que o campo e o horário foram autorizados externamente
+            </label>
+          ) : null}
+          {operacao.tipo === 'CANCELAR' ? (
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="categoria-cancelamento"
+            >
+              Categoria pública
+              <select
+                id="categoria-cancelamento"
+                className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3"
+                value={categoriaCancelamento}
+                onChange={(event) =>
+                  setCategoriaCancelamento(
+                    event.target.value as CategoriaCancelamento,
+                  )
+                }
+              >
+                <option value="DECISAO_ADMINISTRATIVA">
+                  Decisão administrativa
+                </option>
+                <option value="DESISTENCIA">Desistência</option>
+                <option value="FORCA_MAIOR">Força maior</option>
+              </select>
+            </label>
+          ) : null}
           <div className="mt-4 flex gap-2">
             <Button
               variant="campo"
-              disabled={operacao.tipo !== 'AGENDAR' && !motivo.trim()}
-              onClick={() => {
-                operacional.atualizarEstadoPartida(
-                  operacao.partidaId,
-                  operacao.tipo === 'ADIAR'
-                    ? 'ADIADA'
-                    : operacao.tipo === 'CANCELAR'
-                      ? 'CANCELADA'
-                      : 'AGENDADA',
-                );
-                setFeedback(
-                  `${operacao.tipo} da partida ${operacao.partidaId} preparado localmente com histórico preservado.`,
-                );
-                setOperacao(null);
+              aria-label={
+                operacao.tipo === 'ADIAR'
+                  ? 'Confirmar adiamento'
+                  : operacao.tipo === 'CANCELAR'
+                    ? 'Confirmar cancelamento'
+                    : 'Confirmar agendamento'
+              }
+              disabled={
+                enviando ||
+                (operacao.tipo !== 'AGENDAR' && !motivo.trim()) ||
+                ((operacao.tipo === 'AGENDAR' ||
+                  operacao.tipo === 'REAGENDAR') &&
+                  (!data ||
+                    !hora ||
+                    !campoId.trim() ||
+                    !autorizacaoExternaConfirmada))
+              }
+              onClick={async () => {
+                const detalhe = detalhes[operacao.partidaId];
+                if (!detalhe) return;
+                const identidadeDaOperacao = identidadeSessao;
+                setEnviando(true);
+                try {
+                  await executarAutenticado<unknown>(
+                    (accessToken): Promise<unknown> => {
+                      if (
+                        operacao.tipo === 'AGENDAR' ||
+                        operacao.tipo === 'REAGENDAR'
+                      ) {
+                        return partidasApi.salvarAgendamento(
+                          operacao.partidaId,
+                          accessToken,
+                          {
+                            inicioEm: new Date(
+                              `${data}T${hora}:00`,
+                            ).toISOString(),
+                            campoId: campoId.trim(),
+                            autorizacaoExternaConfirmada: true,
+                            motivo:
+                              operacao.tipo === 'REAGENDAR'
+                                ? motivo.trim()
+                                : null,
+                            versaoEsperada: detalhe.agendamento.versao,
+                          },
+                        );
+                      }
+                      if (operacao.tipo === 'ADIAR') {
+                        return partidasApi.adiarPartida(
+                          operacao.partidaId,
+                          accessToken,
+                          {
+                            motivo: motivo.trim(),
+                            confirmacao: true,
+                            versaoEsperada: detalhe.agendamento.versao,
+                          },
+                        );
+                      }
+                      return partidasApi.cancelarPartida(
+                        operacao.partidaId,
+                        accessToken,
+                        {
+                          motivo: motivo.trim(),
+                          categoriaPublica: categoriaCancelamento,
+                          confirmacao: true,
+                          versaoEsperada: detalhe.agendamento.versao,
+                        },
+                      );
+                    },
+                  );
+                  if (identidadeSessaoAtual.current !== identidadeDaOperacao) {
+                    return;
+                  }
+                  const feedbackPorOperacao: Record<Operacao, string> = {
+                    AGENDAR: 'Agendamento salvo.',
+                    REAGENDAR: 'Reagendamento salvo.',
+                    ADIAR: 'Partida adiada.',
+                    CANCELAR: 'Partida cancelada.',
+                  };
+                  setOperacao(null);
+                  setFeedback(feedbackPorOperacao[operacao.tipo]);
+                  try {
+                    await atualizarAposMutacao(identidadeDaOperacao);
+                  } catch {
+                    if (
+                      identidadeSessaoAtual.current === identidadeDaOperacao
+                    ) {
+                      setFeedback(
+                        `${feedbackPorOperacao[operacao.tipo].slice(0, -1)}, mas não foi possível atualizar as partidas.`,
+                      );
+                    }
+                  }
+                } catch {
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao) {
+                    setFeedback('Não foi possível concluir a operação.');
+                  }
+                } finally {
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao) {
+                    setEnviando(false);
+                  }
+                }
               }}
             >
               Confirmar operação
@@ -380,102 +577,162 @@ export function TelaGerenciarPartidas({
         </Card>
       ) : null}
 
-      {partidaWO ? (
+      {partidaWo ? (
         <Card className="mt-6 p-5">
-          <h2 className="font-display text-lg font-semibold">
-            Registrar WO na partida {partidaWO}
-          </h2>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="font-display text-lg font-semibold">
+              Registrar WO na partida {partidaWo.partidaId}
+            </h2>
+            <Button
+              size="sm"
+              variant="campoOutline"
+              onClick={() => {
+                chaveWo.current = null;
+                setPartidaWo(null);
+                setRevisaoWo(null);
+                setFeedback('');
+              }}
+            >
+              Fechar registro de WO
+            </Button>
+          </div>
           <label
             className="mt-4 block text-sm font-semibold"
             htmlFor="vencedor-wo"
           >
             Time vencedor por WO
+            <select
+              id="vencedor-wo"
+              className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3"
+              value={vencedorWo}
+              disabled={Boolean(revisaoWo)}
+              onChange={(event) => setVencedorWo(event.target.value)}
+            >
+              <option value={partidaWo.mandante.timeId}>
+                {partidaWo.mandante.nome}
+              </option>
+              <option value={partidaWo.visitante.timeId}>
+                {partidaWo.visitante.nome}
+              </option>
+            </select>
           </label>
-          <select
-            id="vencedor-wo"
-            className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3"
-            value={vencedorWO}
-            onChange={(event) => setVencedorWO(event.target.value)}
-          >
-            {(() => {
-              const partida = partidas.find((item) => item.id === partidaWO)!;
-              return [partida.timeCasaId, partida.timeForaId].map((timeId) => (
-                <option key={timeId} value={timeId}>
-                  {obterNomeTimePublico(timeId)}
-                </option>
-              ));
-            })()}
-          </select>
           <label
             className="mt-4 block text-sm font-semibold"
-            htmlFor="motivo-wo"
+            htmlFor="justificativa-wo"
           >
             Justificativa do WO
+            <Input
+              id="justificativa-wo"
+              className="mt-2"
+              value={justificativaWo}
+              disabled={Boolean(revisaoWo)}
+              onChange={(event) => setJustificativaWo(event.target.value)}
+            />
           </label>
-          <Input
-            id="motivo-wo"
-            value={justificativaWO}
-            onChange={(event) => setJustificativaWO(event.target.value)}
-          />
-          <Button
-            className="mt-4"
-            variant="campo"
-            disabled={!vencedorWO || !justificativaWO.trim()}
-            onClick={() => setConfirmandoWo(true)}
-          >
-            Revisar WO definitivo
-          </Button>
+          {!revisaoWo ? (
+            <Button
+              className="mt-4"
+              variant="campo"
+              disabled={!vencedorWo || !justificativaWo.trim()}
+              onClick={() => {
+                chaveWo.current = null;
+                setRevisaoWo({
+                  partidaId: partidaWo.partidaId,
+                  input: {
+                    confirmacaoDefinitiva: true,
+                    timeBeneficiadoId: vencedorWo,
+                    fundamentoCodigo: 'AUSENCIA',
+                    justificativa: justificativaWo.trim(),
+                    referenciaAdministrativa: null,
+                  },
+                });
+              }}
+            >
+              Revisar WO definitivo
+            </Button>
+          ) : (
+            <div role="alert" className="mt-4 border border-warning p-4">
+              <p className="text-sm">
+                Confirme o registro definitivo. O WO encerrará a partida e
+                publicará o placar regulamentar.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="campoOutline"
+                  onClick={() => {
+                    chaveWo.current = null;
+                    setRevisaoWo(null);
+                  }}
+                >
+                  Voltar à edição
+                </Button>
+                <Button
+                  variant="campo"
+                  disabled={enviando}
+                  onClick={async () => {
+                    const identidadeDaOperacao = identidadeSessao;
+                    const chaveDaOperacao =
+                      chaveWo.current ??
+                      globalThis.crypto?.randomUUID?.() ??
+                      `wo-${Date.now()}`;
+                    chaveWo.current = chaveDaOperacao;
+                    setEnviando(true);
+                    try {
+                      await executarAutenticado((accessToken) =>
+                        partidasApi.registrarWo(
+                          revisaoWo.partidaId,
+                          accessToken,
+                          revisaoWo.input,
+                          chaveDaOperacao,
+                        ),
+                      );
+                      if (
+                        identidadeSessaoAtual.current !== identidadeDaOperacao
+                      ) {
+                        return;
+                      }
+                      chaveWo.current = null;
+                      setPartidaWo(null);
+                      setRevisaoWo(null);
+                      setFeedback('WO registrado definitivamente.');
+                      try {
+                        await atualizarAposMutacao(identidadeDaOperacao);
+                      } catch {
+                        if (
+                          identidadeSessaoAtual.current === identidadeDaOperacao
+                        ) {
+                          setFeedback(
+                            'WO registrado definitivamente, mas não foi possível atualizar as partidas.',
+                          );
+                        }
+                      }
+                    } catch {
+                      if (
+                        identidadeSessaoAtual.current === identidadeDaOperacao
+                      ) {
+                        setFeedback(
+                          'Não foi possível registrar o WO. Tente novamente.',
+                        );
+                      }
+                    } finally {
+                      if (
+                        identidadeSessaoAtual.current === identidadeDaOperacao
+                      ) {
+                        setEnviando(false);
+                      }
+                    }
+                  }}
+                >
+                  Registrar WO definitivo
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       ) : null}
 
-      <Dialog open={confirmandoWo} onOpenChange={setConfirmandoWo}>
-        <DialogContent
-          role="alertdialog"
-          aria-label="Confirmar WO definitivo"
-          className="w-[calc(100%-2rem)] rounded-md border-warning bg-card sm:max-w-lg"
-        >
-          <DialogTitle className="font-display text-2xl">
-            Confirma o registro definitivo do WO?
-          </DialogTitle>
-          <DialogDescription>
-            O WO encerrará a partida, publicará o placar regulamentar e impedirá
-            o envio posterior de súmula. Nenhum evento individual será criado.
-          </DialogDescription>
-          <DialogFooter className="gap-2 sm:space-x-0">
-            <Button
-              variant="campoOutline"
-              onClick={() => setConfirmandoWo(false)}
-            >
-              Cancelar registro
-            </Button>
-            <Button
-              variant="campo"
-              onClick={() => {
-                if (!partidaWO || !vencedorWO || !justificativaWO.trim())
-                  return;
-                operacional.registrarPartidaDefinitiva(partidaWO, {
-                  tipo: 'WO',
-                  vencedorTimeId: Number(vencedorWO),
-                  justificativa: justificativaWO.trim(),
-                });
-                setConfirmandoWo(false);
-                setPartidaWO(null);
-                setFeedback(
-                  'WO registrado localmente; aguarda persistência e publicação pela API.',
-                );
-              }}
-            >
-              Registrar WO definitivo
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {feedback ? (
-        <p
-          role="status"
-          className="mt-5 rounded-md bg-green-pale p-3 text-sm font-semibold text-green-dark"
-        >
+        <p role="status" className="mt-5 text-sm font-semibold">
           {feedback}
         </p>
       ) : null}

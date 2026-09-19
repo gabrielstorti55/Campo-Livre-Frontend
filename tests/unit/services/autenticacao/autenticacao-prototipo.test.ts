@@ -31,7 +31,7 @@ describe('AutenticacaoPrototipo', () => {
       }),
     ).rejects.toMatchObject({ problem: { codigo: 'EMAIL_NAO_CONFIRMADO' } });
 
-    await api.confirmarEmail(resposta.cadastroToken);
+    await api.confirmarEmail(`prototipo:${resposta.cadastroId}`);
 
     await expect(
       api.login({
@@ -168,11 +168,44 @@ describe('AutenticacaoPrototipo', () => {
       senha: 'senha-mock',
       termosAceitos: true,
     });
-    await api.confirmarEmail(cadastro.cadastroToken);
+    const token = `prototipo:${cadastro.cadastroId}`;
+    await api.confirmarEmail(token);
 
+    await expect(api.confirmarEmail(token)).rejects.toMatchObject({
+      problem: { codigo: 'TOKEN_JA_UTILIZADO' },
+    });
+  });
+
+  it('mantém menor sem login normal depois de confirmar o próprio e-mail', async () => {
+    const api = new AutenticacaoPrototipo();
+    const menor = {
+      ...cadastro,
+      nome: 'Pessoa Menor',
+      nomeUsuario: 'pessoamenorconsentimento',
+      email: 'menor.consentimento@campolivre.test',
+      cpf: '88888888888',
+      rgNumero: '888888888',
+      dataNascimento: '2012-01-01',
+    };
+    const resposta = await api.cadastrar(menor);
+
+    expect(resposta).toMatchObject({
+      status: 'AGUARDANDO_CONSENTIMENTO',
+      proximaAcao: 'CONFIRMAR_EMAIL',
+    });
     await expect(
-      api.confirmarEmail(cadastro.cadastroToken),
-    ).rejects.toMatchObject({ problem: { codigo: 'TOKEN_JA_UTILIZADO' } });
+      api.confirmarEmail(`prototipo:${resposta.cadastroId}`),
+    ).resolves.toMatchObject({
+      statusConta: 'AGUARDANDO_CONSENTIMENTO',
+      consentimentoResponsavelNecessario: true,
+    });
+    await expect(
+      api.login({
+        email: menor.email,
+        senha: menor.senha,
+        plataforma: 'WEB',
+      }),
+    ).rejects.toMatchObject({ problem: { codigo: 'CONTA_INAPTA' } });
   });
 
   it('expõe somente em memória a identidade ativa para adapters de protótipo', async () => {

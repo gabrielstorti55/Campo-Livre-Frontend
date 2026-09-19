@@ -16,7 +16,7 @@ export function TelaMeusEventos() {
       <EstadoRecurso
         kind="empty"
         title="Agenda pessoal ainda indisponível"
-        description="Não existe contrato publicado para consultar os times e vínculos ativos da conta nem uma API de agenda de partidas. A listagem pública de campeonatos não comprova participação e não será usada como substituta."
+        description="Os Times e vínculos ativos da conta já são consultáveis, mas ainda não existe uma projeção de agenda pessoal que relacione esses vínculos às partidas. A listagem pública de campeonatos não será usada como substituta."
       />
       <div className="mt-4 flex justify-center">
         <Button variant="campo" asChild>

@@ -43,6 +43,8 @@ export function TelaMinhaArea() {
   const { session, hydrated, enableOrganizer } = useSessao();
   const router = useRouter();
   const [activationOpen, setActivationOpen] = useState(false);
+  const [ativando, setAtivando] = useState(false);
+  const [erroAtivacao, setErroAtivacao] = useState('');
 
   if (!hydrated) {
     return (
@@ -61,6 +63,7 @@ export function TelaMinhaArea() {
   const organizesChampionship =
     session.links.organizedChampionshipIds.length > 0;
   const organizerEnabled = session.capabilities.includes('organizador');
+  const isAdministrator = session.minhaConta.administrador;
   const city = session.account.city || 'Cidade não informada';
 
   return (
@@ -97,6 +100,12 @@ export function TelaMinhaArea() {
               className="mt-3 block font-semibold text-white underline underline-offset-4"
             >
               Consultar dados da conta
+            </Link>
+            <Link
+              href="/minha-conta/convites-prefeitura"
+              className="mt-2 block font-semibold text-white underline underline-offset-4"
+            >
+              Consultar convites de Prefeitura
             </Link>
           </div>
         </div>
@@ -161,17 +170,16 @@ export function TelaMinhaArea() {
                 <Button asChild variant="campo" tone="green">
                   <Link href="/organizador/novo">Criar campeonato</Link>
                 </Button>
-              ) : session.prototipo ? (
+              ) : (
                 <Button
                   variant="campo"
                   tone="green"
-                  onClick={() => setActivationOpen(true)}
+                  onClick={() => {
+                    setErroAtivacao('');
+                    setActivationOpen(true);
+                  }}
                 >
                   Ativar painel de organizador
-                </Button>
-              ) : (
-                <Button variant="campo" tone="green" disabled>
-                  Ativação disponível após integração
                 </Button>
               )}
               <Button asChild variant="campoOutline" tone="green">
@@ -181,6 +189,22 @@ export function TelaMinhaArea() {
           ) : null}
         </Card>
       </div>
+
+      {isAdministrator ? (
+        <div className="mt-6 border-y border-border bg-card px-5 py-4">
+          <p className="font-display text-lg font-semibold text-green-dark">
+            Administração Global
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Gerencie contas e autoridades administrativas do CampoLivre.
+          </p>
+          <Button asChild className="mt-3" tone="navy">
+            <Link href="/administracao/administradores">
+              Abrir Administração Global
+            </Link>
+          </Button>
+        </div>
+      ) : null}
 
       <p className="mt-6 rounded-md border border-border/70 bg-card px-5 py-4 text-sm leading-6 text-muted-foreground">
         Novas áreas aparecem somente quando sua conta ganha um vínculo com um
@@ -194,28 +218,47 @@ export function TelaMinhaArea() {
             <DialogDescription>
               Você poderá criar e administrar campeonatos conforme seus
               vínculos. A ativação não concede acesso a campeonatos de terceiros
-              nem cria autoridade global.
+              nem cria autoridade global. Esta habilitação não pode ser desfeita
+              no MVP.
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
             Cada campeonato terá exatamente um responsável ativo. Operações em
             nome de Prefeitura exigirão vínculo institucional próprio.
           </div>
+          {erroAtivacao ? (
+            <p role="alert" className="text-sm text-danger">
+              {erroAtivacao}
+            </p>
+          ) : null}
           <DialogFooter>
             <Button
               variant="campoOutline"
+              disabled={ativando}
               onClick={() => setActivationOpen(false)}
             >
               Agora não
             </Button>
             <Button
               variant="campo"
-              onClick={() => {
-                enableOrganizer();
-                router.push('/organizador/inicio');
+              disabled={ativando}
+              onClick={async () => {
+                setAtivando(true);
+                setErroAtivacao('');
+                try {
+                  await enableOrganizer();
+                  setActivationOpen(false);
+                  router.push('/organizador/inicio');
+                } catch {
+                  setErroAtivacao(
+                    'Não foi possível ativar o painel. Confirme que sua conta está ativa e o e-mail foi validado.',
+                  );
+                } finally {
+                  setAtivando(false);
+                }
               }}
             >
-              Confirmar ativação do painel
+              {ativando ? 'Ativando...' : 'Confirmar ativação do painel'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -12,6 +12,7 @@ const rotasAtletaIntegradas = new Set([
   '/atleta/campeonatos',
   '/atleta/meus-eventos',
   '/atleta/time/buscar',
+  '/atleta/time/criar',
 ]);
 
 function rotaDeGestaoIntegrada(pathname: string): boolean {

@@ -22,7 +22,7 @@ test('usa um cabeçalho de página semântico nas áreas autenticadas', async ({
   await loginAsAthlete(page, '/atleta/perfil');
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Marcos Oliveira' }),
+    page.getByRole('heading', { level: 1, name: 'Perfil básico' }),
   ).toBeVisible();
 });
 

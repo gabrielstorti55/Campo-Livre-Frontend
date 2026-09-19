@@ -30,7 +30,7 @@ describe('ControleModoAtleta', () => {
     ).toBeNull();
   });
 
-  it('libera a atualização integrada por id sem liberar a criação simulada', () => {
+  it('libera gestão e criação de Time ligadas aos adapters', () => {
     pathname = '/atleta/time/2';
     const { rerender } = render(
       <ControleModoAtleta modo="integrado">
@@ -42,14 +42,10 @@ describe('ControleModoAtleta', () => {
     pathname = '/atleta/time/criar';
     rerender(
       <ControleModoAtleta modo="integrado">
-        <p>Criação simulada</p>
+        <p>Criação integrada</p>
       </ControleModoAtleta>,
     );
-    expect(
-      screen.getByRole('heading', {
-        name: 'Funcionalidade ainda não integrada',
-      }),
-    ).toBeVisible();
+    expect(screen.getByText('Criação integrada')).toBeVisible();
   });
 
   it('mantém as demais rotas simuladas bloqueadas no modo integrado', () => {

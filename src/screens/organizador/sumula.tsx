@@ -47,6 +47,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { criarGeradorIdEvento } from '@/services/sumula/proximo-id-evento';
 
 type Evento = {
   id: number;
@@ -161,6 +162,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
     fato: FatoDefinitivoPartida;
   } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [proximoIdEvento] = useState(criarGeradorIdEvento);
 
   const nomeJogador = (id: string) =>
     elenco.find((item) => String(item.id) === id)?.nome ?? 'Atleta';
@@ -300,7 +302,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
     setGols((eventos) => [
       ...eventos,
       {
-        id: Date.now(),
+        id: proximoIdEvento(),
         lado: timeGol,
         tempo,
         resumo: `${nomeTime(timeGol)} · ${nomeJogador(jogadorGolEfetivo)} · ${formatarTempoEvento(tempo)}`,
@@ -323,7 +325,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
     setCartoes((eventos) => [
       ...eventos,
       {
-        id: Date.now(),
+        id: proximoIdEvento(),
         lado: timeCartao,
         tempo,
         resumo: `${nomeTime(timeCartao)} · ${nomeJogador(jogadorCartaoEfetivo)} · ${tipoCartao} · ${formatarTempoEvento(tempo)}`,
@@ -353,7 +355,7 @@ export function TelaSumula({ campeonatoId }: { campeonatoId: string }) {
     setSubstituicoes((eventos) => [
       ...eventos,
       {
-        id: Date.now(),
+        id: proximoIdEvento(),
         lado: timeSubstituicao,
         tempo,
         resumo: `${nomeTime(timeSubstituicao)} · sai ${nomeJogador(jogadorSaiuEfetivo)} · entra ${nomeJogador(jogadorEntrouEfetivo)} · ${formatarTempoEvento(tempo)}`,

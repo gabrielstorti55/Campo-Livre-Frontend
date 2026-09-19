@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Usar Next.js com App Router como base web do CampoLivre, mantendo rotas, apresentação, estado, regras locais e dados simulados em limites previsíveis. O projeto ainda é um frontend demonstrável: autorização canônica e persistência definitiva pertencem ao backend.
+Usar Next.js com App Router como base web do CampoLivre, mantendo rotas, apresentação, estado, contratos HTTP e simulação em limites previsíveis. O frontend possui fatias integráveis e um modo de protótipo explicitamente separado; adapters HTTP representam contratos publicados, mas autorização canônica, emissão de credenciais e persistência definitiva pertencem ao backend.
 
 ## Estrutura
 
@@ -65,6 +65,8 @@ Componentes de apresentação devem preferir props e tipos estáveis. Consulta e
 
 A sessão está deliberadamente separada entre `types/sessao.ts`, `constants/sessao.ts`, `hooks/use-sessao.ts`, `services/autenticacao/navegacao-sessao.ts` e `stores/sessao.tsx`.
 
+Consultas que podem se tornar obsoletas aceitam `OpcoesConsulta` com `AbortSignal`. Cancelar o transporte reduz trabalho desperdiçado, mas não substitui as guardas de identidade e geração: respostas administrativas continuam particionadas por recurso, sessão e conta antes de publicar estado visual.
+
 ## Projeções e regras atuais
 
 Campeonatos, times, partidas e atletas usam relações por ID. Rascunhos, perfis privados e resultados não publicados continuam nos mocks sem vazar na projeção pública. Campos possuem consulta pública própria em `/campos` e `/campos/{id}`, limitada à allowlist publicada; o cadastro é informativo e não representa reserva ou autorização de uso.
@@ -85,7 +87,7 @@ Reservas, agenda oficial, aprovações municipais e indisponibilidades por perí
 ```text
 app -> screens, layouts, components
 screens -> components, hooks, services, stores, mocks, layouts, types, utils
-components -> hooks, types, utils
+components -> components, contexts, hooks, types, utils
 hooks -> stores
 services -> mocks, types
 layouts -> components, hooks, services, stores, utils
@@ -93,19 +95,33 @@ stores -> types, constants, services, mocks
 mocks -> types
 ```
 
-Camadas inferiores não importam `screens` ou `app`. Componentes não consultam serviços nem fixtures: recebem dados por props e dependem apenas de hooks, tipos e utilitários técnicos. Durante a fase demonstrável, telas podem consumir fixtures diretamente quando ainda não existe uma porta de consulta; stores também podem usar mocks como estado inicial. Mocks nunca exportam contratos: seus formatos estáveis ficam em `types`. Quando um fluxo receber integração real, o acesso direto da tela ao mock deve ser substituído pelo serviço correspondente. Dependências entre domínios passam por tipos ou serviços explícitos.
+Camadas inferiores não importam `screens` ou `app`. Componentes de apresentação recebem dados por props e dependem apenas de outros componentes, hooks, tipos e utilitários técnicos. Módulos interativos de domínio podem consumir contextos de API quando encapsulam um comportamento reutilizável; atualmente `components/times/gerenciar-convites-time.tsx` e `components/times/operacoes-time.tsx` são exceções explícitas que ainda concentram essa orquestração. Quando esses módulos forem alterados, a consulta e os comandos devem migrar para tela, hook ou serviço, preservando componentes apresentacionais. Durante a fase demonstrável, telas podem consumir fixtures diretamente quando ainda não existe uma porta de consulta; stores também podem usar mocks como estado inicial. Mocks nunca exportam contratos: seus formatos estáveis ficam em `types`. Quando um fluxo receber integração real, o acesso direto da tela ao mock deve ser substituído pelo serviço correspondente. Dependências entre domínios passam por tipos ou serviços explícitos.
 
 ## Integração com o backend
 
 Next.js não substitui NestJS. Regras canônicas, autorização, pagamentos, auditoria e persistência pertencem à API NestJS/PostgreSQL.
 
-Evolução prevista:
+### Estado implementado
 
-1. aprovar o contrato OpenAPI;
-2. criar serviços tipados;
-3. manter adapter mock e HTTP sob a mesma porta quando necessário;
-4. tratar loading, vazio, erro, sucesso e permissão;
-5. substituir uma fatia vertical por vez e validar no Playwright.
+- `ClienteApi` centraliza URL, JSON, multipart, headers, Bearer, `credentials`, `AbortSignal` e Problem Details;
+- autenticação web mantém access token somente em memória e espera refresh token em cookie `HttpOnly` controlado pelo backend;
+- `executarAutenticado` coordena renovação e repetição única dos `401` documentados;
+- autenticação, Times, Campos, Municípios, Prefeituras, Campeonatos e Partidas possuem portas e composição `integrado | prototipo`;
+- produção usa somente adapters HTTP e falha fechada; não há fallback automático para dados simulados;
+- comandos idempotentes preservam `Idempotency-Key` conforme a intenção e o contrato de cada operação;
+- telas administrativas distinguem falha do comando de falha na atualização posterior;
+- Partidas concentra paginação e carregamento administrativo em serviço de aplicação cancelável, mantendo estado visual e formulários na tela.
+
+Tipos escritos no frontend representam o contrato conhecido, mas ainda não constituem prova de compatibilidade com uma API executável. Quando o OpenAPI estabilizar, tipos de transporte devem ser gerados ou verificados automaticamente e traduzidos pelos adapters para os modelos usados pelas telas.
+
+### Evolução de integração
+
+1. obter e versionar o OpenAPI executável do backend;
+2. verificar mudanças incompatíveis de contrato no CI;
+3. integrar uma fatia vertical por vez contra ambiente real;
+4. propagar cancelamento às demais consultas longas quando seus consumidores forem migrados;
+5. avaliar uma camada de cache/query somente depois de observar as necessidades da API real;
+6. validar login, Bearer, refresh, logout, cookies, CORS/CSRF e autorização em E2E sem mocks.
 
 Não criar Route Handlers do Next.js para duplicar a API sem decisão arquitetural explícita.
 
@@ -126,10 +142,21 @@ A chegada da API altera a origem e os estados dos dados, não a linguagem visual
 - entradas do App Router usam os nomes técnicos exigidos (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`);
 - telas não usam o sufixo redundante `-page`.
 
-## Próxima evolução
+## Decisões de evolução
 
-1. Consolidar o OpenAPI com o backend.
-2. Criar cliente HTTP e tratamento comum de erros.
-3. Migrar uma fatia vertical por vez dos mocks para serviços reais.
-4. Substituir acessos diretos das telas aos mocks por serviços quando cada fluxo for integrado.
-5. Reduzir gradualmente os limites `use client` conforme dados reais puderem ser buscados no servidor.
+Prioridade imediata:
+
+1. consolidar o OpenAPI com o backend e automatizar sua verificação;
+2. continuar extraindo orquestrações grandes de telas para serviços ou hooks por comportamento;
+3. substituir acessos diretos a mocks quando cada fluxo receber contrato recuperável;
+4. manter cancelamento, identidade e geração como protocolo das consultas administrativas;
+5. reduzir gradualmente os limites `use client` somente onde a política real de autenticação permitir.
+
+Não adotar antecipadamente:
+
+- Redux apenas para substituir Context;
+- microfrontends;
+- BFF ou Route Handlers do Next sem necessidade de implantação comprovada;
+- TanStack Query antes de existir uma API real cuja invalidação e cache justifiquem a dependência;
+- decodificação de JWT como fonte de autorização;
+- código gerado do OpenAPI importado diretamente por componentes.

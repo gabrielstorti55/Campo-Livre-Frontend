@@ -4,202 +4,59 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
-  Clock3,
   MapPin,
   Trophy,
-  Users,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-import type { CampeonatoPublico, PartidaPublica } from '@/types/publico';
-import {
-  obterNomeCampoPartida,
-  obterNomeCampeonatoPublico,
-  obterNomeTimePublico,
-  catalogoPublicoMock,
-} from '@/services/publico/catalogo-publico.mock';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
+import { useCampeonatosApi } from '@/contexts/campeonatos-api';
+import { usePartidasApi } from '@/contexts/partidas-api';
+import type { CampeonatoPublicoResumo, Pagina } from '@/types/api/campeonatos';
+import type { PaginaAgendaPartidas } from '@/types/api/partidas';
 import { cn } from '@/utils/classes';
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
-const formatLabels = {
-  PONTOS_CORRIDOS: 'Pontos corridos',
-  MATA_MATA: 'Mata-mata',
-  GRUPOS_MATA_MATA: 'Grupos + mata-mata',
-} as const;
-
-function ChampionshipCard({
-  campeonato,
-  featured = false,
-}: {
-  campeonato: CampeonatoPublico;
-  featured?: boolean;
-}) {
-  return (
-    <Link
-      href={`/campeonatos/${campeonato.id}`}
-      className={cn(
-        'group relative flex min-h-[270px] flex-col overflow-hidden rounded-md border p-5 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 sm:p-7',
-        featured
-          ? 'campo-lines border-green-dark bg-green-dark text-white lg:col-span-6'
-          : 'border-green-dark/25 bg-card hover:border-green-dark lg:col-span-3',
-        focusRing,
-      )}
-    >
-      <div className="relative flex items-start justify-between gap-4">
-        <span
-          className={cn(
-            'inline-flex items-center gap-2 border-b pb-1.5 text-xs font-semibold tracking-[0.12em] uppercase',
-            featured
-              ? 'border-white/35 text-white'
-              : 'border-green-dark/35 text-green-dark',
-          )}
-        >
-          <span className="relative flex h-2 w-2" aria-hidden="true">
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-current" />
-          </span>
-          Em andamento
-        </span>
-        <ArrowUpRight
-          className={cn(
-            'h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
-            featured ? 'text-white/80' : 'text-green-dark',
-          )}
-          aria-hidden="true"
-        />
-      </div>
-
-      <div className="relative mt-auto pt-14">
-        <p
-          className={cn(
-            'text-xs font-semibold tracking-[0.14em] uppercase',
-            featured ? 'text-white/90' : 'text-muted-foreground',
-          )}
-        >
-          {campeonato.modalidade}
-        </p>
-        <h2
-          className={cn(
-            'mt-2 max-w-xl font-display leading-[0.95] font-bold tracking-[-0.02em] uppercase',
-            featured ? 'text-3xl sm:text-4xl lg:text-5xl' : 'text-3xl',
-          )}
-        >
-          {campeonato.nome}
-        </h2>
-        <div
-          className={cn(
-            'mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm',
-            featured ? 'text-white/90' : 'text-muted-foreground',
-          )}
-        >
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="h-4 w-4" aria-hidden="true" />
-            {campeonato.municipio}, {campeonato.uf}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Users className="h-4 w-4" aria-hidden="true" />
-            {campeonato.timeIds.length} times
-          </span>
-        </div>
-        <div
-          className={cn(
-            'mt-5 flex items-center justify-between border-t pt-4 text-sm font-semibold',
-            featured
-              ? 'border-white/15 text-white'
-              : 'border-border/70 text-green-dark',
-          )}
-        >
-          <span>{campeonato.rodada}</span>
-          <span
-            className={cn(
-              'text-xs font-medium',
-              featured ? 'text-white/90' : 'text-green-dark/70',
-            )}
-          >
-            {formatLabels[campeonato.formato]}
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function MatchRow({ partida }: { partida: PartidaPublica }) {
-  const date = partida.data
-    ? new Date(`${partida.data}T12:00:00`).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-      })
-    : 'A definir';
-
-  return (
-    <Link
-      href={`/partidas/${partida.id}`}
-      className={cn(
-        'group grid gap-4 border-t border-green-dark/25 bg-card/55 p-4 transition-colors hover:bg-card sm:grid-cols-[116px_minmax(0,1fr)_auto] sm:items-center sm:px-5 sm:py-6',
-        focusRing,
-      )}
-    >
-      <div className="flex items-center gap-3 sm:block">
-        <p className="text-sm font-bold text-green-dark">{date}</p>
-        <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
-          {partida.hora ?? 'A definir'}
-        </p>
-      </div>
-
-      <div className="min-w-0 border-border/70 sm:border-l sm:pl-5">
-        <p className="truncate text-xs font-semibold tracking-[0.1em] text-muted-foreground uppercase">
-          {obterNomeCampeonatoPublico(partida.campeonatoId)} · {partida.rodada}
-        </p>
-        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 font-display font-semibold">
-          <span className="truncate">
-            {obterNomeTimePublico(partida.timeCasaId)}
-          </span>
-          <span className="border-x border-green-dark/25 px-2.5 py-1 text-xs font-bold text-green-dark">
-            ×
-          </span>
-          <span className="truncate text-right">
-            {obterNomeTimePublico(partida.timeForaId)}
-          </span>
-        </div>
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="truncate">
-            {obterNomeCampoPartida(partida.campoId)}
-          </span>
-        </p>
-      </div>
-
-      <ArrowRight
-        className="hidden h-5 w-5 text-green-dark transition-transform group-hover:translate-x-1 sm:block"
-        aria-hidden="true"
-      />
-    </Link>
-  );
-}
-
 export function TelaInicioPublico() {
-  const campeonatos = catalogoPublicoMock
-    .listarCampeonatos({
-      estado: 'EM_ANDAMENTO',
-      ordenacao: 'RECENTES',
-    })
-    .sort((a, b) => b.timeIds.length - a.timeIds.length);
-  const campeonatoIds = new Set(campeonatos.map((campeonato) => campeonato.id));
-  const partidas = catalogoPublicoMock
-    .listarPartidas()
-    .filter(
-      (partida) =>
-        campeonatoIds.has(partida.campeonatoId) &&
-        ['AGENDADA', 'A_DEFINIR', 'ADIADA'].includes(partida.estado),
-    )
-    .sort((a, b) =>
-      (a.data ?? '9999-12-31').localeCompare(b.data ?? '9999-12-31'),
-    )
-    .slice(0, 3);
+  const campeonatosApi = useCampeonatosApi();
+  const partidasApi = usePartidasApi();
+  const [campeonatos, setCampeonatos] =
+    useState<Pagina<CampeonatoPublicoResumo> | null>(null);
+  const [partidas, setPartidas] = useState<PaginaAgendaPartidas | null>(null);
+  const [erroCampeonatos, setErroCampeonatos] = useState(false);
+  const [erroPartidas, setErroPartidas] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void campeonatosApi
+      .listarCampeonatosPublicos({
+        status: 'EM_ANDAMENTO',
+        pagina: 1,
+        tamanho: 3,
+      })
+      .then(
+        (resposta) => {
+          if (!controller.signal.aborted) setCampeonatos(resposta);
+        },
+        () => {
+          if (!controller.signal.aborted) setErroCampeonatos(true);
+        },
+      );
+    void partidasApi
+      .listarAgenda({ pagina: 1, tamanho: 3 }, { signal: controller.signal })
+      .then(
+        (resposta) => {
+          if (!controller.signal.aborted) setPartidas(resposta);
+        },
+        () => {
+          if (!controller.signal.aborted) setErroPartidas(true);
+        },
+      );
+    return () => controller.abort();
+  }, [campeonatosApi, partidasApi]);
 
   return (
     <div className="mx-auto w-full max-w-[1380px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
@@ -213,14 +70,13 @@ export function TelaInicioPublico() {
             Campeonatos em andamento
           </h1>
           <p className="mt-5 max-w-2xl border-l-2 border-accent pl-4 text-base leading-7 text-muted-foreground sm:text-lg">
-            Acompanhe primeiro o que está acontecendo: competições ativas e a
-            agenda pública de cada rodada.
+            Acompanhe competições públicas e a agenda oficial de cada rodada.
           </p>
         </div>
         <Link
           href="/campeonatos"
           className={cn(
-            'inline-flex min-h-11 w-fit items-center gap-2 rounded-md border border-green-dark bg-transparent px-4 text-sm font-semibold text-green-dark transition-colors hover:bg-green-dark hover:text-white',
+            'inline-flex min-h-11 w-fit items-center gap-2 border border-green-dark px-4 text-sm font-semibold text-green-dark hover:bg-green-dark hover:text-white',
             focusRing,
           )}
         >
@@ -230,23 +86,54 @@ export function TelaInicioPublico() {
       </header>
 
       <section aria-label="Campeonatos em andamento">
-        {campeonatos.length === 0 ? (
+        {!campeonatos && !erroCampeonatos ? (
+          <p role="status">Carregando campeonatos em andamento...</p>
+        ) : null}
+        {erroCampeonatos ? (
+          <EstadoRecurso
+            kind="error"
+            title="Não foi possível carregar os campeonatos"
+            description="A agenda permanece disponível quando sua consulta responde."
+          />
+        ) : null}
+        {campeonatos?.itens.length === 0 ? (
           <EstadoRecurso
             kind="empty"
             title="Nenhum campeonato em andamento"
-            description="Consulte o catálogo completo para ver competições programadas ou já encerradas."
+            description="Consulte o catálogo completo para ver competições encerradas."
           />
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-12">
-            {campeonatos.map((campeonato, index) => (
-              <ChampionshipCard
+        ) : null}
+        {campeonatos?.itens.length ? (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {campeonatos.itens.map((campeonato, index) => (
+              <Link
                 key={campeonato.id}
-                campeonato={campeonato}
-                featured={index === 0}
-              />
+                href={`/campeonatos/${campeonato.id}`}
+                className={cn(
+                  'group flex min-h-60 flex-col border-t-4 p-6',
+                  index === 0
+                    ? 'campo-lines border-accent bg-green-dark text-white'
+                    : 'border-green-dark bg-card',
+                  focusRing,
+                )}
+              >
+                <ArrowUpRight className="ml-auto h-5 w-5" aria-hidden="true" />
+                <div className="mt-auto">
+                  <p className="text-xs font-semibold uppercase">
+                    Em andamento
+                  </p>
+                  <h2 className="mt-2 font-display text-3xl font-bold uppercase">
+                    {campeonato.nome}
+                  </h2>
+                  <p className="mt-4 flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4" aria-hidden="true" />
+                    {campeonato.municipio.nome}/{campeonato.municipio.uf}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
-        )}
+        ) : null}
       </section>
 
       <section
@@ -261,7 +148,7 @@ export function TelaInicioPublico() {
             </p>
             <h2
               id="agenda-partidas-title"
-              className="font-display text-3xl font-bold tracking-[-0.01em] uppercase sm:text-4xl"
+              className="font-display text-3xl font-bold uppercase sm:text-4xl"
             >
               Agenda de partidas
             </h2>
@@ -269,7 +156,7 @@ export function TelaInicioPublico() {
           <Link
             href="/partidas"
             className={cn(
-              'inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-semibold text-green-dark transition-colors hover:bg-green-pale',
+              'inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold text-green-dark hover:bg-green-pale',
               focusRing,
             )}
           >
@@ -277,19 +164,51 @@ export function TelaInicioPublico() {
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        {partidas.length === 0 ? (
+
+        {!partidas && !erroPartidas ? (
+          <p role="status">Carregando agenda...</p>
+        ) : null}
+        {erroPartidas ? (
+          <EstadoRecurso
+            kind="error"
+            title="Não foi possível carregar a agenda"
+            description="Os Campeonatos permanecem disponíveis quando sua consulta responde."
+          />
+        ) : null}
+        {partidas?.itens.length === 0 ? (
           <EstadoRecurso
             kind="empty"
             title="Nenhuma partida na agenda"
-            description="As partidas aparecerão aqui quando forem publicadas pelos campeonatos em andamento."
+            description="A consulta padrão cobre os próximos 30 dias."
           />
-        ) : (
-          <div className="border-b border-green-dark/25">
-            {partidas.map((partida) => (
-              <MatchRow key={partida.id} partida={partida} />
+        ) : null}
+        {partidas?.itens.length ? (
+          <div className="divide-y divide-green-dark/25 border-y border-green-dark/25">
+            {partidas.itens.map((partida) => (
+              <Link
+                key={partida.partidaId}
+                href={`/partidas/${partida.partidaId}`}
+                className="grid gap-2 bg-card/55 p-5 hover:bg-card sm:grid-cols-[1fr_auto]"
+              >
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    {partida.campeonato.nome} · Rodada {partida.rodada}
+                  </p>
+                  <p className="mt-2 font-display text-lg font-semibold">
+                    {partida.mandante.nome} × {partida.visitante.nome}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {partida.campo?.nome ?? 'Campo a definir'}
+                  </p>
+                </div>
+                <ArrowRight
+                  className="h-5 w-5 self-center text-green-dark"
+                  aria-hidden="true"
+                />
+              </Link>
             ))}
           </div>
-        )}
+        ) : null}
       </section>
     </div>
   );

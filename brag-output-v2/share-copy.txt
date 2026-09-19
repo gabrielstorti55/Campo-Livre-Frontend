@@ -1,0 +1,3 @@
+CampoLivre coloca o futebol da cidade em campo: campeonatos, agenda e detalhes públicos em uma experiência feita para a comunidade.
+
+Demonstração visual em modo protótipo; os dados exibidos são simulados e não persistidos.

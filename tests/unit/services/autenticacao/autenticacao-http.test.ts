@@ -3,6 +3,24 @@ import { describe, expect, it, vi } from 'vitest';
 import { AutenticacaoHttp } from '@/services/autenticacao/autenticacao-http';
 
 describe('AutenticacaoHttp', () => {
+  it('ativa a capacidade pessoal de organizador com confirmação explícita', async () => {
+    const response = {
+      organizadorHabilitado: true as const,
+      organizadorHabilitadoEm: '2030-01-01T12:00:00.000Z',
+    };
+    const request = vi.fn().mockResolvedValue(response);
+    const api = new AutenticacaoHttp({ request });
+
+    await expect(api.ativarOrganizador('access-token')).resolves.toEqual(
+      response,
+    );
+    expect(request).toHaveBeenCalledWith('/minha-conta/organizador', {
+      method: 'POST',
+      accessToken: 'access-token',
+      body: { confirmacao: true },
+    });
+  });
+
   it('envia login web com cookie e sem expor refresh token', async () => {
     const response = {
       accessToken: 'access',
@@ -40,6 +58,33 @@ describe('AutenticacaoHttp', () => {
     });
   });
 
+  it('aceita resumo de usuário nullable conforme o contrato executável do login', async () => {
+    const response = {
+      accessToken: 'access',
+      tokenTipo: 'Bearer',
+      accessTokenExpiraEm: '2030-01-01T00:15:00.000Z',
+      refreshToken: null,
+      refreshTokenExpiraEm: '2030-01-30T00:00:00.000Z',
+      usuario: {
+        id: 'conta-1',
+        nome: null,
+        nomeUsuario: null,
+        administrador: false,
+        organizadorHabilitado: false,
+      },
+    };
+    const request = vi.fn().mockResolvedValue(response);
+    const api = new AutenticacaoHttp({ request });
+
+    await expect(
+      api.login({
+        email: 'pessoa@exemplo.com',
+        senha: 'segredo',
+        plataforma: 'WEB',
+      }),
+    ).resolves.toEqual(response);
+  });
+
   it('consulta a conta usando somente o access token recebido', async () => {
     const request = vi.fn().mockResolvedValue({ id: 'conta-1' });
     const api = new AutenticacaoHttp({ request });
@@ -48,6 +93,37 @@ describe('AutenticacaoHttp', () => {
 
     expect(request).toHaveBeenCalledWith('/minha-conta', {
       accessToken: 'access',
+    });
+  });
+
+  it('desativa a própria conta com confirmação explícita', async () => {
+    const response = {
+      contaInativada: true as const,
+      sessoesRevogadas: true as const,
+      eliminacaoPrevistaEm: '2030-04-01T12:00:00.000Z',
+      prazoDias: 90,
+    };
+    const request = vi.fn().mockResolvedValue(response);
+    const api = new AutenticacaoHttp({ request });
+
+    await expect(api.desativarConta('access-token')).resolves.toEqual(response);
+    expect(request).toHaveBeenCalledWith('/minha-conta/desativacao', {
+      method: 'POST',
+      accessToken: 'access-token',
+      body: { confirmacao: true },
+    });
+  });
+
+  it('encerra a sessão web com Bearer e tentativa de envio do cookie', async () => {
+    const request = vi.fn().mockResolvedValue(undefined);
+    const api = new AutenticacaoHttp({ request });
+
+    await api.logout('access-token');
+
+    expect(request).toHaveBeenCalledWith('/logout', {
+      method: 'POST',
+      accessToken: 'access-token',
+      credentials: 'include',
     });
   });
 
@@ -66,18 +142,35 @@ describe('AutenticacaoHttp', () => {
     );
   });
 
-  it('reenvia confirmação somente com o token opaco do cadastro', async () => {
+  it('reenvia confirmação com resposta neutra a partir do e-mail normalizado', async () => {
     const request = vi.fn().mockResolvedValue({ envioAceito: true });
     const api = new AutenticacaoHttp({ request });
 
     await expect(
-      api.reenviarConfirmacaoEmail('cadastro-opaco'),
+      api.reenviarConfirmacaoEmail(' PESSOA@EXEMPLO.COM '),
     ).resolves.toEqual({
       envioAceito: true,
     });
     expect(request).toHaveBeenCalledWith('/confirmacoes-email/reenvios', {
       method: 'POST',
-      body: { cadastroToken: 'cadastro-opaco' },
+      body: { email: 'pessoa@exemplo.com' },
+    });
+  });
+
+  it('confirma o e-mail aceitando a continuidade parental em cookie HttpOnly', async () => {
+    const request = vi.fn().mockResolvedValue({
+      emailConfirmado: true,
+      statusConta: 'AGUARDANDO_CONSENTIMENTO',
+      consentimentoResponsavelNecessario: true,
+    });
+    const api = new AutenticacaoHttp({ request });
+
+    await api.confirmarEmail('token-opaco');
+
+    expect(request).toHaveBeenCalledWith('/confirmacoes-email', {
+      method: 'POST',
+      credentials: 'include',
+      body: { token: 'token-opaco' },
     });
   });
 

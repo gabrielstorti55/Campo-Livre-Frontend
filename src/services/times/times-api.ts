@@ -1,25 +1,54 @@
 import type {
   AtletaParaConvite,
+  AceiteConviteTime,
   AtualizacaoTime,
   CancelamentoConviteTime,
   ConviteTimeEnviado,
+  ConviteTimePorToken,
+  CriacaoTime,
   DesativacaoTime,
   EncerramentoMembroTime,
   FiltrosTimes,
   PaginaConvitesTime,
+  PaginaConvitesTimeEnviados,
   PaginaElenco,
   PaginaHistoricoElenco,
+  PaginaTimesDaConta,
   PaginaTimes,
   RespostaAtualizacaoTime,
   RespostaEscudoTime,
+  RecusaConviteTime,
   ReativacaoTime,
   ReenvioConviteTime,
   SaidaVoluntariaTime,
+  TimeCriado,
   TimeDetalhado,
   TransferenciaCapitania,
 } from '@/types/api/times';
 
 export interface TimesApi {
+  consultarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<ConviteTimePorToken>;
+  aceitarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<AceiteConviteTime>;
+  recusarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<RecusaConviteTime>;
+  criarTime(
+    accessToken: string,
+    input: CriacaoTime,
+    idempotencyKey: string,
+  ): Promise<TimeCriado>;
+  listarMeusTimes(
+    accessToken: string,
+    pagina?: number,
+    tamanho?: number,
+  ): Promise<PaginaTimesDaConta>;
   removerAtleta(
     timeId: string,
     membroId: string,
@@ -54,6 +83,12 @@ export interface TimesApi {
     usuarioDestinatarioId: string,
     idempotencyKey: string,
   ): Promise<ConviteTimeEnviado>;
+  listarConvitesEnviados(
+    timeId: string,
+    accessToken: string,
+    pagina?: number,
+    tamanho?: number,
+  ): Promise<PaginaConvitesTimeEnviados>;
   reenviarConvite(
     timeId: string,
     conviteId: string,

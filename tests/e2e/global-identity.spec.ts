@@ -38,13 +38,16 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 
-  for (const route of [
-    '/atleta/inicio',
-    '/atleta/perfil',
-    '/organizador/inicio',
-    '/organizador/campeonatos',
+  for (const { route, persona } of [
+    { route: '/atleta/inicio', persona: 'atleta' as const },
+    { route: '/atleta/perfil', persona: 'atleta' as const },
+    { route: '/organizador/inicio', persona: 'organizador' as const },
+    {
+      route: '/organizador/campeonatos',
+      persona: 'organizador' as const,
+    },
   ]) {
-    await page.goto(route);
+    await autenticarEm(page, persona, route);
     await expectEditorialGeometry(page);
     if (route === '/organizador/inicio') {
       await expect(page.locator('main')).not.toContainText(/EM_[A-Z_]+/);
@@ -57,7 +60,7 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
     '/prefeitura/campos',
     '/prefeitura/aprovacoes',
   ]) {
-    await page.goto(route);
+    await autenticarEm(page, 'prefeitura', route);
     await expectEditorialGeometry(page);
   }
 });

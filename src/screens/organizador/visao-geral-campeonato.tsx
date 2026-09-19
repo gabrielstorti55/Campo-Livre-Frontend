@@ -1,55 +1,208 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { useCampeonatosApi } from '@/contexts/campeonatos-api';
 import { useSessao } from '@/hooks/use-sessao';
-import type { EstadoCampeonatoOperacional } from '@/types/organizador';
-import { catalogoOrganizadorMock } from '@/services/organizador/catalogo-organizador.mock';
-import { useEstadoOperacionalOrganizador } from '@/stores/estado-operacional-organizador';
-import { catalogoPublicoMock } from '@/services/publico/catalogo-publico.mock';
+import { TelaChaveamento } from '@/screens/organizador/chaveamento';
+import { TelaGerenciarPartidas } from '@/screens/organizador/gerenciar-partidas';
+import { TelaGerenciarTimes } from '@/screens/organizador/gerenciar-times';
+import type {
+  DetalheAdministrativoCampeonato,
+  OrganizadorCampeonato,
+  UsuarioElegivelOrganizador,
+} from '@/types/api/campeonatos';
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/utils/classes';
 
-const estadoLabel: Record<EstadoCampeonatoOperacional, string> = {
-  EM_CONFIGURACAO: 'Em configuração',
+export type SecaoCampeonato =
+  | 'geral'
+  | 'regulamento'
+  | 'participantes'
+  | 'estrutura'
+  | 'partidas'
+  | 'equipe';
+
+const secoes: Array<{ valor: SecaoCampeonato; rotulo: string }> = [
+  { valor: 'geral', rotulo: 'Geral' },
+  { valor: 'regulamento', rotulo: 'Regulamento' },
+  { valor: 'participantes', rotulo: 'Participantes' },
+  { valor: 'estrutura', rotulo: 'Estrutura' },
+  { valor: 'partidas', rotulo: 'Partidas' },
+  { valor: 'equipe', rotulo: 'Equipe organizadora' },
+];
+
+const estadoLabel: Record<DetalheAdministrativoCampeonato['status'], string> = {
+  EM_INSCRICOES: 'Em inscrições',
+  AGUARDANDO_SORTEIO: 'Aguardando sorteio',
   EM_ANDAMENTO: 'Em andamento',
   ENCERRADO: 'Encerrado',
   CANCELADO: 'Cancelado',
 };
 
+const formatoLabel: Record<DetalheAdministrativoCampeonato['formato'], string> =
+  {
+    PONTOS_CORRIDOS: 'Pontos corridos',
+    MATA_MATA: 'Mata-mata',
+    GRUPOS_E_MATA_MATA: 'Grupos e mata-mata',
+  };
+
+const TAMANHO_PAGINA = 100;
+
 export function TelaVisaoGeralCampeonato({
   campeonatoId,
+  secaoAtiva = 'geral',
 }: {
   campeonatoId: string;
+  secaoAtiva?: SecaoCampeonato;
 }) {
-  const { session, hydrated } = useSessao();
-  const operacional = useEstadoOperacionalOrganizador(Number(campeonatoId));
-  const campeonato = catalogoOrganizadorMock.obterCampeonato(
-    campeonatoId,
-    session?.account.id ?? '',
-    session?.links.organizedChampionshipIds ?? [],
+  const { hydrated, session, executarAutenticado } = useSessao();
+  const api = useCampeonatosApi();
+  const [campeonato, setCampeonato] =
+    useState<DetalheAdministrativoCampeonato | null>(null);
+  const [organizadores, setOrganizadores] = useState<OrganizadorCampeonato[]>(
+    [],
   );
-  const [novoColaborador, setNovoColaborador] = useState('');
-  const [transferindo, setTransferindo] = useState(false);
-  const [novoResponsavel, setNovoResponsavel] = useState('');
+  const [candidato, setCandidato] = useState<UsuarioElegivelOrganizador | null>(
+    null,
+  );
+  const [email, setEmail] = useState('');
+  const [nome, setNome] = useState('');
+  const [inicio, setInicio] = useState('');
   const [feedback, setFeedback] = useState('');
-  const [cancelando, setCancelando] = useState(false);
+  const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
+  const chaveFinalizacao = useRef<string | null>(null);
+  const identidadeSessao = `${campeonatoId}:${session?.sessionId ?? ''}:${session?.account.id ?? ''}`;
+  const identidadeSessaoAtual = useRef(identidadeSessao);
+  useLayoutEffect(() => {
+    identidadeSessaoAtual.current = identidadeSessao;
+  }, [identidadeSessao]);
 
-  if (!hydrated) return <p role="status">Carregando campeonato...</p>;
+  async function carregarDetalhe(identidadeEsperada = identidadeSessao) {
+    const detalhe = await executarAutenticado((token) =>
+      api.consultarAdministracao(campeonatoId, token),
+    );
+    if (identidadeSessaoAtual.current !== identidadeEsperada) return null;
+    setCampeonato(detalhe);
+    setNome(detalhe.nome);
+    setInicio(detalhe.inicioPrevistoEm);
+    return detalhe;
+  }
 
-  if (!campeonato) {
+  async function carregarEquipe(identidadeEsperada = identidadeSessao) {
+    const itens = await executarAutenticado(async (token) => {
+      const primeira = await api.listarOrganizadores(
+        campeonatoId,
+        token,
+        1,
+        TAMANHO_PAGINA,
+        'ATIVO',
+      );
+      const todos = [...primeira.itens];
+      for (let pagina = 2; pagina <= primeira.totalPaginas; pagina += 1) {
+        const proxima = await api.listarOrganizadores(
+          campeonatoId,
+          token,
+          pagina,
+          TAMANHO_PAGINA,
+          'ATIVO',
+        );
+        todos.push(...proxima.itens);
+      }
+      return todos;
+    });
+    if (identidadeSessaoAtual.current !== identidadeEsperada) return false;
+    setOrganizadores(itens);
+    return true;
+  }
+
+  useEffect(() => {
+    if (!hydrated) return;
+    let ativo = true;
+    void Promise.resolve().then(() => {
+      if (!ativo) return;
+      setCampeonato(null);
+      setOrganizadores([]);
+      setCandidato(null);
+      setErro('');
+      setFeedback('');
+      setCarregando(true);
+    });
+    chaveFinalizacao.current = null;
+    const detalhePromise = executarAutenticado((token) =>
+      api.consultarAdministracao(campeonatoId, token),
+    );
+    const equipePromise =
+      secaoAtiva === 'equipe'
+        ? executarAutenticado(async (token) => {
+            const primeira = await api.listarOrganizadores(
+              campeonatoId,
+              token,
+              1,
+              TAMANHO_PAGINA,
+              'ATIVO',
+            );
+            const itens = [...primeira.itens];
+            for (let pagina = 2; pagina <= primeira.totalPaginas; pagina += 1) {
+              const proxima = await api.listarOrganizadores(
+                campeonatoId,
+                token,
+                pagina,
+                TAMANHO_PAGINA,
+                'ATIVO',
+              );
+              itens.push(...proxima.itens);
+            }
+            return itens;
+          })
+        : Promise.resolve(null);
+
+    Promise.all([detalhePromise, equipePromise])
+      .then(([detalhe, equipe]) => {
+        if (!ativo) return;
+        setCampeonato(detalhe);
+        setNome(detalhe.nome);
+        setInicio(detalhe.inicioPrevistoEm);
+        if (equipe) setOrganizadores(equipe);
+      })
+      .catch(() => {
+        if (ativo)
+          setErro('Não foi possível carregar o workspace administrativo.');
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
+    // O provider e a sessão autenticada são estáveis entre carregamentos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    campeonatoId,
+    hydrated,
+    secaoAtiva,
+    session?.sessionId,
+    session?.account.id,
+  ]);
+
+  if (!hydrated || carregando)
+    return <p role="status">Carregando campeonato...</p>;
+  if (erro || !campeonato) {
     return (
-      <Card className="p-6">
+      <Card role="alert" className="p-6">
         <h1 className="font-display text-2xl font-semibold">
           Sem acesso administrativo
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          A conta não possui vínculo ativo com este campeonato. A consulta
-          pública continua disponível quando a competição for pública.
+          {erro || 'A conta não possui vínculo ativo com este Campeonato.'}
         </p>
         <Button asChild variant="campoOutline" className="mt-4">
           <Link href={`/campeonatos/${campeonatoId}`}>Ver página pública</Link>
@@ -58,443 +211,550 @@ export function TelaVisaoGeralCampeonato({
     );
   }
 
-  const estado = operacional.estado?.estado ?? campeonato.estado;
-  const pendencias = operacional.estado?.pendencias ?? campeonato.pendencias;
-  const validado = operacional.estado?.validado ?? false;
-  const inscricoesAbertas =
-    operacional.estado?.inscricoesAbertas ??
-    Boolean(campeonato.inscricoesAbertasEm);
-  const partidasPendentes = catalogoPublicoMock
-    .listarPartidas()
-    .filter(
-      (partida) =>
-        partida.campeonatoId === campeonato.id &&
-        !partida.resultadoPublicado &&
-        (operacional.estado?.partidaEstados[partida.id] ?? partida.estado) !==
-          'CANCELADA' &&
-        !operacional.estado?.fatosDefinitivos[partida.id],
-    );
-  const colaboradores =
-    operacional.estado?.colaboradores ??
-    catalogoOrganizadorMock.listarConvitesColaborador(Number(campeonatoId));
-  const responsavelAtual =
-    operacional.estado?.responsavelAtual ?? campeonato.responsavel;
-  const responsavel = operacional.estado
-    ? operacional.estado.responsavelContaId === session?.account.id
-    : campeonato.papelDaConta === 'RESPONSAVEL';
-  const emConfiguracao = estado === 'EM_CONFIGURACAO';
-  const emAndamento = estado === 'EM_ANDAMENTO';
-
-  function executarPendenciaLocal(item: string) {
-    if (item === 'Publicar regulamento') operacional.publicarRegulamento();
-    if (item === 'Configurar critérios de desempate')
-      operacional.salvarCriterios();
-    if (item === 'Validar elencos inscritos') operacional.validarElencos();
-    setFeedback(`${item} registrado no estado operacional mock.`);
-  }
+  const responsavel = campeonato.autoridade.funcao === 'RESPONSAVEL';
+  const pode = (operacao: string) =>
+    campeonato.operacoesPermitidas.includes(operacao);
+  const podeExecutarAcaoGeral = (operacao: string) =>
+    pode(operacao) && campeonato.autoridade.permissoes.includes('EDITAR_DADOS');
 
   return (
     <>
       <CabecalhoPagina
         title={campeonato.nome}
-        subtitle={`${campeonato.modalidade} · ${campeonato.contexto.nome}`}
+        subtitle={`${formatoLabel[campeonato.formato]} · ${campeonato.contexto === 'PREFEITURA' ? 'Prefeitura' : 'Contexto pessoal'}`}
         actions={
           <Button asChild variant="campoOutline">
-            <Link href={`/campeonatos/${campeonato.id}`}>
+            <Link href={`/campeonatos/${campeonatoId}`}>
               Visualizar página pública
             </Link>
           </Button>
         }
       />
-
-      <div className="mb-6 rounded-md border border-border bg-card p-4 text-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <strong>{estadoLabel[estado]}</strong>
-            <p className="mt-1 text-muted-foreground">
-              {responsavel
-                ? 'Você é o responsável ativo'
-                : 'Você atua como colaborador'}
-            </p>
-            <p className="text-muted-foreground">
-              Responsável: {responsavelAtual}
-            </p>
-          </div>
-          {inscricoesAbertas && emConfiguracao ? (
-            <span className="rounded-full bg-blue-100 px-3 py-1 font-semibold text-blue-800">
-              Inscrições abertas
-            </span>
-          ) : null}
-        </div>
+      <div className="mb-2 flex flex-wrap items-center gap-3 text-sm">
+        <span className="font-semibold text-green-dark">
+          {estadoLabel[campeonato.status]}
+        </span>
+        <span className="text-muted-foreground">
+          {responsavel ? 'Você é o responsável' : 'Você atua como organizador'}
+        </span>
+        <span className="text-muted-foreground">
+          Configuração v{campeonato.configuracao.versao}
+        </span>
       </div>
 
-      {estado !== 'CANCELADO' && estado !== 'ENCERRADO' ? (
-        <section aria-label="Operações do campeonato" className="mb-8">
-          <h2 className="font-display text-xl font-semibold">Operações</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Button asChild variant="campoOutline">
-              <Link href={`/organizador/campeonato/${campeonato.id}/times`}>
-                Times e elencos
-              </Link>
-            </Button>
-            <Button asChild variant="campoOutline">
-              <Link href={`/organizador/campeonato/${campeonato.id}/partidas`}>
-                Operar partidas
-              </Link>
-            </Button>
-            <Button asChild variant="campoOutline">
-              <Link href={`/organizador/campeonato/${campeonato.id}/sumula`}>
-                Preencher súmula
-              </Link>
-            </Button>
-            <Button asChild variant="campoOutline">
-              <Link href={`/organizador/campeonato/${campeonato.id}/reservas`}>
-                Reservas de campo
-              </Link>
-            </Button>
+      <nav
+        aria-label="Seções do campeonato"
+        className="mb-7 overflow-x-auto border-b border-border"
+      >
+        <div role="tablist" className="flex min-w-max gap-6 px-1">
+          {secoes.map((secao) => (
+            <Link
+              key={secao.valor}
+              role="tab"
+              aria-selected={secao.valor === secaoAtiva}
+              href={`/organizador/campeonato/${campeonatoId}?secao=${secao.valor}`}
+              className={cn(
+                'relative flex min-h-11 items-center border-b-2 px-1 text-sm font-semibold',
+                secao.valor === secaoAtiva
+                  ? 'border-green-mid text-green-dark'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {secao.rotulo}
+              {secao.valor === 'regulamento' &&
+              campeonato.configuracao.pendencias.some((item) =>
+                item.includes('REGULAMENTO'),
+              ) ? (
+                <span
+                  className="ml-2 text-xs"
+                  aria-label="Regulamento pendente"
+                >
+                  1
+                </span>
+              ) : null}
+            </Link>
+          ))}
+        </div>
+      </nav>
+
+      {secaoAtiva === 'geral' ? (
+        <section
+          aria-labelledby="dados-campeonato"
+          className="max-w-4xl space-y-6"
+        >
+          <div>
+            <h2
+              id="dados-campeonato"
+              className="font-display text-2xl font-semibold"
+            >
+              Dados do campeonato
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Dados recuperados da projeção administrativa vigente.
+            </p>
           </div>
-        </section>
-      ) : null}
-
-      {emConfiguracao ? (
-        <section aria-label="Configuração e validação" className="mb-8">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="text-sm font-semibold">
+              Nome do campeonato
+              <Input
+                className="mt-2"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Município
+              <Input className="mt-2" value={campeonato.municipioId} readOnly />
+            </label>
+            <label className="text-sm font-semibold">
+              Formato
+              <Input
+                className="mt-2"
+                value={formatoLabel[campeonato.formato]}
+                readOnly
+              />
+            </label>
+            <label className="text-sm font-semibold">
+              Início previsto
+              <Input
+                type="date"
+                className="mt-2"
+                value={inicio}
+                onChange={(e) => setInicio(e.target.value)}
+              />
+            </label>
+          </div>
+          {podeExecutarAcaoGeral('ATUALIZAR') ? (
+            <Button
+              variant="campo"
+              disabled={salvando || !nome.trim()}
+              onClick={async () => {
+                const identidadeDaOperacao = identidadeSessao;
+                setSalvando(true);
+                try {
+                  await executarAutenticado((token) =>
+                    api.atualizarCampeonato(campeonatoId, token, {
+                      nome: nome.trim(),
+                      descricao: campeonato.descricao,
+                      inicioPrevistoEm: inicio,
+                      fimPrevistoEm: campeonato.fimPrevistoEm,
+                    }),
+                  );
+                  if (identidadeSessaoAtual.current !== identidadeDaOperacao)
+                    return;
+                  setFeedback('Dados do Campeonato atualizados.');
+                  try {
+                    await carregarDetalhe(identidadeDaOperacao);
+                  } catch {
+                    if (identidadeSessaoAtual.current === identidadeDaOperacao)
+                      setFeedback(
+                        'Dados atualizados, mas não foi possível atualizar a leitura.',
+                      );
+                  }
+                } catch {
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao)
+                    setFeedback('Não foi possível atualizar os dados.');
+                } finally {
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao)
+                    setSalvando(false);
+                }
+              }}
+            >
+              Salvar alterações
+            </Button>
+          ) : null}
           <Card className="p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="font-display text-xl font-semibold">
-                  Configuração e validação
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Alterações relevantes invalidam a validação anterior.
-                </p>
-              </div>
-              <strong className="text-sm">
-                {pendencias.length} pendências bloqueantes
-              </strong>
-            </div>
-
-            {pendencias.length > 0 ? (
-              <ul className="mt-5 space-y-2">
-                {pendencias.map((item) => (
-                  <li
-                    key={item}
-                    className="flex flex-col justify-between gap-2 rounded-md bg-muted p-3 sm:flex-row sm:items-center"
-                  >
-                    <span className="text-sm">{item}</span>
-                    {responsavel ? (
-                      [
-                        'Publicar regulamento',
-                        'Configurar critérios de desempate',
-                      ].includes(item) ? (
-                        <Button
-                          size="sm"
-                          variant="campoOutline"
-                          aria-label={`Registrar: ${item}`}
-                          onClick={() => executarPendenciaLocal(item)}
-                        >
-                          Registrar fato mock
-                        </Button>
-                      ) : (
-                        <Button asChild size="sm" variant="campoOutline">
-                          <Link
-                            href={`/organizador/campeonato/${campeonato.id}/${item === 'Resolver convites pendentes' || item === 'Validar elencos inscritos' ? 'times' : 'chaveamento'}`}
-                          >
-                            Resolver na operação correspondente
-                          </Link>
-                        </Button>
-                      )
-                    ) : null}
-                  </li>
+            <h3 className="font-display text-lg font-semibold">
+              Validação da configuração
+            </h3>
+            {campeonato.configuracao.pendencias.length ? (
+              <ul className="mt-3 list-disc pl-5 text-sm text-muted-foreground">
+                {campeonato.configuracao.pendencias.map((item) => (
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-5 rounded-md bg-green-pale p-3 text-sm text-green-dark">
-                Nenhuma pendência detectada. O responsável pode revalidar a
-                configuração.
+              <p className="mt-2 text-sm text-green-dark">
+                Sem pendências publicadas.
               </p>
             )}
-
-            {responsavel ? (
-              <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-2">
+              {podeExecutarAcaoGeral('VALIDAR_CONFIGURACAO') ? (
                 <Button
                   variant="campoOutline"
-                  disabled={pendencias.length > 0}
-                  onClick={() => {
-                    operacional.validarConfiguracao();
-                    setFeedback('Configuração validada localmente');
-                  }}
-                >
-                  Validar configuração
-                </Button>
-                <Button
-                  variant="campoOutline"
-                  disabled={!validado || inscricoesAbertas}
-                  onClick={() => {
-                    operacional.abrirInscricoes();
-                    setFeedback('Inscrições abertas');
-                  }}
-                >
-                  Abrir inscrições
-                </Button>
-                <Button
-                  variant="campo"
-                  disabled={!validado || !inscricoesAbertas}
-                  onClick={() => {
-                    operacional.iniciarCampeonato();
-                    setFeedback('Campeonato em andamento');
-                  }}
-                >
-                  Iniciar campeonato
-                </Button>
-              </div>
-            ) : null}
-          </Card>
-        </section>
-      ) : null}
-
-      {responsavel && emConfiguracao ? (
-        <section aria-label="Equipe organizadora" className="mb-8">
-          <Card className="p-5">
-            <h2 className="font-display text-xl font-semibold">
-              Equipe organizadora
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Convites exigem aceite explícito. Apenas o responsável transfere a
-              titularidade ou remove colaboradores.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Input
-                aria-label="Usuário ou e-mail do organizador"
-                placeholder="usuario ou email"
-                value={novoColaborador}
-                onChange={(event) => setNovoColaborador(event.target.value)}
-              />
-              <Button
-                variant="campoOutline"
-                disabled={!novoColaborador.trim()}
-                onClick={() => {
-                  operacional.convidarOrganizador(
-                    novoColaborador.trim(),
-                    campeonato.contexto.nome,
-                  );
-                  setNovoColaborador('');
-                  setFeedback('Convite de organizador enviado localmente.');
-                }}
-              >
-                Convidar organizador
-              </Button>
-            </div>
-            <div className="mt-4 space-y-2">
-              {colaboradores.map((colaborador) => (
-                <div
-                  key={colaborador.id}
-                  className="flex flex-col justify-between gap-2 rounded-md bg-muted p-3 sm:flex-row sm:items-center"
-                >
-                  <p className="text-sm">
-                    {colaborador.conta} ·{' '}
-                    {colaborador.estado === 'PENDENTE'
-                      ? 'Pendente de aceite'
-                      : colaborador.estado}
-                  </p>
-                  {colaborador.estado === 'PENDENTE' ? (
-                    <Button
-                      size="sm"
-                      variant="campoOutline"
-                      aria-label={`Cancelar convite de ${colaborador.conta}`}
-                      onClick={() =>
-                        operacional.cancelarConviteOrganizador(colaborador.id)
-                      }
-                    >
-                      Cancelar convite
-                    </Button>
-                  ) : colaborador.estado === 'ACEITO' ? (
-                    <Button
-                      size="sm"
-                      variant="campoOutline"
-                      onClick={() =>
-                        operacional.removerColaborador(colaborador.id)
-                      }
-                    >
-                      Remover colaborador
-                    </Button>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-            <Button
-              variant="campoOutline"
-              className="mt-4"
-              onClick={() => {
-                setNovoResponsavel(
-                  colaboradores.find((item) => item.estado === 'ACEITO')
-                    ?.contaId ?? '',
-                );
-                setTransferindo(true);
-              }}
-            >
-              Transferir responsabilidade
-            </Button>
-            {transferindo ? (
-              <div className="mt-4 rounded-md border border-border p-4">
-                <label
-                  htmlFor="novo-responsavel"
-                  className="text-sm font-semibold"
-                >
-                  Novo responsável
-                </label>
-                <select
-                  id="novo-responsavel"
-                  className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3"
-                  value={novoResponsavel}
-                  onChange={(event) => setNovoResponsavel(event.target.value)}
-                >
-                  {colaboradores
-                    .filter((item) => item.estado === 'ACEITO' && item.contaId)
-                    .map((item) => (
-                      <option key={item.id} value={item.contaId}>
-                        {item.conta}
-                      </option>
-                    ))}
-                </select>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Você permanecerá como colaborador após a transferência.
-                </p>
-                <Button
-                  variant="campo"
-                  className="mt-3"
-                  disabled={!novoResponsavel}
-                  onClick={() => {
-                    const destino = colaboradores.find(
-                      (item) => item.contaId === novoResponsavel,
-                    );
-                    if (!destino?.contaId) return;
-                    operacional.transferirResponsabilidade(
-                      destino.contaId,
-                      destino.conta,
-                    );
-                    setTransferindo(false);
-                    setFeedback(
-                      `Responsabilidade transferida localmente para ${destino.conta}.`,
-                    );
-                  }}
-                >
-                  Confirmar transferência
-                </Button>
-              </div>
-            ) : null}
-          </Card>
-        </section>
-      ) : null}
-
-      {emAndamento ? (
-        <Card className="mb-8 p-5">
-          <h2 className="font-display text-xl font-semibold">
-            Campeonato em andamento
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Composição, formato e regulamento bloqueados. Permanecem disponíveis
-            operações de partidas sem resultado, WO, reservas e súmula.
-          </p>
-        </Card>
-      ) : null}
-
-      {responsavel && (emConfiguracao || emAndamento) ? (
-        <section aria-label="Ciclo de vida" className="mb-8">
-          <Card className="p-5">
-            <h2 className="font-display text-xl font-semibold">
-              Ciclo de vida
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Finalização e cancelamento preservam o histórico e exigirão
-              transação e auditoria no backend.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {emAndamento ? (
-                <Button
-                  variant="campoOutline"
-                  onClick={() => {
-                    if (partidasPendentes.length > 0) {
-                      setFeedback(
-                        `Finalização bloqueada: ${partidasPendentes.length} partidas ainda não possuem resultado definitivo publicado.`,
+                  onClick={async () => {
+                    const identidadeDaOperacao = identidadeSessao;
+                    try {
+                      const resultado = await executarAutenticado((token) =>
+                        api.validarConfiguracao(campeonatoId, token),
                       );
-                      return;
+                      if (
+                        identidadeSessaoAtual.current !== identidadeDaOperacao
+                      )
+                        return;
+                      setFeedback(
+                        resultado.valido
+                          ? 'Configuração validada.'
+                          : resultado.erros
+                              .map((item) => item.mensagem)
+                              .join(' · '),
+                      );
+                      try {
+                        await carregarDetalhe(identidadeDaOperacao);
+                      } catch {
+                        if (
+                          identidadeSessaoAtual.current === identidadeDaOperacao
+                        )
+                          setFeedback(
+                            'Configuração validada, mas não foi possível atualizar a leitura.',
+                          );
+                      }
+                    } catch {
+                      if (
+                        identidadeSessaoAtual.current === identidadeDaOperacao
+                      )
+                        setFeedback('Não foi possível validar a configuração.');
                     }
-                    operacional.encerrarCampeonato();
-                    setFeedback('Campeonato encerrado; histórico preservado.');
                   }}
                 >
-                  Finalizar campeonato
+                  Validar campeonato
                 </Button>
               ) : null}
-              <Button variant="destructive" onClick={() => setCancelando(true)}>
-                Cancelar campeonato
-              </Button>
-            </div>
-            {cancelando ? (
-              <div className="mt-4 rounded-md border border-danger/30 p-4">
-                <label
-                  htmlFor="motivo-cancelamento"
-                  className="text-sm font-semibold"
+              {podeExecutarAcaoGeral('FINALIZAR_INSCRICOES') ? (
+                <Button
+                  variant="campo"
+                  onClick={async () => {
+                    const identidadeDaOperacao = identidadeSessao;
+                    chaveFinalizacao.current ??= crypto.randomUUID();
+                    try {
+                      await executarAutenticado((token) =>
+                        api.finalizarInscricoes(
+                          campeonatoId,
+                          token,
+                          chaveFinalizacao.current!,
+                        ),
+                      );
+                      if (
+                        identidadeSessaoAtual.current !== identidadeDaOperacao
+                      )
+                        return;
+                      setFeedback('Inscrições finalizadas.');
+                      try {
+                        const detalheAtualizado =
+                          await carregarDetalhe(identidadeDaOperacao);
+                        if (detalheAtualizado) chaveFinalizacao.current = null;
+                      } catch {
+                        if (
+                          identidadeSessaoAtual.current === identidadeDaOperacao
+                        )
+                          setFeedback(
+                            'Inscrições finalizadas, mas não foi possível atualizar a leitura.',
+                          );
+                      }
+                    } catch {
+                      if (
+                        identidadeSessaoAtual.current === identidadeDaOperacao
+                      )
+                        setFeedback(
+                          'Não foi possível finalizar as inscrições.',
+                        );
+                    }
+                  }}
                 >
-                  Motivo do cancelamento
-                </label>
+                  Finalizar inscrições
+                </Button>
+              ) : null}
+            </div>
+          </Card>
+          {responsavel && podeExecutarAcaoGeral('CANCELAR') ? (
+            <details>
+              <summary className="cursor-pointer font-semibold">
+                Outras ações do campeonato
+              </summary>
+              <div className="mt-4 space-y-3">
                 <Input
-                  id="motivo-cancelamento"
-                  className="mt-2"
+                  aria-label="Motivo do cancelamento"
                   value={motivoCancelamento}
-                  onChange={(event) =>
-                    setMotivoCancelamento(event.target.value)
-                  }
+                  onChange={(e) => setMotivoCancelamento(e.target.value)}
+                  placeholder="Motivo obrigatório"
                 />
                 <Button
-                  variant="destructive"
-                  className="mt-3"
+                  variant="campoOutline"
                   disabled={!motivoCancelamento.trim()}
-                  onClick={() => {
-                    operacional.cancelarCampeonato();
-                    setCancelando(false);
-                    setFeedback(
-                      'Campeonato cancelado localmente; histórico preservado.',
-                    );
+                  onClick={async () => {
+                    const identidadeDaOperacao = identidadeSessao;
+                    try {
+                      await executarAutenticado((token) =>
+                        api.cancelarCampeonato(
+                          campeonatoId,
+                          token,
+                          motivoCancelamento.trim(),
+                        ),
+                      );
+                      if (
+                        identidadeSessaoAtual.current !== identidadeDaOperacao
+                      )
+                        return;
+                      setFeedback('Campeonato cancelado.');
+                      try {
+                        await carregarDetalhe(identidadeDaOperacao);
+                      } catch {
+                        if (
+                          identidadeSessaoAtual.current === identidadeDaOperacao
+                        )
+                          setFeedback(
+                            'Campeonato cancelado, mas não foi possível atualizar a leitura.',
+                          );
+                      }
+                    } catch {
+                      if (
+                        identidadeSessaoAtual.current === identidadeDaOperacao
+                      )
+                        setFeedback('Não foi possível cancelar o Campeonato.');
+                    }
                   }}
                 >
                   Confirmar cancelamento
                 </Button>
               </div>
-            ) : null}
-          </Card>
+            </details>
+          ) : null}
         </section>
       ) : null}
 
-      {estado === 'CANCELADO' ? (
-        <Card className="mb-8 p-5">
-          <h2 className="font-display text-xl font-semibold">
-            Campeonato cancelado
+      {secaoAtiva === 'regulamento' ? (
+        <section aria-labelledby="regulamento-campeonato" className="max-w-3xl">
+          <h2
+            id="regulamento-campeonato"
+            className="font-display text-2xl font-semibold"
+          >
+            Regulamento
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Novas operações estão bloqueadas. Fatos e resultados já publicados
-            permanecem no histórico.
-          </p>
-        </Card>
+          <Card className="mt-4 border-warning p-5">
+            <h3 className="font-display text-lg font-semibold">
+              Edição protegida
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              A API permite salvar, mas ainda não publica a leitura integral do
+              Regulamento. Para evitar sobrescrever regras existentes após um
+              reload, a edição fica indisponível no modo integrado.
+            </p>
+          </Card>
+          <label className="mt-5 block text-sm font-semibold">
+            Texto do regulamento
+            <Textarea
+              aria-label="Texto do regulamento"
+              className="mt-2"
+              disabled
+            />
+          </label>
+          <label className="mt-5 block text-sm font-semibold">
+            Critérios de desempate
+            <Textarea
+              aria-label="Critérios de desempate"
+              className="mt-2"
+              disabled
+            />
+          </label>
+        </section>
       ) : null}
 
-      {estado === 'ENCERRADO' ? (
-        <Card className="mb-8 p-5">
-          <h2 className="font-display text-xl font-semibold">
-            Campeonato encerrado
+      {secaoAtiva === 'participantes' ? (
+        <TelaGerenciarTimes campeonatoId={campeonatoId} incorporada />
+      ) : null}
+      {secaoAtiva === 'estrutura' ? (
+        <TelaChaveamento campeonatoId={campeonatoId} incorporada />
+      ) : null}
+      {secaoAtiva === 'partidas' ? (
+        <TelaGerenciarPartidas campeonatoId={campeonatoId} incorporada />
+      ) : null}
+
+      {secaoAtiva === 'equipe' ? (
+        <section aria-label="Equipe organizadora" className="max-w-4xl">
+          <h2 className="font-display text-2xl font-semibold">
+            Equipe organizadora
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Todas as partidas possuem fato definitivo. Novas operações estão
-            bloqueadas e o histórico permanece disponível.
+          <p className="mt-1 text-sm text-muted-foreground">
+            Responsável e organizadores ativos recuperados do servidor.
           </p>
-        </Card>
+          {responsavel &&
+          campeonato.autoridade.permissoes.includes('GERENCIAR_EQUIPE') ? (
+            <Card className="mt-5 p-5">
+              <label className="text-sm font-semibold">
+                E-mail do organizador
+                <Input
+                  aria-label="E-mail do organizador"
+                  type="email"
+                  className="mt-2"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setCandidato(null);
+                  }}
+                />
+              </label>
+              <Button
+                className="mt-3"
+                variant="campoOutline"
+                disabled={!email.includes('@')}
+                onClick={async () => {
+                  const identidadeDaOperacao = identidadeSessao;
+                  try {
+                    const pagina = await executarAutenticado((token) =>
+                      api.buscarOrganizadorElegivel(
+                        campeonatoId,
+                        email.trim(),
+                        token,
+                      ),
+                    );
+                    if (identidadeSessaoAtual.current !== identidadeDaOperacao)
+                      return;
+                    setCandidato(pagina.itens[0] ?? null);
+                    setFeedback(
+                      pagina.itens.length
+                        ? ''
+                        : 'Nenhuma conta elegível encontrada.',
+                    );
+                  } catch {
+                    if (
+                      identidadeSessaoAtual.current === identidadeDaOperacao
+                    ) {
+                      setCandidato(null);
+                      setFeedback('Não foi possível buscar o organizador.');
+                    }
+                  }
+                }}
+              >
+                Buscar organizador
+              </Button>
+              {candidato ? (
+                <div className="mt-4 border-l-4 border-green-mid pl-4">
+                  <p className="font-semibold">{candidato.nome}</p>
+                  <p className="text-sm text-muted-foreground">
+                    @{candidato.nomeUsuario}
+                  </p>
+                  <Button
+                    className="mt-2"
+                    variant="campo"
+                    onClick={async () => {
+                      const identidadeDaOperacao = identidadeSessao;
+                      try {
+                        await executarAutenticado((token) =>
+                          api.adicionarOrganizador(
+                            campeonatoId,
+                            candidato.usuarioId,
+                            token,
+                          ),
+                        );
+                        if (
+                          identidadeSessaoAtual.current !== identidadeDaOperacao
+                        )
+                          return;
+                        setCandidato(null);
+                        setEmail('');
+                        setFeedback('Organizador adicionado.');
+                        try {
+                          await carregarEquipe(identidadeDaOperacao);
+                        } catch {
+                          if (
+                            identidadeSessaoAtual.current ===
+                            identidadeDaOperacao
+                          )
+                            setFeedback(
+                              'Organizador adicionado, mas não foi possível atualizar a equipe.',
+                            );
+                        }
+                      } catch {
+                        if (
+                          identidadeSessaoAtual.current === identidadeDaOperacao
+                        )
+                          setFeedback(
+                            'Não foi possível adicionar o organizador.',
+                          );
+                      }
+                    }}
+                  >
+                    Adicionar organizador
+                  </Button>
+                </div>
+              ) : null}
+            </Card>
+          ) : null}
+          <div className="mt-5 divide-y divide-border border-y border-border">
+            {organizadores.map((organizador) => (
+              <div
+                key={organizador.organizadorId}
+                className="flex flex-wrap items-center justify-between gap-3 py-4"
+              >
+                <div>
+                  <p className="font-semibold">{organizador.usuario.nome}</p>
+                  <p className="text-sm text-muted-foreground">
+                    @{organizador.usuario.nomeUsuario} ·{' '}
+                    {organizador.funcao === 'RESPONSAVEL'
+                      ? 'Responsável'
+                      : 'Organizador'}
+                  </p>
+                </div>
+                {organizador.podeSerRemovido &&
+                campeonato.autoridade.permissoes.includes(
+                  'GERENCIAR_EQUIPE',
+                ) ? (
+                  <Button
+                    size="sm"
+                    variant="campoOutline"
+                    onClick={async () => {
+                      const identidadeDaOperacao = identidadeSessao;
+                      try {
+                        await executarAutenticado((token) =>
+                          api.removerOrganizador(
+                            campeonatoId,
+                            organizador.organizadorId,
+                            token,
+                            'Remoção pela equipe responsável',
+                          ),
+                        );
+                        if (
+                          identidadeSessaoAtual.current !== identidadeDaOperacao
+                        )
+                          return;
+                        setFeedback('Organizador removido.');
+                        try {
+                          await carregarEquipe(identidadeDaOperacao);
+                        } catch {
+                          if (
+                            identidadeSessaoAtual.current ===
+                            identidadeDaOperacao
+                          )
+                            setFeedback(
+                              'Organizador removido, mas não foi possível atualizar a equipe.',
+                            );
+                        }
+                      } catch {
+                        if (
+                          identidadeSessaoAtual.current === identidadeDaOperacao
+                        )
+                          setFeedback(
+                            'Não foi possível remover o organizador.',
+                          );
+                      }
+                    }}
+                  >
+                    Remover
+                  </Button>
+                ) : null}
+              </div>
+            ))}
+            {!organizadores.length ? (
+              <p className="py-4 text-sm text-muted-foreground">
+                Nenhum organizador adicional.
+              </p>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       {feedback ? (
-        <p
-          role="status"
-          className="rounded-md bg-green-pale p-3 text-sm font-semibold text-green-dark"
-        >
+        <p role="status" className="mt-5 text-sm font-semibold text-green-dark">
           {feedback}
         </p>
       ) : null}

@@ -9,7 +9,9 @@ import type {
   EntradaReativacaoConta,
   MinhaConta,
   RespostaAlteracaoSenha,
+  RespostaAtivacaoOrganizador,
   RespostaCadastro,
+  RespostaDesativacaoConta,
   RespostaFotoMinhaConta,
   RespostaConfirmacaoAlteracaoEmail,
   RespostaConfirmacaoEmail,
@@ -130,6 +132,7 @@ const cadastrosPendentes = new Map<
   { input: EntradaCadastro; cadastroId: string }
 >();
 const tokensConfirmacaoEmailUtilizados = new Set<string>();
+const emailsAguardandoConsentimento = new Set<string>();
 
 const recuperacoesPendentes = new Map<string, string>();
 const tokensRecuperacaoUtilizados = new Set<string>();
@@ -190,6 +193,14 @@ export class AutenticacaoPrototipo implements AutenticacaoApi {
       ({ input: pendente }) => pendente.email.trim().toLowerCase() === email,
     );
     if (cadastroPendente) throw emailNaoConfirmado();
+    if (emailsAguardandoConsentimento.has(email)) {
+      throw new ErroApi({
+        type: 'https://campolivre.app/problemas/conta-inapta',
+        title: 'Conta inapta',
+        status: 403,
+        codigo: 'CONTA_INAPTA',
+      });
+    }
     if (!account || input.senha !== senhas[email]) {
       throw invalidCredentials();
     }
@@ -222,6 +233,38 @@ export class AutenticacaoPrototipo implements AutenticacaoApi {
     this.activeEmail = null;
   }
 
+  async ativarOrganizador(
+    accessToken: string,
+  ): Promise<RespostaAtivacaoOrganizador> {
+    if (accessToken !== ACCESS_TOKEN_PROTOTIPO || !this.activeEmail) {
+      throw invalidCredentials();
+    }
+    const account = contas[this.activeEmail];
+    if (!account) throw invalidCredentials();
+    account.organizadorHabilitado = true;
+    account.atualizadoEm = new Date().toISOString();
+    return {
+      organizadorHabilitado: true,
+      organizadorHabilitadoEm: account.atualizadoEm,
+    };
+  }
+
+  async desativarConta(accessToken: string): Promise<RespostaDesativacaoConta> {
+    if (accessToken !== ACCESS_TOKEN_PROTOTIPO || !this.activeEmail) {
+      throw invalidCredentials();
+    }
+    const eliminacaoPrevistaEm = new Date(
+      Date.now() + 90 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    this.activeEmail = null;
+    return {
+      contaInativada: true,
+      sessoesRevogadas: true,
+      eliminacaoPrevistaEm,
+      prazoDias: 90,
+    };
+  }
+
   async consultarMinhaConta(accessToken: string): Promise<MinhaConta> {
     if (accessToken !== ACCESS_TOKEN_PROTOTIPO || !this.activeEmail) {
       throw invalidCredentials();
@@ -245,7 +288,7 @@ export class AutenticacaoPrototipo implements AutenticacaoApi {
     if (input.posicaoPrincipal !== undefined) {
       account.posicaoPrincipal = input.posicaoPrincipal;
     }
-    if (input.municipioId !== undefined) {
+    if (input.municipioId !== undefined && account.municipio) {
       account.municipio.id = input.municipioId;
     }
     account.atualizadoEm = new Date().toISOString();
@@ -441,14 +484,19 @@ export class AutenticacaoPrototipo implements AutenticacaoApi {
 
   async cadastrar(input: EntradaCadastro): Promise<RespostaCadastro> {
     const cadastroId = `cadastro-${input.nomeUsuario}`;
-    const cadastroToken = `cadastro-token-${input.nomeUsuario}`;
+    const cadastroToken = `prototipo:${cadastroId}`;
     cadastrosPendentes.set(cadastroToken, { input, cadastroId });
+    const nascimento = new Date(`${input.dataNascimento}T00:00:00`);
+    const agora = new Date();
+    let idade = agora.getFullYear() - nascimento.getFullYear();
+    const aniversarioAindaNaoOcorreu =
+      agora.getMonth() < nascimento.getMonth() ||
+      (agora.getMonth() === nascimento.getMonth() &&
+        agora.getDate() < nascimento.getDate());
+    if (aniversarioAindaNaoOcorreu) idade -= 1;
     return {
       cadastroId,
-      cadastroToken,
-      status: 'PENDENTE_CONFIRMACAO',
-      emailConfirmado: false,
-      consentimentoResponsavelNecessario: false,
+      status: idade < 18 ? 'AGUARDANDO_CONSENTIMENTO' : 'PENDENTE_CONFIRMACAO',
       proximaAcao: 'CONFIRMAR_EMAIL',
     };
   }
@@ -487,15 +535,16 @@ export class AutenticacaoPrototipo implements AutenticacaoApi {
     senhas[email] = input.senha;
     cadastrosPendentes.delete(token);
     tokensConfirmacaoEmailUtilizados.add(token);
+    if (idade < 18) emailsAguardandoConsentimento.add(email);
     return {
       emailConfirmado: true,
-      statusConta: 'ATIVA',
-      consentimentoResponsavelNecessario: false,
+      statusConta: idade < 18 ? 'AGUARDANDO_CONSENTIMENTO' : 'ATIVA',
+      consentimentoResponsavelNecessario: idade < 18,
     };
   }
 
   async reenviarConfirmacaoEmail(
-    _cadastroToken: string,
+    _email: string,
   ): Promise<RespostaReenvioConfirmacaoEmail> {
     return { envioAceito: true };
   }

@@ -7,10 +7,24 @@ import { GuardaSessao } from '@/components/autenticacao/guarda-sessao';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSessao } from '@/hooks/use-sessao';
 
-function mascararDocumento(value: string, visibleEnd = 2) {
+function mascararDocumento(value: string | null, visibleEnd = 2) {
+  if (!value) return 'Não informado';
   const normalized = value.replace(/\s/g, '');
   if (normalized.length <= visibleEnd) return '•'.repeat(normalized.length);
   return `${'•'.repeat(normalized.length - visibleEnd)}${normalized.slice(-visibleEnd)}`;
+}
+
+function apresentarRg(rg: {
+  numero: string | null;
+  orgaoExpedidor: string | null;
+  uf: string | null;
+}) {
+  const emissor = [rg.orgaoExpedidor, rg.uf].filter(Boolean).join('/');
+  const partes = [
+    rg.numero ? mascararDocumento(rg.numero) : null,
+    emissor,
+  ].filter(Boolean);
+  return partes.length ? partes.join(' · ') : 'Não informado';
 }
 
 export function TelaMinhaConta() {
@@ -66,9 +80,7 @@ export function TelaMinhaConta() {
                     RG
                   </dt>
                   <dd className="mt-1 font-mono text-sm">
-                    {mascararDocumento(session.minhaConta.rg.numero)} ·{' '}
-                    {session.minhaConta.rg.orgaoExpedidor}/
-                    {session.minhaConta.rg.uf}
+                    {apresentarRg(session.minhaConta.rg)}
                   </dd>
                 </div>
                 <div>
@@ -76,7 +88,7 @@ export function TelaMinhaConta() {
                     Data de nascimento
                   </dt>
                   <dd className="mt-1 text-sm">
-                    {session.minhaConta.dataNascimento}
+                    {session.minhaConta.dataNascimento ?? 'Não informado'}
                   </dd>
                 </div>
                 <div>

@@ -38,3 +38,38 @@ export type PaginaCampos = {
   totalItens: number;
   totalPaginas: number;
 };
+
+export type CadastroCampo = {
+  nome: string;
+  endereco: string;
+  descricao: string | null;
+};
+
+export type CampoCriado = CadastroCampo & {
+  id: string;
+  prefeituraId: string;
+  municipioId: string;
+  statusOperacional: 'ATIVO';
+  criadoEm: string;
+};
+
+export type AtualizacaoCampo = Partial<CadastroCampo>;
+
+export type CampoAtualizado = CadastroCampo & {
+  id: string;
+  atualizadoEm: string;
+};
+
+export type AlteracaoEstadoOperacionalCampo = {
+  statusOperacional: StatusOperacionalCampo;
+  motivo: string;
+  confirmacao: true;
+};
+
+export type EstadoOperacionalCampoAlterado = {
+  id: string;
+  statusOperacional: StatusOperacionalCampo;
+  estadoAnterior: StatusOperacionalCampo;
+  alterado: boolean;
+  alteradoEm: string;
+};

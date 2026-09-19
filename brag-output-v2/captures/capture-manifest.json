@@ -1,0 +1,59 @@
+{
+  "captures": [
+    {
+      "name": "01-inicio",
+      "url": "http://127.0.0.1:4198/",
+      "title": "CampoLivre — Futebol local, jogo aberto"
+    },
+    {
+      "name": "02-campeonatos",
+      "url": "http://127.0.0.1:4198/campeonatos",
+      "title": "CampoLivre — Futebol local, jogo aberto"
+    },
+    {
+      "name": "03-campeonato-detalhe",
+      "url": "http://127.0.0.1:4198/campeonatos/1",
+      "title": "CampoLivre — Futebol local, jogo aberto"
+    },
+    {
+      "name": "04-partidas",
+      "url": "http://127.0.0.1:4198/partidas",
+      "title": "CampoLivre — Futebol local, jogo aberto"
+    },
+    {
+      "name": "05-partida-detalhe",
+      "url": "http://127.0.0.1:4198/partidas/1",
+      "title": "CampoLivre — Futebol local, jogo aberto"
+    }
+  ],
+  "links": {
+    "campeonatos": [
+      {
+        "href": "/campeonatos/5",
+        "text": "Em destaqueCopa Franca 2025Franca/SPEncerradoVer campeonato"
+      },
+      {
+        "href": "/campeonatos/1",
+        "text": "Competição publicadaCopa Franca 2026Franca/SPEm andamentoVer campeonato"
+      },
+      {
+        "href": "/campeonatos/7",
+        "text": "Competição publicadaCopa Municipal CanceladaFranca/SPCanceladoVer campeonato"
+      },
+      {
+        "href": "/campeonatos/2",
+        "text": "Competição publicadaLiga Bairro SulFranca/SPEm andamentoVer campeonato"
+      },
+      {
+        "href": "/campeonatos/3",
+        "text": "Competição publicadaTorneio Amigos 2025Batatais/SPEm andamentoVer campeonato"
+      }
+    ],
+    "partidas": [
+      {
+        "href": "/partidas/1",
+        "text": "Campeonato 1 (simulado)Rodada 1 · Data a definirMandante×VisitanteCampo a definir · Aguardando agendamento"
+      }
+    ]
+  }
+}

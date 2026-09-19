@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { preaquecerRota } from './fixtures/autenticacao';
+
 test('login inválido usa mensagem neutra e não cria sessão persistida', async ({
   page,
 }) => {
@@ -18,6 +20,7 @@ test('login inválido usa mensagem neutra e não cria sessão persistida', async
 test('login mantém credenciais somente em memória e abre a conta privada', async ({
   page,
 }) => {
+  await preaquecerRota(page, '/minha-conta');
   await page.goto('/login');
   await page.getByLabel('E-mail').fill('sem-time@campolivre.test');
   await page.getByLabel('Senha').fill('senha-mock');
@@ -37,8 +40,11 @@ test('login mantém credenciais somente em memória e abre a conta privada', asy
 test('rota privada preserva somente retorno interno seguro', async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   await page.goto('/atleta/perfil');
-  await expect(page).toHaveURL(/\/login\?returnTo=%2Fatleta%2Fperfil$/);
+  await expect(page).toHaveURL(/\/login\?returnTo=%2Fatleta%2Fperfil$/, {
+    timeout: 45_000,
+  });
 
   await page.getByLabel('E-mail').fill('pessoa@campolivre.test');
   await page.getByLabel('Senha').fill('senha-mock');

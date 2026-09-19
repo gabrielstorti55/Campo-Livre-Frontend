@@ -4,6 +4,17 @@ import type { RespostaRenovacao } from '@/types/api/autenticacao';
 
 type Renovador = Pick<AutenticacaoApi, 'renovar'>;
 
+export function deveRenovarAccessToken(error: ErroApi): boolean {
+  return (
+    error.problem.status === 401 &&
+    [
+      'NAO_AUTENTICADO',
+      'ACCESS_TOKEN_EXPIRADO',
+      'ACCESS_TOKEN_INVALIDO',
+    ].includes(error.problem.codigo ?? '')
+  );
+}
+
 export class CoordenadorRefresh {
   private renovacaoEmAndamento: Promise<RespostaRenovacao> | null = null;
 
@@ -27,11 +38,7 @@ export class CoordenadorRefresh {
 
   async executarComRenovacao<T>(
     request: (novoAccessToken?: string) => Promise<T>,
-    deveRenovar: (error: ErroApi) => boolean = (error) =>
-      error.problem.status === 401 &&
-      ['ACCESS_TOKEN_EXPIRADO', 'ACCESS_TOKEN_INVALIDO'].includes(
-        error.problem.codigo ?? '',
-      ),
+    deveRenovar: (error: ErroApi) => boolean = deveRenovarAccessToken,
   ): Promise<T> {
     try {
       return await request();

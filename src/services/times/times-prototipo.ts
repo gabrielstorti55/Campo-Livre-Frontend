@@ -2,23 +2,30 @@ import { ErroApi } from '@/services/api/problem-details';
 import type { TimesApi } from '@/services/times/times-api';
 import type {
   AtletaParaConvite,
+  AceiteConviteTime,
   AtualizacaoTime,
   CancelamentoConviteTime,
   ConviteTimeEnviado,
   ConviteTimePendente,
+  ConviteTimePorToken,
+  CriacaoTime,
   DesativacaoTime,
   EncerramentoMembroTime,
   FiltrosTimes,
   MembroElenco,
   PaginaConvitesTime,
+  PaginaConvitesTimeEnviados,
   PaginaElenco,
   PaginaHistoricoElenco,
   PaginaTimes,
+  PaginaTimesDaConta,
   RespostaAtualizacaoTime,
   RespostaEscudoTime,
+  RecusaConviteTime,
   ReativacaoTime,
   ReenvioConviteTime,
   SaidaVoluntariaTime,
+  TimeCriado,
   TimeDetalhado,
   TimeResumido,
   TransferenciaCapitania,
@@ -88,6 +95,20 @@ const convitesPorConta: Readonly<
 };
 
 export class TimesPrototipo implements TimesApi {
+  private readonly estadosConvite = new Map<
+    string,
+    'PENDENTE' | 'ACEITO' | 'RECUSADO'
+  >();
+  private readonly vinculosAceitos = new Map<string, Set<string>>();
+  private readonly respostasAceite = new Map<string, AceiteConviteTime>();
+  private readonly timesCriados = new Map<
+    string,
+    { contaId: string; time: TimeCriado }
+  >();
+  private readonly criacoesPorChave = new Map<
+    string,
+    { payload: string; resposta: TimeCriado }
+  >();
   private readonly atualizacoes = new Map<string, RespostaAtualizacaoTime>();
   private readonly escudos = new Map<string, string | null>();
   private readonly convitesEnviados = new Map<string, ConviteTimeEnviado>();
@@ -96,6 +117,199 @@ export class TimesPrototipo implements TimesApi {
   constructor(
     private readonly obterContaAtivaId: (accessToken: string) => string | null,
   ) {}
+
+  private validarDestinatarioConvite(
+    token: string,
+    accessToken: string,
+  ): string {
+    const contaId = this.obterContaAtivaId(accessToken);
+    if (!contaId) throw this.erroNaoAutenticado();
+    if (token !== 'convite-time-leoes-1') throw this.erroConviteNaoEncontrado();
+    if (contaId !== 'mock-person-unlinked-1') throw this.erroNaoAutorizado();
+    return contaId;
+  }
+
+  async consultarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<ConviteTimePorToken> {
+    this.validarDestinatarioConvite(token, accessToken);
+    if ((this.estadosConvite.get(token) ?? 'PENDENTE') !== 'PENDENTE') {
+      throw this.erroConviteEncerrado();
+    }
+    return {
+      conviteId: 'convite-time-leoes-1',
+      time: { id: '2', nome: 'Leões FC', sigla: 'LEO', escudoUrl: null },
+      destinatario: { emailMascarado: 'a***@campolivre.test' },
+      status: 'PENDENTE',
+      expiraEm: '2030-01-07T12:00:00.000Z',
+      acoesPermitidas: ['ACEITAR', 'RECUSAR'],
+    };
+  }
+
+  async aceitarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<AceiteConviteTime> {
+    const contaId = this.validarDestinatarioConvite(token, accessToken);
+    const anterior = this.respostasAceite.get(token);
+    if (anterior) return structuredClone(anterior);
+    if ((this.estadosConvite.get(token) ?? 'PENDENTE') !== 'PENDENTE') {
+      throw this.erroConviteEncerrado();
+    }
+    const resposta: AceiteConviteTime = {
+      conviteId: 'convite-time-leoes-1',
+      status: 'ACEITO',
+      timeId: '2',
+      membroTimeId: 'membro-aceito-leoes',
+      entrouEm: new Date().toISOString(),
+    };
+    this.estadosConvite.set(token, 'ACEITO');
+    const vinculos = this.vinculosAceitos.get(contaId) ?? new Set<string>();
+    vinculos.add('2');
+    this.vinculosAceitos.set(contaId, vinculos);
+    this.respostasAceite.set(token, resposta);
+    return structuredClone(resposta);
+  }
+
+  async recusarConvitePorToken(
+    token: string,
+    accessToken: string,
+  ): Promise<RecusaConviteTime> {
+    this.validarDestinatarioConvite(token, accessToken);
+    if ((this.estadosConvite.get(token) ?? 'PENDENTE') !== 'PENDENTE') {
+      throw this.erroConviteEncerrado();
+    }
+    this.estadosConvite.set(token, 'RECUSADO');
+    return {
+      conviteId: 'convite-time-leoes-1',
+      status: 'RECUSADO',
+      respondidoEm: new Date().toISOString(),
+    };
+  }
+
+  async criarTime(
+    accessToken: string,
+    input: CriacaoTime,
+    idempotencyKey: string,
+  ): Promise<TimeCriado> {
+    const contaId = this.obterContaAtivaId(accessToken);
+    if (!contaId) throw this.erroNaoAutenticado();
+    const normalizado: CriacaoTime = {
+      nome: input.nome.trim().replace(/\s+/g, ' '),
+      sigla: input.sigla.trim().toUpperCase(),
+      municipioId: input.municipioId,
+      descricao: input.descricao?.trim() || null,
+    };
+    if (normalizado.nome.length < 3 || normalizado.nome.length > 120) {
+      throw this.erroDadosInvalidos('Nome inválido');
+    }
+    if (!/^[A-Z]{3}$/.test(normalizado.sigla)) {
+      throw this.erroDadosInvalidos('Sigla inválida');
+    }
+    if (!normalizado.municipioId) {
+      throw this.erroDadosInvalidos('Município obrigatório');
+    }
+    if ((normalizado.descricao?.length ?? 0) > 500) {
+      throw this.erroDadosInvalidos('Descrição inválida');
+    }
+    const chave = `${contaId}|CRIAR_TIME|${idempotencyKey}`;
+    const payload = JSON.stringify(normalizado);
+    const anterior = this.criacoesPorChave.get(chave);
+    if (anterior) {
+      if (anterior.payload !== payload) {
+        throw new Error('IDEMPOTENCY_KEY_REUTILIZADA');
+      }
+      return structuredClone(anterior.resposta);
+    }
+    const id = globalThis.crypto?.randomUUID?.() ?? `time-${Date.now()}`;
+    const resposta: TimeCriado = {
+      id,
+      ...normalizado,
+      escudoUrl: null,
+      status: 'ATIVO',
+      capitaoMembroId: `${id}-capitao`,
+    };
+    this.timesCriados.set(id, { contaId, time: resposta });
+    this.criacoesPorChave.set(chave, { payload, resposta });
+    return structuredClone(resposta);
+  }
+
+  async listarMeusTimes(
+    accessToken: string,
+    pagina = 1,
+    tamanho = 20,
+  ): Promise<PaginaTimesDaConta> {
+    const contaId = this.obterContaAtivaId(accessToken);
+    if (!contaId) throw this.erroNaoAutenticado();
+
+    const existentes =
+      contaId === 'mock-person-1'
+        ? [
+            {
+              membroId: 'membro-1',
+              funcao: 'CAPITAO' as const,
+              entrouEm: '2025-01-10T12:00:00.000Z',
+              time: {
+                id: '2',
+                nome: 'Leões FC',
+                sigla: 'LEO',
+                escudoUrl: this.escudos.get('2') ?? null,
+                status: this.timesDesativados.has('2')
+                  ? ('DESATIVADO' as const)
+                  : ('ATIVO' as const),
+              },
+            },
+          ]
+        : [];
+    const criados = Array.from(this.timesCriados.values())
+      .filter((item) => item.contaId === contaId)
+      .map(({ time }) => ({
+        membroId: time.capitaoMembroId,
+        funcao: 'CAPITAO' as const,
+        entrouEm: new Date().toISOString(),
+        time: {
+          id: time.id,
+          nome: time.nome,
+          sigla: time.sigla,
+          escudoUrl: this.escudos.get(time.id) ?? time.escudoUrl,
+          status: this.timesDesativados.has(time.id)
+            ? ('DESATIVADO' as const)
+            : ('ATIVO' as const),
+        },
+      }));
+    const aceitos = Array.from(this.vinculosAceitos.get(contaId) ?? []).flatMap(
+      (timeId) => {
+        const time = timesAtivos.find((item) => item.id === timeId);
+        return time
+          ? [
+              {
+                membroId: `membro-aceito-${timeId}`,
+                funcao: 'ATLETA' as const,
+                entrouEm: new Date().toISOString(),
+                time: {
+                  id: time.id,
+                  nome: time.nome,
+                  sigla: time.sigla,
+                  escudoUrl: time.escudoUrl,
+                  status: 'ATIVO' as const,
+                },
+              },
+            ]
+          : [];
+      },
+    );
+    const todos = [...existentes, ...aceitos, ...criados];
+    const inicio = (pagina - 1) * tamanho;
+
+    return {
+      itens: todos.slice(inicio, inicio + tamanho),
+      pagina,
+      tamanho,
+      totalItens: todos.length,
+      totalPaginas: Math.ceil(todos.length / tamanho),
+    };
+  }
 
   async removerAtleta(
     timeId: string,
@@ -269,6 +483,42 @@ export class TimesPrototipo implements TimesApi {
     return convite;
   }
 
+  async listarConvitesEnviados(
+    timeId: string,
+    accessToken: string,
+    pagina = 1,
+    tamanho = 20,
+  ): Promise<PaginaConvitesTimeEnviados> {
+    this.garantirCapitao(timeId, accessToken);
+    const itens = [...this.convitesEnviados.values()]
+      .filter((convite) => convite.timeId === timeId)
+      .map((convite) => ({
+        conviteId: convite.id,
+        destinatario: {
+          usuarioId: convite.usuarioDestinatarioId,
+          nome: 'Marina Souza',
+          nomeUsuario: 'marinasouza',
+          fotoUrl: null,
+          emailMascarado: 'a***@campolivre.test',
+        },
+        status: 'PENDENTE' as const,
+        enviadoEm: '2030-01-01T12:00:00.000Z',
+        reenviadoEm: null,
+        expiraEm: convite.expiraEm,
+        acoesPermitidas: ['REENVIAR', 'CANCELAR'] as Array<
+          'REENVIAR' | 'CANCELAR'
+        >,
+      }));
+    const inicio = (pagina - 1) * tamanho;
+    return {
+      itens: itens.slice(inicio, inicio + tamanho),
+      pagina,
+      tamanho,
+      totalItens: itens.length,
+      totalPaginas: Math.ceil(itens.length / tamanho),
+    };
+  }
+
   async reenviarConvite(
     timeId: string,
     conviteId: string,
@@ -364,24 +614,37 @@ export class TimesPrototipo implements TimesApi {
   }
 
   async consultarTime(timeId: string): Promise<TimeDetalhado> {
+    const criado = this.timesCriados.get(timeId)?.time;
     const time = timesAtivos.find((item) => item.id === timeId);
-    if (!time) throw this.erroTimeNaoEncontrado();
+    if (!time && !criado) throw this.erroTimeNaoEncontrado();
 
     const atualizacao = this.atualizacoes.get(timeId);
+    const resumo: TimeResumido = time ?? {
+      id: criado!.id,
+      nome: criado!.nome,
+      sigla: criado!.sigla,
+      escudoUrl: criado!.escudoUrl,
+      municipio: { nome: 'Franca', uf: 'SP' },
+    };
 
     return {
-      ...time,
+      ...resumo,
       escudoUrl: this.escudos.has(timeId)
         ? (this.escudos.get(timeId) ?? null)
-        : time.escudoUrl,
+        : resumo.escudoUrl,
       ...(atualizacao
         ? {
             nome: atualizacao.nome,
             sigla: atualizacao.sigla,
             descricao: atualizacao.descricao,
           }
-        : { descricao: 'Time de futebol amador de Franca.' }),
-      municipio: { id: 'municipio-franca', ...time.municipio },
+        : {
+            descricao: criado?.descricao ?? 'Time de futebol amador de Franca.',
+          }),
+      municipio: {
+        id: criado?.municipioId ?? 'municipio-franca',
+        ...resumo.municipio,
+      },
       status: this.timesDesativados.has(timeId) ? 'DESATIVADO' : 'ATIVO',
       capitao: { nome: 'Rafael Lima', nomeUsuario: 'rafaellima' },
       elencoResumo: [],
@@ -398,7 +661,10 @@ export class TimesPrototipo implements TimesApi {
     pagina = 1,
     tamanho = 20,
   ): Promise<PaginaElenco> {
-    if (!timesAtivos.some((item) => item.id === timeId)) {
+    if (
+      !timesAtivos.some((item) => item.id === timeId) &&
+      !this.timesCriados.has(timeId)
+    ) {
       throw this.erroTimeNaoEncontrado();
     }
     const todos = elencoPorTime[timeId] ?? [];
@@ -419,7 +685,17 @@ export class TimesPrototipo implements TimesApi {
     tamanho = 20,
   }: FiltrosTimes = {}): Promise<PaginaTimes> {
     const termo = nome?.trim().toLocaleLowerCase('pt-BR');
-    const filtrados = timesAtivos.filter(
+    const todos = [
+      ...timesAtivos,
+      ...Array.from(this.timesCriados.values(), ({ time }) => ({
+        id: time.id,
+        nome: time.nome,
+        sigla: time.sigla,
+        escudoUrl: this.escudos.get(time.id) ?? time.escudoUrl,
+        municipio: { nome: 'Franca', uf: 'SP' },
+      })),
+    ];
+    const filtrados = todos.filter(
       (time) =>
         (!termo || time.nome.toLocaleLowerCase('pt-BR').includes(termo)) &&
         (!uf || time.municipio.uf === uf),
@@ -449,7 +725,10 @@ export class TimesPrototipo implements TimesApi {
         codigo: 'ACCESS_TOKEN_INVALIDO',
       });
     }
-    const todos = convitesPorConta[contaId] ?? [];
+    const todos = (convitesPorConta[contaId] ?? []).filter(
+      (convite) =>
+        (this.estadosConvite.get(convite.id) ?? 'PENDENTE') === 'PENDENTE',
+    );
     const inicio = (pagina - 1) * tamanho;
     const itens = todos.slice(inicio, inicio + tamanho);
 
@@ -477,6 +756,15 @@ export class TimesPrototipo implements TimesApi {
       title: 'Convite não encontrado',
       status: 404,
       codigo: 'CONVITE_NAO_ENCONTRADO',
+    });
+  }
+
+  private erroConviteEncerrado(): ErroApi {
+    return new ErroApi({
+      type: 'https://campolivre.app/problemas/convite-nao-pendente',
+      title: 'O convite já foi encerrado',
+      status: 409,
+      codigo: 'CONVITE_NAO_PENDENTE',
     });
   }
 
@@ -517,7 +805,9 @@ export class TimesPrototipo implements TimesApi {
         codigo: 'ACCESS_TOKEN_INVALIDO',
       });
     }
-    if (timeId !== '2' || contaId !== 'mock-person-1') {
+    const criado = this.timesCriados.get(timeId);
+    const capitaoDoCriado = criado?.contaId === contaId;
+    if (!capitaoDoCriado && (timeId !== '2' || contaId !== 'mock-person-1')) {
       throw new ErroApi({
         type: 'https://campolivre.app/problemas/nao-autorizado',
         title: 'Operação não autorizada',

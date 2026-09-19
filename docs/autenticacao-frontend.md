@@ -16,14 +16,14 @@ cadastro pessoal
 → logout
 ```
 
-### Estado de implementação em 2026-08-25
+### Estado de implementação em 2026-09-16
 
 O frontend possui dois modos explícitos e sem fallback entre si:
 
 - `integrado`: usa exclusivamente `AutenticacaoHttp`; é o único modo permitido em produção e falha fechada quando a API está indisponível;
 - `prototipo`: exige `NEXT_PUBLIC_APP_MODE=prototipo` fora de produção, usa estado somente em memória e exibe permanentemente que os dados são simulados, não persistidos e sem backend.
 
-Estão implementados no contrato, adapters e interfaces: cadastro pessoal adulto, confirmação e reenvio de e-mail, login, bootstrap/refresh, consulta da conta, logout, recuperação e redefinição de senha, alteração autenticada de senha, solicitação e confirmação de alteração de e-mail e reativação da conta. Os adapters HTTP representam o contrato documental; não existe evidência de integração real enquanto backend, banco, e-mail e cookie `HttpOnly` não forem exercitados conjuntamente.
+Estão implementados no contrato, adapters e interfaces: cadastro pessoal adulto, confirmação e reenvio de e-mail, login, bootstrap/refresh, consulta da conta, logout, recuperação e redefinição de senha, alteração autenticada de senha, solicitação e confirmação de alteração de e-mail e reativação da conta. Na revisão remota do backend `dbf3606`, o núcleo `login → GET /minha-conta → refresh → logout` foi exercitado contra PostgreSQL 16 e pelo navegador em modo integrado: login `201`, projeção privada `200`, redirecionamento para `/minha-area`, renovação após reload `200`, cookie `HttpOnly` e logout `204`. Essa evidência não substitui a verificação separada de cadastro, e-mail, consentimento parental e demais fluxos de identidade.
 
 Os gates são separados: `test:e2e:frontend` comprova o comportamento fechado do frontend integrado; `test:e2e:prototype:auth` exercita as jornadas em memória e não é evidência de backend. A suíte legada completa mede o protótipo dos demais domínios. Não se deve adicionar persistência de identidade no navegador nem simular infraestrutura de backend para compatibilizar testes antigos.
 
@@ -130,9 +130,9 @@ A implementação não deve inventar solução para os itens abaixo:
 10. O UC de habilitação do organizador chama o ator de “Atleta”, enquanto RN e API exigem somente conta pessoal ativa com e-mail confirmado. Até a fonte ser reconciliada, não exigir vínculo esportivo no frontend sem decisão canônica no Drive.
 11. A API exige expiração absoluta da família de refresh em 30 dias, mas o modelo só materializa expiração por linha e não demonstra uma invariante que impeça a rotação de estender a família. O backend precisa fechar e testar essa garantia.
 12. A atualização final corrompeu a linha `UC-CMP-003` na matriz: ela foi dividida em duas linhas e recebeu conteúdo de `chaves_idempotencia` pertencente a outros UCs. A matriz não pode ser considerada estruturalmente íntegra até essa linha ser reparada.
-13. Cadastro pessoal e criação de time exigem `municipioId`, mas o catálogo não publica uma rota para consultar municípios. Gabriel propôs uma API de cidades; Gabriel e Thales precisam definir filtros, paginação, projeção (`id`, `nome`, `uf` e eventual `codigoIbge`) e materializar o contrato no Drive. A API externa do IBGE não substitui diretamente essa rota porque fornece código IBGE, não o UUID interno esperado.
+13. Cadastro pessoal, criação de time e edição de perfil usam o catálogo interno publicado em `GET /municipios`; o frontend envia o UUID opaco selecionado e não substitui esse identificador por código IBGE.
 
-Essas pendências não bloqueiam login, refresh, logout nem consulta da própria conta. O adapter representa o payload do cadastro adulto, mas a jornada integrada permanece bloqueada até existir uma fonte canônica para selecionar `municipioId`. Provedor e autoridade legal bloqueiam a conclusão real do fluxo de menor.
+As demais pendências não bloqueiam login, refresh, logout, consulta ou atualização da própria conta. O catálogo interno de municípios removeu o bloqueio de seleção de `municipioId`. Provedor e autoridade legal ainda delimitam a homologação externa do fluxo de menor, embora o frontend já represente e envie o contrato publicado.
 
 ### Resíduos do Drive que não devem orientar implementação nova
 
@@ -151,7 +151,7 @@ A pasta inteira ainda contém contradições históricas. Para esta fatia, preva
 | Rota web                     | Estado frontend                                                               |
 | ---------------------------- | ----------------------------------------------------------------------------- |
 | `/login`                     | login por e-mail e senha, mensagem neutra e retorno interno seguro            |
-| `/cadastro`                  | cadastro adulto; integrado bloqueado sem fonte canônica pública de municípios |
+| `/cadastro`                  | cadastro adulto com seleção pelo catálogo interno de municípios               |
 | `/confirmar-email`           | consome token uma vez e o remove da URL                                       |
 | `/recuperar-senha`           | solicitação com resposta pública neutra                                       |
 | `/redefinir-senha`           | redefine por token e exige novo login                                         |
@@ -318,17 +318,19 @@ O frontend pode validar formato para resposta imediata, mas o backend continua r
 
 ### Resultado e navegação
 
-| `status`/`proximaAcao`                              | Comportamento da interface                                    |
-| --------------------------------------------------- | ------------------------------------------------------------- |
-| `PENDENTE_CONFIRMACAO` / `CONFIRMAR_EMAIL`          | mostrar instrução de confirmação e opção limitada de reenvio  |
-| `AGUARDANDO_CONSENTIMENTO` / `INFORMAR_RESPONSAVEL` | encaminhar ao formulário do responsável                       |
-| `INICIAR_VERIFICACAO`                               | abrir a integração do provedor escolhido                      |
-| `AGUARDAR_RESULTADO`                                | mostrar estado pendente e permitir consultar o status         |
-| `ATIVA` / `CONCLUIDO`                               | encaminhar ao login; cadastro não cria sessão automaticamente |
+Resposta executável no backend `8de1105a`:
+
+```json
+{
+  "cadastroId": "uuid",
+  "status": "PENDENTE_CONFIRMACAO | AGUARDANDO_CONSENTIMENTO",
+  "proximaAcao": "CONFIRMAR_EMAIL"
+}
+```
+
+Adultos e menores confirmam primeiro o próprio e-mail. O cadastro nunca retorna token ou outra credencial de continuidade. No caso de menor, `AGUARDANDO_CONSENTIMENTO` descreve o estado da conta, mas `proximaAcao` continua sendo `CONFIRMAR_EMAIL`.
 
 Não determinar no frontend se o usuário é adulto ou menor como fonte de verdade. A interface pode adaptar o texto com base na data informada, mas deve obedecer ao estado retornado pelo backend.
-
-`consentimentoResponsavelNecessario` deve ser tipado como `boolean`, nunca como literal `true`. `cadastroToken` é credencial limitada de continuação, não sessão.
 
 ### Erros mínimos
 
@@ -340,6 +342,8 @@ Não determinar no frontend se o usuário é adulto ou menor como fonte de verda
 - `RG_INDISPONIVEL`: informar que o RG não pode ser utilizado e oferecer canal de suporte, sem revelar outra conta;
 - `TERMOS_NAO_ACEITOS`: manter o formulário e destacar o aceite;
 - `LIMITE_EXCEDIDO`: respeitar `Retry-After` e impedir reenvio durante o período.
+
+No backend `8de1105a`, o throttler emite `Retry-After-public`, mas esse header não está exposto pelo CORS e o cliente HTTP atual não devolve headers aos adapters. Até isso ser reconciliado, a interface informa a espera sem inventar contagem regressiva.
 
 ## Confirmação de e-mail
 
@@ -371,18 +375,23 @@ Estados da tela:
 POST /api/v1/confirmacoes-email/reenvios
 ```
 
-A resposta deve produzir a mesma mensagem visual independentemente da existência ou elegibilidade da conta. Um novo envio invalida o token anterior.
+Entrada:
 
-O `cadastroToken` não é sessão de usuário. Não deve ser tratado como access ou refresh token. A forma segura de preservar esse token entre recarregamentos ainda precisa ser alinhada com o backend; não o colocar em `localStorage`.
+```json
+{ "email": "string" }
+```
+
+A resposta neutra `{ "envioAceito": true }` deve produzir a mesma mensagem visual independentemente da existência ou elegibilidade da conta. O frontend não recebe, persiste nem reenvia `cadastroToken`.
 
 ## Consentimento do responsável
 
-O fluxo é aplicável quando a API retornar `AGUARDANDO_CONSENTIMENTO`.
+O fluxo é aplicável quando a confirmação do e-mail retornar `statusConta: "AGUARDANDO_CONSENTIMENTO"` e `consentimentoResponsavelNecessario: true`. Essa confirmação estabelece um cookie web `HttpOnly`, curto e restrito às rotas de consentimento; não cria sessão normal.
 
 ### Dados solicitados
 
 - nome completo do responsável;
 - CPF;
+- data de nascimento;
 - e-mail;
 - relação com o menor;
 - declaração de responsabilidade legal;
@@ -393,24 +402,32 @@ O fluxo é aplicável quando a API retornar `AGUARDANDO_CONSENTIMENTO`.
 
 ```http
 POST /api/v1/consentimentos-responsavel
-POST /api/v1/consentimentos-responsavel/{consentimentoId}/verificacoes
-GET /api/v1/cadastros/{cadastroId}/status
+GET /api/v1/consentimentos-responsavel/parental/{token}
+POST /api/v1/consentimentos-responsavel/parental/{token}/documentos
 ```
 
-O endpoint interno abaixo nunca é chamado pelo navegador:
+No commit backend `8de1105a`, somente o primeiro contrato acima está registrado em controller. A consulta do link parental e o upload documental permanecem canônicos, mas ainda não executáveis.
+
+O endpoint interno de decisão nunca é chamado pelo navegador:
 
 ```http
-POST /api/v1/integracoes/verificador-responsavel/resultados
+POST /api/v1/integracoes/telegram/revisoes
 ```
 
-Até a escolha do provedor:
+O frontend ainda não deve publicar o formulário real de consentimento porque:
+
+- a API aceita `termoVersao` declarada pelo navegador sem conferir um termo vigente controlado pelo servidor;
+- o cookie de continuidade é limpo inclusive em respostas `400` e `422`, deixando a tentativa sem recuperação apesar de o token persistido continuar não consumido;
+- o link parental enviado por e-mail não possui rota executável de consulta ou upload e não pode ser reenviado.
+
+Até esses contratos serem completados:
 
 - tipos e interfaces podem ser preparados;
 - testes podem usar o adapter de protótipo explicitamente injetado;
 - a interface pode representar estados pendentes;
 - não apresentar a verificação como funcional em ambiente real;
 - não simular aprovação em produção;
-- não armazenar selfie, vídeo, documento ou biometria no frontend.
+- não armazenar o documento no frontend além do tempo necessário ao upload.
 
 O Drive vigente não define uma vedação etária específica para convites, funções ou vínculos de Prefeitura. O frontend deve aplicar somente os estados de conta e critérios de elegibilidade retornados pelas APIs, sem bloquear menores por regra local inventada.
 
@@ -572,8 +589,12 @@ POST /api/v1/recuperacao-senha/confirmacoes
 
 ```http
 GET /api/v1/minha-conta
-Authorization: Bearer <accessToken>
+Authorization: Bearer ***
 ```
+
+Esta rota está registrada no backend `dbf3606` e foi verificada em execução real após login e renovação. O store continua dependendo dela para montar a sessão; o frontend não deve fabricar e-mail, município, documentos ou demais campos privados a partir do resumo mínimo de `login.usuario`. CPF, campos de RG, data de nascimento, idade e município são nullable na projeção publicada e devem ser tratados como ausentes sem quebrar a sessão ou a tela privada.
+
+Em implantação cross-origin, login, refresh, confirmação de menor e consentimento também dependem de `CORS_CREDENTIALS=true` e origem explicitamente autorizada. O `.env.example` do backend mantém essa opção desativada; deve-se configurar CORS ou fornecer proxy same-origin, além de definir `NEXT_PUBLIC_API_URL` quando a API não estiver sob `/api/v1` na mesma origem.
 
 A projeção privada abastece nome, nome de usuário, e-mail, telefone, CPF, RG, data de nascimento, município, perfil e apenas os indicadores globais `administrador` e `organizadorHabilitado`. Ela não agrega vínculos contextuais.
 

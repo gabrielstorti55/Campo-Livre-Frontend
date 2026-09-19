@@ -1,0 +1,3 @@
+CampoLivre reúne o futebol local em uma experiência completa: consulta pública, área do atleta, organização de campeonatos e gestão municipal.
+
+Este trailer apresenta o frontend em modo protótipo, com dados simulados e não persistidos; as integrações dependem dos contratos publicados pelo backend.

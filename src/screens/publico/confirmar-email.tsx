@@ -87,12 +87,14 @@ export function TelaConfirmarEmail() {
               ? 'A conta ainda aguarda o consentimento do responsável.'
               : 'Sua conta está pronta para acessar o CampoLivre.'}
           </p>
-          <Link
-            href="/login"
-            className="mt-8 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
-          >
-            Ir para o acesso
-          </Link>
+          {!estado.aguardandoConsentimento ? (
+            <Link
+              href="/login"
+              className="mt-8 inline-flex text-sm font-semibold text-green-dark underline-offset-4 hover:underline"
+            >
+              Ir para o acesso
+            </Link>
+          ) : null}
         </div>
       ) : null}
 

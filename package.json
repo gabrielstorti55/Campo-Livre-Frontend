@@ -7,19 +7,19 @@
   "scripts": {
     "dev": "next dev",
     "dev:prototype": "cross-env NEXT_PUBLIC_APP_MODE=prototipo next dev",
-    "build": "next build",
+    "build": "node scripts/limpar-tipos-dev-next.mjs && next build",
     "start": "next start",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "deadcode": "knip --include files,dependencies",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.check.json",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:e2e": "npm run test:e2e:frontend",
-    "test:e2e:frontend": "cross-env NEXT_PUBLIC_APP_MODE=integrado playwright test tests/e2e/frontend-mode.spec.ts",
+    "test:e2e:frontend": "cross-env PLAYWRIGHT_PORT=4173 NEXT_DIST_DIR=.next-e2e-integrado NEXT_PUBLIC_APP_MODE=integrado playwright test tests/e2e/frontend-mode.spec.ts",
     "test:e2e:prototype": "cross-env NEXT_PUBLIC_APP_MODE=prototipo playwright test --grep-invert @integrado",
-    "test:e2e:prototype:auth": "cross-env NEXT_PUBLIC_APP_MODE=prototipo playwright test tests/e2e/prototype-mode.spec.ts tests/e2e/autenticacao-login.spec.ts tests/e2e/personal-account.spec.ts tests/e2e/authentication-account-security.spec.ts --grep-invert @dominio-prototipo",
+    "test:e2e:prototype:auth": "cross-env PLAYWRIGHT_PORT=4174 NEXT_DIST_DIR=.next-e2e-prototipo NEXT_PUBLIC_APP_MODE=prototipo playwright test tests/e2e/prototype-mode.spec.ts tests/e2e/autenticacao-login.spec.ts tests/e2e/personal-account.spec.ts tests/e2e/authentication-account-security.spec.ts --grep-invert @dominio-prototipo",
     "test:e2e:ui": "cross-env NEXT_PUBLIC_APP_MODE=prototipo playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "check": "npm run format:check && npm run lint && npm run deadcode && npm run typecheck && npm run test:unit && npm run test:e2e:frontend && npm run test:e2e:prototype:auth && npm run build"
@@ -30,19 +30,15 @@
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
-    "@radix-ui/react-progress": "^1.1.8",
-    "@radix-ui/react-radio-group": "^1.4.7",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-toggle-group": "^1.1.19",
     "@tailwindcss/postcss": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "lucide-react": "^0.575.0",
-    "next": "^16.3.1",
+    "next": "^16.3.3",
     "react": "^19.2.0",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.0",
@@ -73,5 +69,9 @@
     "typescript-eslint": "^8.56.1",
     "vitest": "^4.1.11"
   },
-  "description": "Frontend Next.js do CampoLivre"
+  "description": "Frontend Next.js do CampoLivre",
+  "overrides": {
+    "js-yaml": "4.3.2",
+    "sharp": "0.35.4"
+  }
 }

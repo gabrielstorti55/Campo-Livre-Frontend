@@ -3,12 +3,7 @@
   "entry": [
     "src/app/**/{page,layout,not-found}.tsx",
     "tests/e2e/**/*.spec.ts",
-    "tests/unit/**/*.{test,spec}.{ts,tsx}",
-    "tests/setup.ts",
-    "playwright.config.ts",
-    "next.config.ts"
+    "tests/unit/**/*.{test,spec}.{ts,tsx}"
   ],
-  "project": ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
-  "ignore": [".next/**", "graphify-out/**"],
-  "ignoreDependencies": ["tailwindcss", "tw-animate-css"]
+  "project": ["src/**/*.{ts,tsx,css}", "tests/**/*.{ts,tsx}"]
 }

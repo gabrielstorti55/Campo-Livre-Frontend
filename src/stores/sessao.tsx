@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -12,8 +13,14 @@ import {
 import type { ModoAplicacao } from '@/config/modo-aplicacao';
 import { ErroApi } from '@/services/api/problem-details';
 import type { AutenticacaoApi } from '@/services/autenticacao/autenticacao-api';
-import { CoordenadorRefresh } from '@/services/autenticacao/coordenador-refresh';
-import type { MinhaConta } from '@/types/api/autenticacao';
+import {
+  CoordenadorRefresh,
+  deveRenovarAccessToken,
+} from '@/services/autenticacao/coordenador-refresh';
+import type {
+  MinhaConta,
+  RespostaDesativacaoConta,
+} from '@/types/api/autenticacao';
 import type {
   ContextoPessoal,
   SessaoPessoal,
@@ -81,7 +88,9 @@ function criarSessao(
       id: account.id,
       name: account.nome,
       email: account.email,
-      city: `${account.municipio.nome}, ${account.municipio.uf}`,
+      ...(account.municipio
+        ? { city: `${account.municipio.nome}, ${account.municipio.uf}` }
+        : {}),
       type: 'pessoa',
     },
     minhaConta: account,
@@ -112,15 +121,15 @@ export function ProvedorSessao({
     accessToken: string;
     expiresAt: number;
   } | null>(null);
-  const setCredential = (next: typeof credentialRef.current) => {
+  const setCredential = useCallback((next: typeof credentialRef.current) => {
     credentialRef.current = next;
-  };
+  }, []);
   const [erroSessao, setErroSessao] = useState<string | null>(null);
   const permitirMocksDominio = modo === 'prototipo';
   const operacaoAtual = useRef(0);
   const renovacaoCompleta = useRef<Promise<string> | null>(null);
 
-  function renovarEReconciliar(): Promise<string> {
+  const renovarEReconciliar = useCallback((): Promise<string> => {
     if (renovacaoCompleta.current) return renovacaoCompleta.current;
     const operacao = operacaoAtual.current;
     const promise = (async () => {
@@ -176,39 +185,62 @@ export function ProvedorSessao({
       },
     );
     return promise;
-  }
+  }, [api, permitirMocksDominio, refreshCoordinator, setCredential]);
 
-  async function executarAutenticado<T>(
-    request: (accessToken: string) => Promise<T>,
-  ): Promise<T> {
-    let credential = credentialRef.current;
-    if (!credential) throw new Error('Sessão autenticada indisponível.');
-    if (credential.expiresAt - Date.now() <= 30_000) {
-      const accessToken = await renovarEReconciliar();
-      credential = credentialRef.current;
+  const executarAutenticado = useCallback(
+    async <T,>(request: (accessToken: string) => Promise<T>): Promise<T> => {
+      const operacao = operacaoAtual.current;
+      const garantirOperacaoAtual = () => {
+        if (operacao !== operacaoAtual.current) {
+          throw new Error('Operação autenticada substituída.');
+        }
+      };
+      const executarNaOperacaoAtual = async (accessToken: string) => {
+        garantirOperacaoAtual();
+        const resultado = await request(accessToken);
+        garantirOperacaoAtual();
+        return resultado;
+      };
+      let credential = credentialRef.current;
       if (!credential) throw new Error('Sessão autenticada indisponível.');
-      credential = { ...credential, accessToken };
-    }
+      if (credential.expiresAt - Date.now() <= 30_000) {
+        const accessToken = await renovarEReconciliar();
+        garantirOperacaoAtual();
+        credential = credentialRef.current;
+        if (!credential) throw new Error('Sessão autenticada indisponível.');
+        credential = { ...credential, accessToken };
+      }
 
-    try {
-      return await request(credential.accessToken);
-    } catch (error) {
-      const deveRenovar =
-        error instanceof ErroApi &&
-        error.problem.status === 401 &&
-        ['ACCESS_TOKEN_EXPIRADO', 'ACCESS_TOKEN_INVALIDO'].includes(
-          error.problem.codigo ?? '',
-        );
-      if (!deveRenovar) throw error;
-      const accessToken = await renovarEReconciliar();
-      return request(accessToken);
-    }
-  }
+      try {
+        return await executarNaOperacaoAtual(credential.accessToken);
+      } catch (error) {
+        const deveRenovar =
+          error instanceof ErroApi && deveRenovarAccessToken(error);
+        if (!deveRenovar) throw error;
+        if (operacao !== operacaoAtual.current) throw error;
+        const credencialAtual = credentialRef.current;
+        if (!credencialAtual) {
+          throw new Error('Sessão autenticada indisponível.');
+        }
+        if (credencialAtual.accessToken !== credential.accessToken) {
+          return executarNaOperacaoAtual(credencialAtual.accessToken);
+        }
+        const accessToken = await renovarEReconciliar();
+        garantirOperacaoAtual();
+        return executarNaOperacaoAtual(accessToken);
+      }
+    },
+    [renovarEReconciliar],
+  );
 
   async function recarregarMinhaConta(): Promise<MinhaConta> {
+    const operacao = operacaoAtual.current;
     const account = await executarAutenticado((accessToken) =>
       api.consultarMinhaConta(accessToken),
     );
+    if (operacao !== operacaoAtual.current) {
+      throw new Error('Recarga da conta substituída.');
+    }
     setSession(criarSessao(account, permitirMocksDominio));
     return account;
   }
@@ -266,11 +298,14 @@ export function ProvedorSessao({
     return () => {
       active = false;
     };
-  }, [api, permitirMocksDominio, refreshCoordinator]);
+  }, [api, permitirMocksDominio, refreshCoordinator, setCredential]);
 
   async function signIn(email: string, senha: string): Promise<SessaoPessoal> {
     const operacao = ++operacaoAtual.current;
     let sessaoCriada = false;
+    let accessTokenCriado: string | undefined;
+    setCredential(null);
+    setSession(null);
     setStatus('autenticando');
     setErroSessao(null);
 
@@ -281,6 +316,7 @@ export function ProvedorSessao({
         plataforma: 'WEB',
       });
       sessaoCriada = true;
+      accessTokenCriado = login.accessToken;
       if (operacao !== operacaoAtual.current) {
         throw new Error('Operação de login substituída.');
       }
@@ -299,7 +335,9 @@ export function ProvedorSessao({
       setStatus('autenticado');
       return nextSession;
     } catch (error) {
-      if (sessaoCriada) await api.logout().catch(() => undefined);
+      if (operacao !== operacaoAtual.current) throw error;
+      if (sessaoCriada)
+        await api.logout(accessTokenCriado).catch(() => undefined);
       if (operacao !== operacaoAtual.current) throw error;
       setCredential(null);
       setSession(null);
@@ -309,6 +347,7 @@ export function ProvedorSessao({
   }
 
   async function signOut(): Promise<void> {
+    const accessToken = credentialRef.current?.accessToken;
     ++operacaoAtual.current;
     setCredential(null);
     setSession(null);
@@ -316,7 +355,7 @@ export function ProvedorSessao({
     setErroSessao(null);
 
     try {
-      await api.logout();
+      await api.logout(accessToken);
     } catch {
       // A revogação é best-effort quando a sessão já expirou ou a rede falha.
     }
@@ -376,8 +415,30 @@ export function ProvedorSessao({
     return teamId;
   }
 
-  function enableOrganizer() {
-    if (!permitirMocksDominio) return;
+  async function desativarConta(): Promise<RespostaDesativacaoConta> {
+    const operacao = operacaoAtual.current;
+    const resposta = await executarAutenticado((accessToken) =>
+      api.desativarConta(accessToken),
+    );
+    if (operacao !== operacaoAtual.current) {
+      throw new Error('Desativação da conta substituída.');
+    }
+    ++operacaoAtual.current;
+    setCredential(null);
+    setSession(null);
+    setStatus('visitante');
+    setErroSessao(null);
+    return resposta;
+  }
+
+  async function enableOrganizer(): Promise<void> {
+    const operacao = operacaoAtual.current;
+    const resposta = await executarAutenticado((accessToken) =>
+      api.ativarOrganizador(accessToken),
+    );
+    if (operacao !== operacaoAtual.current) {
+      throw new Error('Ativação de organizador substituída.');
+    }
     setSession((current) => {
       if (!current) return current;
       return {
@@ -389,6 +450,7 @@ export function ProvedorSessao({
         capabilities: current.capabilities.includes('organizador')
           ? current.capabilities
           : [...current.capabilities, 'organizador'],
+        organizerEnabledAt: resposta.organizadorHabilitadoEm,
         activeContext: 'organizador',
       };
     });
@@ -408,6 +470,7 @@ export function ProvedorSessao({
         linkTeam,
         createTeam,
         enableOrganizer,
+        desativarConta,
         switchContext,
       }}
     >
