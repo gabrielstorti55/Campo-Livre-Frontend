@@ -89,11 +89,6 @@ export function LayoutPrefeitura({ children }: { children: ReactNode }) {
       to: '/prefeitura/campos',
       icon: MapPinned,
     },
-    {
-      label: 'Organizadores',
-      to: '/prefeitura/organizadores',
-      icon: Users,
-    },
   ];
 
   return (

@@ -76,6 +76,9 @@ function criarSessao(
   const capabilities: ContextoPessoal[] = [
     ...(links.teamIds.length ? (['atleta'] as const) : []),
     ...(account.organizadorHabilitado ? (['organizador'] as const) : []),
+    ...(links.institutionalOrganizationIds.length
+      ? (['prefeitura'] as const)
+      : []),
   ];
   const activeContext: ContextoPessoal | null = null;
 

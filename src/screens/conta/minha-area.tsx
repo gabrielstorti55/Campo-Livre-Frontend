@@ -63,10 +63,14 @@ export function TelaMinhaArea() {
   const organizesChampionship =
     session.links.organizedChampionshipIds.length > 0;
   const organizerEnabled = session.capabilities.includes('organizador');
+  const prefeituraVinculada = session.capabilities.includes('prefeitura');
   const isAdministrator = session.minhaConta.administrador;
   const city = session.account.city || 'Cidade não informada';
 
-  function escolherContexto(context: 'atleta' | 'organizador', destino: string) {
+  function escolherContexto(
+    context: 'atleta' | 'organizador' | 'prefeitura',
+    destino: string,
+  ) {
     switchContext(context);
     router.push(destino);
   }
@@ -106,18 +110,21 @@ export function TelaMinhaArea() {
             >
               Consultar dados da conta
             </Link>
-            <Link
-              href="/minha-conta/convites-prefeitura"
-              className="mt-2 block font-semibold text-white underline underline-offset-4"
-            >
-              Consultar convites de Prefeitura
-            </Link>
+            {!prefeituraVinculada && !organizerEnabled ? (
+              <Link
+                href="/minha-conta/convites-prefeitura"
+                className="mt-2 block font-semibold text-white underline underline-offset-4"
+              >
+                Consultar convites de Prefeitura
+              </Link>
+            ) : null}
           </div>
         </div>
       </section>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
+        {!prefeituraVinculada ? (
+          <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
           <CardHeader>
             <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-green-pale text-green-dark">
               <Users className="h-5 w-5" aria-hidden="true" />
@@ -151,7 +158,8 @@ export function TelaMinhaArea() {
               </Button>
             </CardContent>
           )}
-        </Card>
+          </Card>
+        ) : null}
 
         <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
           <CardHeader>
@@ -228,6 +236,17 @@ export function TelaMinhaArea() {
                 }
               >
                 Área do organizador
+              </Button>
+            ) : null}
+            {session.capabilities.includes('prefeitura') ? (
+              <Button
+                variant="campoOutline"
+                tone="navy"
+                onClick={() =>
+                  escolherContexto('prefeitura', '/prefeitura/painel')
+                }
+              >
+                Área da Prefeitura
               </Button>
             ) : null}
           </div>

@@ -20,7 +20,11 @@ import { useRef, useState, type ReactNode } from 'react';
 
 import { obterInicioSessao } from '@/services/autenticacao/navegacao-sessao';
 import { useSessao } from '@/hooks/use-sessao';
-import { LayoutAtleta, LayoutOrganizador } from '@/layouts/areas-personas';
+import {
+  LayoutAtleta,
+  LayoutOrganizador,
+  LayoutPrefeitura,
+} from '@/layouts/areas-personas';
 import { cn } from '@/utils/classes';
 
 const navigationItems = [
@@ -80,6 +84,10 @@ export function LayoutExploracao({ children }: { children: ReactNode }) {
 
   if (session?.activeContext === 'organizador') {
     return <LayoutOrganizador>{children}</LayoutOrganizador>;
+  }
+
+  if (session?.activeContext === 'prefeitura') {
+    return <LayoutPrefeitura>{children}</LayoutPrefeitura>;
   }
   const accountHome = session ? obterInicioSessao(session) : null;
 

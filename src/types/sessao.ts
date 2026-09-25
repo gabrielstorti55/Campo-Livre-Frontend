@@ -3,7 +3,7 @@ import type {
   RespostaDesativacaoConta,
 } from '@/types/api/autenticacao';
 
-export type ContextoPessoal = 'atleta' | 'organizador';
+export type ContextoPessoal = 'atleta' | 'organizador' | 'prefeitura';
 
 export type VinculoTimeCriado = {
   id: string;
