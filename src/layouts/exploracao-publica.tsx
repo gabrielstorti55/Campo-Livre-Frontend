@@ -20,6 +20,7 @@ import { useRef, useState, type ReactNode } from 'react';
 
 import { obterInicioSessao } from '@/services/autenticacao/navegacao-sessao';
 import { useSessao } from '@/hooks/use-sessao';
+import { LayoutAtleta, LayoutOrganizador } from '@/layouts/areas-personas';
 import { cn } from '@/utils/classes';
 
 const navigationItems = [
@@ -72,6 +73,14 @@ export function LayoutExploracao({ children }: { children: ReactNode }) {
   const { session } = useSessao();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenuRef = useRef<HTMLButtonElement>(null);
+
+  if (session?.activeContext === 'atleta') {
+    return <LayoutAtleta>{children}</LayoutAtleta>;
+  }
+
+  if (session?.activeContext === 'organizador') {
+    return <LayoutOrganizador>{children}</LayoutOrganizador>;
+  }
   const accountHome = session ? obterInicioSessao(session) : null;
 
   return (

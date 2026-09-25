@@ -238,6 +238,21 @@ describe('CampeonatosPrototipo', () => {
     ]);
   });
 
+  it('não envia dois convites ativos para o mesmo time', async () => {
+    const api = new CampeonatosPrototipo(() => 'mock-person-1');
+    const criado = await api.criarCampeonato(
+      'token',
+      inputCampeonato('Copa convites duplicados'),
+      'criar-convites-duplicados',
+    );
+
+    await api.convidarTime(criado.id, '42', 'token');
+
+    await expect(api.convidarTime(criado.id, '42', 'token')).rejects.toThrow(
+      'TIME_JA_CONVIDADO',
+    );
+  });
+
   it('isola a idempotência de criação por conta autenticada', async () => {
     const api = new CampeonatosPrototipo((token) => token);
 

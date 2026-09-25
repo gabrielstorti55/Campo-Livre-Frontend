@@ -109,6 +109,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     string,
     ConviteCampeonatoEnviado[]
   >();
+  private proximoConviteId = 0;
   private readonly organizadoresPorCampeonato = new Map<
     string,
     OrganizadorCampeonato[]
@@ -861,12 +862,21 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     this.autorizarOperacao(campeonatoId, accessToken, 'CONVIDAR_TIME');
     const time = obterTimePublico(timeId);
     const convite = {
-      conviteId: `convite-${campeonatoId}-${timeId}`,
+      conviteId: `convite-${campeonatoId}-${timeId}-${++this.proximoConviteId}`,
       timeId,
       status: 'PENDENTE' as const,
       expiraEm: new Date(Date.now() + 7 * 86400000).toISOString(),
     };
     const enviados = this.convitesPorCampeonato.get(campeonatoId) ?? [];
+    if (
+      enviados.some(
+        (item) =>
+          item.time.id === timeId &&
+          (item.status === 'PENDENTE' || item.status === 'ACEITO'),
+      )
+    ) {
+      throw new Error('TIME_JA_CONVIDADO');
+    }
     enviados.push({
       conviteId: convite.conviteId,
       time: {

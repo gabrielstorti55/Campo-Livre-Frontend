@@ -40,7 +40,7 @@ function getInitials(name: string) {
 }
 
 export function TelaMinhaArea() {
-  const { session, hydrated, enableOrganizer } = useSessao();
+  const { session, hydrated, enableOrganizer, switchContext } = useSessao();
   const router = useRouter();
   const [activationOpen, setActivationOpen] = useState(false);
   const [ativando, setAtivando] = useState(false);
@@ -65,6 +65,11 @@ export function TelaMinhaArea() {
   const organizerEnabled = session.capabilities.includes('organizador');
   const isAdministrator = session.minhaConta.administrador;
   const city = session.account.city || 'Cidade não informada';
+
+  function escolherContexto(context: 'atleta' | 'organizador', destino: string) {
+    switchContext(context);
+    router.push(destino);
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -189,6 +194,45 @@ export function TelaMinhaArea() {
           ) : null}
         </Card>
       </div>
+
+      {session.capabilities.length > 0 ? (
+        <section
+          className="mt-6 border-y border-border bg-card px-5 py-5"
+          aria-labelledby="escolher-contexto"
+        >
+          <h2
+            id="escolher-contexto"
+            className="font-display text-xl font-semibold text-green-dark"
+          >
+            Escolher contexto
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            A navegação permanece neste contexto até você escolher outra área.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {session.capabilities.includes('atleta') ? (
+              <Button
+                variant="campoOutline"
+                tone="green"
+                onClick={() => escolherContexto('atleta', '/atleta/inicio')}
+              >
+                Área esportiva
+              </Button>
+            ) : null}
+            {session.capabilities.includes('organizador') ? (
+              <Button
+                variant="campo"
+                tone="green"
+                onClick={() =>
+                  escolherContexto('organizador', '/organizador/inicio')
+                }
+              >
+                Área do organizador
+              </Button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {isAdministrator ? (
         <div className="mt-6 border-y border-border bg-card px-5 py-4">

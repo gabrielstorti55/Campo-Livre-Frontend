@@ -22,6 +22,8 @@ function isItemActive(pathname: string, to: string) {
 }
 
 export function LayoutAreaAutenticada({
+  publicItems = [],
+  accountItem,
   items,
   tone,
   userName,
@@ -29,6 +31,8 @@ export function LayoutAreaAutenticada({
   onSignOut,
   children,
 }: {
+  publicItems?: ItemNavegacao[];
+  accountItem?: ItemNavegacao;
   items: ItemNavegacao[];
   tone: ShellTone;
   userName: string;
@@ -46,6 +50,34 @@ export function LayoutAreaAutenticada({
   const drawerRingOffset = isNavy
     ? 'focus-visible:ring-offset-navy-dark'
     : 'focus-visible:ring-offset-green-dark';
+  const homeHref = publicItems[0]?.to ?? items[0]?.to ?? '/';
+
+  function renderNavigation(navigationItems: ItemNavegacao[]) {
+    return navigationItems.map((item) => {
+      const active = isItemActive(pathname, item.to);
+
+      return (
+        <Link
+          key={item.to}
+          href={item.to}
+          onClick={() => setMenuOpen(false)}
+          aria-current={active ? 'page' : undefined}
+          className={cn(
+            'flex min-h-12 items-center gap-3 rounded-md border border-transparent px-3.5 text-sm font-semibold transition-[background-color,color,border-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+            active
+              ? cn('border-accent bg-accent', activeDrawerText)
+              : 'text-white/80 hover:border-white/15 hover:bg-white/8 hover:text-white',
+          )}
+        >
+          <item.icon
+            className="h-4.5 w-4.5 shrink-0"
+            aria-hidden="true"
+          />
+          <span className="truncate">{item.label}</span>
+        </Link>
+      );
+    });
+  }
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -87,7 +119,7 @@ export function LayoutAreaAutenticada({
           </button>
 
           <Link
-            href={items[0]?.to ?? '/'}
+            href={homeHref}
             className={cn(
               'ml-1 min-h-11 rounded-sm px-2 py-2',
               interactiveFocus,
@@ -139,10 +171,10 @@ export function LayoutAreaAutenticada({
             <DialogPrimitive.Title className="sr-only">
               Menu principal
             </DialogPrimitive.Title>
-            <div className="relative z-10 flex h-full flex-col p-4 sm:p-5">
+            <div className="menu-scroll relative z-10 flex h-full min-h-0 flex-col overflow-y-auto p-4 sm:p-5">
               <div className="mb-8 flex items-start justify-between gap-4 px-1 pt-1">
                 <Link
-                  href={items[0]?.to ?? '/'}
+                  href={homeHref}
                   onClick={() => setMenuOpen(false)}
                   className="rounded-sm px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
@@ -167,31 +199,42 @@ export function LayoutAreaAutenticada({
                 </button>
               </div>
 
-              <nav className="space-y-1.5" aria-label="Navegação principal">
-                {items.map((item) => {
-                  const active = isItemActive(pathname, item.to);
-
-                  return (
-                    <Link
-                      key={item.to}
-                      href={item.to}
-                      onClick={() => setMenuOpen(false)}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'flex min-h-12 items-center gap-3 rounded-md border border-transparent px-3.5 text-sm font-semibold transition-[background-color,color,border-color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
-                        active
-                          ? cn('border-accent bg-accent', activeDrawerText)
-                          : 'text-white/80 hover:border-white/15 hover:bg-white/8 hover:text-white',
-                      )}
+              <nav className="space-y-5" aria-label="Navegação principal">
+                {publicItems.length > 0 ? (
+                  <section aria-labelledby="menu-publico-titulo">
+                    <h2
+                      id="menu-publico-titulo"
+                      className="mb-2 px-3 text-[0.65rem] font-semibold tracking-[0.16em] text-white/55 uppercase"
                     >
-                      <item.icon
-                        className="h-[18px] w-[18px] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  );
-                })}
+                      Explorar
+                    </h2>
+                    <div className="space-y-1.5">
+                      {renderNavigation(publicItems)}
+                    </div>
+                  </section>
+                ) : null}
+                <section aria-labelledby="menu-contexto-titulo">
+                  <h2
+                    id="menu-contexto-titulo"
+                    className="mb-2 px-3 text-[0.65rem] font-semibold tracking-[0.16em] text-white/55 uppercase"
+                  >
+                    Minha área
+                  </h2>
+                  <div className="space-y-1.5">{renderNavigation(items)}</div>
+                </section>
+                {accountItem ? (
+                  <section aria-labelledby="menu-conta-titulo">
+                    <h2
+                      id="menu-conta-titulo"
+                      className="mb-2 px-3 text-[0.65rem] font-semibold tracking-[0.16em] text-white/55 uppercase"
+                    >
+                      Conta
+                    </h2>
+                    <div className="space-y-1.5">
+                      {renderNavigation([accountItem])}
+                    </div>
+                  </section>
+                ) : null}
               </nav>
 
               <div className="mt-auto border-t border-white/20 pt-4">

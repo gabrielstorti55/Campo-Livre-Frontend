@@ -195,4 +195,28 @@
     content: '';
     pointer-events: none;
   }
+
+  .menu-scroll {
+    scrollbar-color: var(--green-mid) transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+  }
+
+  .menu-scroll::-webkit-scrollbar {
+    width: 0.6rem;
+  }
+
+  .menu-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .menu-scroll::-webkit-scrollbar-thumb {
+    border: 0.15rem solid var(--navy-dark);
+    border-radius: 999px;
+    background: var(--green-mid);
+  }
+
+  .menu-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
 }

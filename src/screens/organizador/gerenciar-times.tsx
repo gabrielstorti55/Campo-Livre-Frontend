@@ -338,6 +338,14 @@ export function TelaGerenciarTimes({
   const podeConvidar =
     podeGerenciarConvites &&
     campeonato.operacoesPermitidas.includes('CONVIDAR_TIME');
+  const conviteAtivoParaTime = (timeId: string) =>
+    convites.some(
+      (convite) =>
+        convite.time.id === timeId &&
+        (convite.status === 'PENDENTE' || convite.status === 'ACEITO'),
+    );
+  const podeConvidarTime =
+    Boolean(timeConvidado) && !conviteAtivoParaTime(timeConvidado);
 
   return (
     <>
@@ -375,7 +383,11 @@ export function TelaGerenciarTimes({
                 onChange={(event) => setTimeConvidado(event.target.value)}
               >
                 {timesDisponiveis.map((time) => (
-                  <option key={time.id} value={time.id}>
+                  <option
+                    key={time.id}
+                    value={time.id}
+                    disabled={conviteAtivoParaTime(time.id)}
+                  >
                     {time.nome}
                   </option>
                 ))}
@@ -384,7 +396,7 @@ export function TelaGerenciarTimes({
             <Button
               variant="campo"
               className="self-end"
-              disabled={!timeConvidado}
+              disabled={!podeConvidarTime}
               onClick={async () => {
                 const identidadeDaOperacao = identidadeSessao;
                 try {

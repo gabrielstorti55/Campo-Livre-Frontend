@@ -395,21 +395,18 @@ describe('participantes do campeonato', () => {
     );
   });
 
-  it('envia convite usando o ID real do time', async () => {
+  it('bloqueia novo convite para um time que já tem convite pendente', async () => {
     render(<TelaGerenciarTimes campeonatoId="1" incorporada />);
 
     await screen.findByRole('option', { name: 'Time C' });
     fireEvent.change(screen.getByLabelText('Time para convidar'), {
       target: { value: '3' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar convite' }));
 
-    await waitFor(() =>
-      expect(convidarTime).toHaveBeenCalledWith('1', '3', 'token'),
-    );
-    await waitFor(() =>
-      expect(listarConvitesEnviados).toHaveBeenCalledTimes(2),
-    );
+    expect(
+      screen.getByRole('button', { name: 'Enviar convite' }),
+    ).toBeDisabled();
+    expect(convidarTime).not.toHaveBeenCalled();
   });
 
   it('carrega todas as páginas de times disponíveis e convites enviados', async () => {

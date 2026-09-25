@@ -77,12 +77,7 @@ function criarSessao(
     ...(links.teamIds.length ? (['atleta'] as const) : []),
     ...(account.organizadorHabilitado ? (['organizador'] as const) : []),
   ];
-  const activeContext: ContextoPessoal | null = links
-    .institutionalOrganizationIds.length
-    ? null
-    : capabilities.includes('atleta')
-      ? 'atleta'
-      : null;
+  const activeContext: ContextoPessoal | null = null;
 
   return {
     sessionId: account.id,
@@ -380,7 +375,6 @@ export function ProvedorSessao({
         capabilities: current.capabilities.includes('atleta')
           ? current.capabilities
           : [...current.capabilities, 'atleta'],
-        activeContext: 'atleta',
         links: {
           ...current.links,
           teamIds: current.links.teamIds.includes(teamId)
@@ -406,7 +400,6 @@ export function ProvedorSessao({
         capabilities: current.capabilities.includes('atleta')
           ? current.capabilities
           : [...current.capabilities, 'atleta'],
-        activeContext: 'atleta',
         links: {
           ...current.links,
           teamIds: [...current.links.teamIds, teamId],
@@ -454,7 +447,6 @@ export function ProvedorSessao({
           ? current.capabilities
           : [...current.capabilities, 'organizador'],
         organizerEnabledAt: resposta.organizadorHabilitadoEm,
-        activeContext: 'organizador',
       };
     });
   }

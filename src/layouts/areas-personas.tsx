@@ -2,7 +2,6 @@
 
 import {
   CalendarDays,
-  Compass,
   Home,
   MapPinned,
   Trophy,
@@ -15,11 +14,21 @@ import type { ReactNode } from 'react';
 import { useSessao } from '@/hooks/use-sessao';
 import { LayoutAreaAutenticada } from '@/layouts/area-autenticada';
 
+const itensPublicos = [
+  { label: 'Início', to: '/', icon: Home },
+  { label: 'Campeonatos', to: '/campeonatos', icon: Trophy },
+  { label: 'Times', to: '/times', icon: Users },
+  { label: 'Campos', to: '/campos', icon: MapPinned },
+  { label: 'Partidas', to: '/partidas', icon: CalendarDays },
+  { label: 'Atletas', to: '/atletas', icon: User },
+];
+
+const itemMinhaArea = { label: 'Minha área', to: '/minha-area', icon: User };
+
 export function LayoutAtleta({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { session, signOut } = useSessao();
   const items = [
-    { label: 'Início', to: '/atleta/inicio', icon: Home },
     { label: 'Campeonatos', to: '/atleta/campeonatos', icon: Trophy },
     { label: 'Times e convites', to: '/atleta/time/buscar', icon: Users },
     { label: 'Meus Eventos', to: '/atleta/meus-eventos', icon: CalendarDays },
@@ -28,6 +37,8 @@ export function LayoutAtleta({ children }: { children: ReactNode }) {
 
   return (
     <LayoutAreaAutenticada
+      publicItems={itensPublicos}
+      accountItem={itemMinhaArea}
       items={items}
       tone="green"
       userName={session?.account.name ?? 'Atleta'}
@@ -46,15 +57,14 @@ export function LayoutOrganizador({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { session, signOut } = useSessao();
   const items = [
-    { label: 'Início', to: '/organizador/inicio', icon: Home },
     { label: 'Meus Campeonatos', to: '/organizador/campeonatos', icon: Trophy },
-    { label: 'Explorar campeonatos', to: '/campeonatos', icon: Compass },
-    { label: 'Minha área', to: '/minha-area', icon: User },
     { label: 'Histórico', to: '/organizador/perfil', icon: CalendarDays },
   ];
 
   return (
     <LayoutAreaAutenticada
+      publicItems={itensPublicos}
+      accountItem={itemMinhaArea}
       items={items}
       tone="green"
       userName={session?.account.name ?? 'Organizador'}
@@ -88,6 +98,8 @@ export function LayoutPrefeitura({ children }: { children: ReactNode }) {
 
   return (
     <LayoutAreaAutenticada
+      publicItems={itensPublicos}
+      accountItem={itemMinhaArea}
       items={items}
       tone="navy"
       userName={session?.account.name ?? 'Prefeitura de Franca'}
