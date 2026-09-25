@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 
 export type PersonaAutenticacao =
   | 'atleta'
+  | 'atletaOrganizador'
   | 'semTime'
   | 'organizador'
   | 'colaborador'
@@ -9,7 +10,8 @@ export type PersonaAutenticacao =
   | 'atletaCancelado';
 
 const emailPorPersona: Record<PersonaAutenticacao, string> = {
-  atleta: 'pessoa@campolivre.test',
+  atleta: 'atleta@campolivre.test',
+  atletaOrganizador: 'pessoa@campolivre.test',
   semTime: 'sem-time@campolivre.test',
   organizador: 'pessoa@campolivre.test',
   colaborador: 'colaborador@campolivre.test',

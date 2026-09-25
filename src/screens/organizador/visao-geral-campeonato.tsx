@@ -52,6 +52,13 @@ const formatoLabel: Record<DetalheAdministrativoCampeonato['formato'], string> =
     GRUPOS_E_MATA_MATA: 'Grupos e mata-mata',
   };
 
+const municipiosConhecidos: Record<string, string> = {
+  '00000000-0000-4000-8000-000000000001': 'Franca/SP',
+  '00000000-0000-4000-8000-000000000002': 'Batatais/SP',
+  'municipio-1': 'Franca/SP',
+  'municipio-franca': 'Franca/SP',
+};
+
 const TAMANHO_PAGINA = 100;
 
 export function TelaVisaoGeralCampeonato({
@@ -79,6 +86,7 @@ export function TelaVisaoGeralCampeonato({
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
+  const [regulamento, setRegulamento] = useState('');
   const chaveFinalizacao = useRef<string | null>(null);
   const identidadeSessao = `${campeonatoId}:${session?.sessionId ?? ''}:${session?.account.id ?? ''}`;
   const identidadeSessaoAtual = useRef(identidadeSessao);
@@ -304,7 +312,14 @@ export function TelaVisaoGeralCampeonato({
             </label>
             <label className="text-sm font-semibold">
               Município
-              <Input className="mt-2" value={campeonato.municipioId} readOnly />
+              <Input
+                className="mt-2"
+                value={
+                  municipiosConhecidos[campeonato.municipioId] ??
+                  'Município não identificado'
+                }
+                readOnly
+              />
             </label>
             <label className="text-sm font-semibold">
               Formato
@@ -530,32 +545,62 @@ export function TelaVisaoGeralCampeonato({
           >
             Regulamento
           </h2>
-          <Card className="mt-4 border-warning p-5">
-            <h3 className="font-display text-lg font-semibold">
-              Edição protegida
-            </h3>
+          {!session?.prototipo ? (
+            <Card className="mt-4 border-warning p-5">
+              <h3 className="font-display text-lg font-semibold">
+                Edição temporariamente indisponível
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                O regulamento poderá ser alterado quando a API disponibilizar a
+                versão integral salva.
+              </p>
+            </Card>
+          ) : (
             <p className="mt-2 text-sm text-muted-foreground">
-              A API permite salvar, mas ainda não publica a leitura integral do
-              Regulamento. Para evitar sobrescrever regras existentes após um
-              reload, a edição fica indisponível no modo integrado.
+              Defina as regras gerais apresentadas aos participantes.
             </p>
-          </Card>
+          )}
           <label className="mt-5 block text-sm font-semibold">
             Texto do regulamento
             <Textarea
               aria-label="Texto do regulamento"
               className="mt-2"
-              disabled
+              value={regulamento}
+              onChange={(event) => setRegulamento(event.target.value)}
+              disabled={!session?.prototipo}
+              placeholder="Ex.: formato dos jogos, duração e regras disciplinares"
             />
           </label>
-          <label className="mt-5 block text-sm font-semibold">
-            Critérios de desempate
-            <Textarea
-              aria-label="Critérios de desempate"
-              className="mt-2"
-              disabled
-            />
-          </label>
+          {session?.prototipo ? (
+            <Button
+              className="mt-5"
+              variant="campo"
+              disabled={salvando || !regulamento.trim()}
+              onClick={async () => {
+                setSalvando(true);
+                try {
+                  await executarAutenticado((token) =>
+                    api.configurarRegulamento(campeonatoId, token, {
+                      regulamentoTexto: regulamento.trim(),
+                      limiteAtletasPorTime:
+                        campeonato.configuracao.limiteAtletasPorTime ?? 20,
+                      permiteWo: true,
+                      placarWoMandante: 3,
+                      placarWoVisitante: 0,
+                      criterioBye: 'ORDEM_INSCRICAO',
+                    }),
+                  );
+                  setFeedback('Regulamento salvo.');
+                } catch {
+                  setFeedback('Não foi possível salvar o regulamento.');
+                } finally {
+                  setSalvando(false);
+                }
+              }}
+            >
+              Salvar regulamento
+            </Button>
+          ) : null}
         </section>
       ) : null}
 

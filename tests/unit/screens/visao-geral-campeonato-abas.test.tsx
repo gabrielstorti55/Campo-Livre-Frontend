@@ -152,13 +152,16 @@ describe('workspace administrativo recuperável', () => {
       await screen.findByRole('heading', { name: 'Regulamento' }),
     ).toBeVisible();
     expect(screen.getByLabelText('Texto do regulamento')).toBeDisabled();
-    expect(screen.getByLabelText('Critérios de desempate')).toBeDisabled();
-    expect(
-      screen.getByText(/evitar sobrescrever regras existentes/i),
-    ).toBeVisible();
+    expect(screen.getByText(/versão integral salva/i)).toBeVisible();
     expect(
       screen.queryByRole('button', { name: 'Salvar regulamento' }),
     ).toBeNull();
+  });
+
+  it('mostra o nome do município em vez do identificador técnico', async () => {
+    render(<TelaVisaoGeralCampeonato campeonatoId="1" secaoAtiva="geral" />);
+    expect(await screen.findByDisplayValue('Franca/SP')).toBeVisible();
+    expect(screen.queryByDisplayValue('municipio-1')).toBeNull();
   });
 
   it('persiste dados gerais, valida e cancela pelas operações administrativas', async () => {

@@ -59,6 +59,30 @@ const posicoesDeTimes = (campeonatoId: string, timeIds: string[]) =>
   }));
 
 describe('CampeonatosPrototipo', () => {
+  it('projeta a identidade humana do responsável sem expor IDs mockados', async () => {
+    const api = new CampeonatosPrototipo(() => 'mock-person-unlinked-1');
+    const criado = await api.criarCampeonato(
+      'token',
+      inputCampeonato('Copa do Lucas'),
+      'criar-copa-lucas',
+    );
+
+    await expect(
+      api.listarOrganizadores(criado.id, 'token', 1, 20, 'ATIVO'),
+    ).resolves.toMatchObject({
+      itens: [
+        expect.objectContaining({
+          usuario: {
+            id: 'mock-person-unlinked-1',
+            nome: 'Lucas Ferreira',
+            nomeUsuario: 'lucasferreira',
+          },
+          funcao: 'RESPONSAVEL',
+        }),
+      ],
+    });
+  });
+
   it('nega administração para conta autenticada sem vínculo no campeonato', async () => {
     const api = new CampeonatosPrototipo((token) =>
       token === 'dono' ? 'mock-person-1' : 'conta-sem-vinculo',

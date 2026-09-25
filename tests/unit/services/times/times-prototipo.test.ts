@@ -35,6 +35,35 @@ describe('TimesPrototipo', () => {
         }),
       ],
     });
+    await expect(api.listarElenco(criado.id, 1, 20)).resolves.toMatchObject({
+      itens: [
+        expect.objectContaining({
+          nome: 'Capitão do time',
+          funcao: 'CAPITAO',
+        }),
+      ],
+      totalItens: 1,
+    });
+    const historico = await api.listarHistoricoElenco(
+      criado.id,
+      'access',
+      1,
+      20,
+    );
+    expect(historico).toMatchObject({
+      itens: [
+        expect.objectContaining({
+          nome: 'Capitão do time',
+          origem: 'FUNDADOR',
+        }),
+      ],
+      totalItens: 1,
+    });
+    expect(historico.itens).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ nome: 'Marcos Oliveira' }),
+      ]),
+    );
     await expect(
       api.criarTime('access', { ...input, nome: 'Outro Time' }, 'mesma-chave'),
     ).rejects.toThrow('IDEMPOTENCY_KEY_REUTILIZADA');

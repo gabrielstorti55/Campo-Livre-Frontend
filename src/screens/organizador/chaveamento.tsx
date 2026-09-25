@@ -477,7 +477,10 @@ export function TelaChaveamento({
         </section>
       ) : null}
 
-      {configuravel && podeConfigurar && parametrosPersistidosIncompletos ? (
+      {configuravel &&
+      podeConfigurar &&
+      parametrosPersistidosIncompletos &&
+      !session?.prototipo ? (
         <Card className="mb-7 border-warning p-5">
           <h3 className="font-display text-lg font-semibold">
             Substituição bloqueada

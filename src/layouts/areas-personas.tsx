@@ -2,6 +2,7 @@
 
 import {
   CalendarDays,
+  Compass,
   Home,
   MapPinned,
   Trophy,
@@ -47,7 +48,9 @@ export function LayoutOrganizador({ children }: { children: ReactNode }) {
   const items = [
     { label: 'Início', to: '/organizador/inicio', icon: Home },
     { label: 'Meus Campeonatos', to: '/organizador/campeonatos', icon: Trophy },
-    { label: 'Perfil', to: '/organizador/perfil', icon: User },
+    { label: 'Explorar campeonatos', to: '/campeonatos', icon: Compass },
+    { label: 'Minha área', to: '/minha-area', icon: User },
+    { label: 'Histórico', to: '/organizador/perfil', icon: CalendarDays },
   ];
 
   return (

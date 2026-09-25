@@ -90,6 +90,16 @@ const contas: Record<string, MinhaConta> = {
     nascimento: '1998-08-20',
     idade: 28,
   }),
+  'atleta@campolivre.test': criarContaPrototipo({
+    id: 'mock-person-athlete-1',
+    nome: 'Diego Souza',
+    nomeUsuario: 'diegosouza',
+    email: 'atleta@campolivre.test',
+    cpf: '66666666666',
+    rgNumero: '666666666',
+    nascimento: '1999-06-12',
+    idade: 27,
+  }),
   'atleta-cancelado@campolivre.test': criarContaPrototipo({
     id: 'conta-atleta-cancelado',
     nome: 'Rafael Lima',

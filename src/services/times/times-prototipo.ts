@@ -46,6 +46,30 @@ const estatisticasZeradas = {
   cartoesVermelhos: 0,
 };
 
+const identidadesPrototipo: Record<
+  string,
+  { nome: string; nomeUsuario: string }
+> = {
+  'mock-person-1': { nome: 'Marcos Oliveira', nomeUsuario: 'marcosoliveira' },
+  'mock-person-unlinked-1': {
+    nome: 'Lucas Ferreira',
+    nomeUsuario: 'lucasferreira',
+  },
+  'mock-person-collaborator-1': {
+    nome: 'Juliana Lopes',
+    nomeUsuario: 'julianalopes',
+  },
+};
+
+function identidadeDaConta(contaId: string) {
+  return (
+    identidadesPrototipo[contaId] ?? {
+      nome: 'Capitão do time',
+      nomeUsuario: 'capitao',
+    }
+  );
+}
+
 const timesAtivos: readonly TimeResumido[] = [
   {
     id: '1',
@@ -294,7 +318,7 @@ export class TimesPrototipo implements TimesApi {
   private readonly respostasAceite = new Map<string, AceiteConviteTime>();
   private readonly timesCriados = new Map<
     string,
-    { contaId: string; time: TimeCriado }
+    { contaId: string; criadoEm: string; time: TimeCriado }
   >();
   private readonly criacoesPorChave = new Map<
     string,
@@ -421,7 +445,11 @@ export class TimesPrototipo implements TimesApi {
       status: 'ATIVO',
       capitaoMembroId: `${id}-capitao`,
     };
-    this.timesCriados.set(id, { contaId, time: resposta });
+    this.timesCriados.set(id, {
+      contaId,
+      criadoEm: new Date().toISOString(),
+      time: resposta,
+    });
     this.criacoesPorChave.set(chave, { payload, resposta });
     return structuredClone(resposta);
   }
@@ -452,7 +480,24 @@ export class TimesPrototipo implements TimesApi {
               },
             },
           ]
-        : [];
+        : contaId === 'mock-person-athlete-1'
+          ? [
+              {
+                membroId: 'membro-diego',
+                funcao: 'ATLETA' as const,
+                entrouEm: '2025-01-20T12:00:00.000Z',
+                time: {
+                  id: '1',
+                  nome: 'Vila Nova FC',
+                  sigla: 'VNF',
+                  escudoUrl: this.escudos.get('1') ?? null,
+                  status: this.timesDesativados.has('1')
+                    ? ('DESATIVADO' as const)
+                    : ('ATIVO' as const),
+                },
+              },
+            ]
+          : [];
     const criados = Array.from(this.timesCriados.values())
       .filter((item) => item.contaId === contaId)
       .map(({ time }) => ({
@@ -570,19 +615,37 @@ export class TimesPrototipo implements TimesApi {
     tamanho = 20,
   ): Promise<PaginaHistoricoElenco> {
     this.garantirCapitao(timeId, accessToken);
-    const itens = [
-      {
-        membroId: 'membro-capitao',
-        usuarioId: 'mock-person-1',
-        nome: 'Marcos Oliveira',
-        entrouEm: '2024-01-15T12:00:00.000Z',
-        saiuEm: null,
-        funcaoAtual: 'CAPITAO' as const,
-        eventosFuncao: [],
-        origem: 'FUNDADOR' as const,
-        motivoSaida: null,
-      },
-    ];
+    const timeCriado = this.timesCriados.get(timeId);
+    const identidade = timeCriado
+      ? identidadeDaConta(timeCriado.contaId)
+      : null;
+    const itens = timeCriado
+      ? [
+          {
+            membroId: timeCriado.time.capitaoMembroId,
+            usuarioId: timeCriado.contaId,
+            nome: identidade!.nome,
+            entrouEm: timeCriado.criadoEm,
+            saiuEm: null,
+            funcaoAtual: 'CAPITAO' as const,
+            eventosFuncao: [],
+            origem: 'FUNDADOR' as const,
+            motivoSaida: null,
+          },
+        ]
+      : [
+          {
+            membroId: 'membro-capitao',
+            usuarioId: 'mock-person-1',
+            nome: 'Marcos Oliveira',
+            entrouEm: '2024-01-15T12:00:00.000Z',
+            saiuEm: null,
+            funcaoAtual: 'CAPITAO' as const,
+            eventosFuncao: [],
+            origem: 'FUNDADOR' as const,
+            motivoSaida: null,
+          },
+        ];
     return {
       itens: itens.slice((pagina - 1) * tamanho, pagina * tamanho),
       pagina,
@@ -838,6 +901,8 @@ export class TimesPrototipo implements TimesApi {
       },
       status: this.timesDesativados.has(timeId) ? 'DESATIVADO' : 'ATIVO',
       capitao: (() => {
+        const timeCriado = this.timesCriados.get(timeId);
+        if (timeCriado) return identidadeDaConta(timeCriado.contaId);
         const capitao = (elencoPorTime[timeId] ?? []).find(
           (membro) => membro.funcao === 'CAPITAO',
         );
@@ -866,7 +931,19 @@ export class TimesPrototipo implements TimesApi {
     ) {
       throw this.erroTimeNaoEncontrado();
     }
-    const todos = elencoPorTime[timeId] ?? [];
+    const timeCriado = this.timesCriados.get(timeId);
+    const todos = timeCriado
+      ? [
+          {
+            membroId: timeCriado.time.capitaoMembroId,
+            ...identidadeDaConta(timeCriado.contaId),
+            fotoUrl: null,
+            funcao: 'CAPITAO' as const,
+            entrouEm: timeCriado.criadoEm,
+            estatisticas: { ...estatisticasZeradas },
+          },
+        ]
+      : (elencoPorTime[timeId] ?? []);
     const inicio = (pagina - 1) * tamanho;
     return {
       itens: todos.slice(inicio, inicio + tamanho),

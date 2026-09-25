@@ -84,6 +84,7 @@ test('oferece atalho de teclado para o conteúdo principal', async ({
   page,
 }) => {
   await loginAsMunicipality(page, '/prefeitura/painel');
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await page.keyboard.press('Tab');
 
   const skipLink = page.getByRole('link', {

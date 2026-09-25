@@ -57,6 +57,9 @@ function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
   if (account.id === 'conta-atleta-cancelado') {
     return { ...emptyLinks, teamIds: ['5'] };
   }
+  if (account.id === 'mock-person-athlete-1') {
+    return { ...emptyLinks, teamIds: ['1'] };
+  }
   if (account.id === 'mock-person-collaborator-1') {
     return { ...emptyLinks, organizedChampionshipIds: ['4'] };
   }

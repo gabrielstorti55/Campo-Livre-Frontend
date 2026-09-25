@@ -422,13 +422,39 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     _status?: 'ATIVO' | 'ENCERRADO',
   ): Promise<Pagina<OrganizadorCampeonato>> {
     const { campeonato } = this.autorizar(campeonatoId, accessToken);
+    const identidades: Record<string, { nome: string; nomeUsuario: string }> = {
+      'mock-person-1': {
+        nome: 'Marcos Oliveira',
+        nomeUsuario: 'marcosoliveira',
+      },
+      'mock-person-unlinked-1': {
+        nome: 'Lucas Ferreira',
+        nomeUsuario: 'lucasferreira',
+      },
+      'mock-person-collaborator-1': {
+        nome: 'Juliana Lopes',
+        nomeUsuario: 'julianalopes',
+      },
+      'mock-person-athlete-1': {
+        nome: 'Diego Souza',
+        nomeUsuario: 'diegosouza',
+      },
+      'conta-prefeitura': {
+        nome: 'Gestora Municipal',
+        nomeUsuario: 'gestoramunicipal',
+      },
+    };
+    const responsavel = identidades[campeonato.responsavel] ?? {
+      nome: 'Responsável pelo campeonato',
+      nomeUsuario: 'responsavel',
+    };
     const todos: OrganizadorCampeonato[] = [
       {
         organizadorId: `responsavel-${campeonatoId}`,
         usuario: {
           id: campeonato.responsavel,
-          nome: campeonato.responsavel,
-          nomeUsuario: campeonato.responsavel,
+          nome: responsavel.nome,
+          nomeUsuario: responsavel.nomeUsuario,
         },
         funcao: 'RESPONSAVEL' as const,
         status: 'ATIVO' as const,
@@ -772,7 +798,17 @@ export class CampeonatosPrototipo implements CampeonatosApi {
               nome: 'Prefeitura de Franca',
               prefeituraId: input.prefeituraId,
             }
-          : { tipo: 'PESSOAL', nome: contaId },
+          : {
+              tipo: 'PESSOAL',
+              nome:
+                contaId === 'mock-person-unlinked-1'
+                  ? 'Lucas Ferreira'
+                  : contaId === 'mock-person-collaborator-1'
+                    ? 'Juliana Lopes'
+                    : contaId === 'mock-person-1'
+                      ? 'Marcos Oliveira'
+                      : 'Organização pessoal',
+            },
       responsavel: contaId,
       timeIds: [],
       partidaIds: [],

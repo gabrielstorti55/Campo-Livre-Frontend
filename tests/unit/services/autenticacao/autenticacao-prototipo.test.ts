@@ -19,6 +19,19 @@ const cadastro: EntradaCadastro = {
 };
 
 describe('AutenticacaoPrototipo', () => {
+  it.each([
+    ['sem-time@campolivre.test', 'Lucas Ferreira'],
+    ['atleta@campolivre.test', 'Diego Souza'],
+    ['colaborador@campolivre.test', 'Juliana Lopes'],
+    ['pessoa@campolivre.test', 'Marcos Oliveira'],
+    ['prefeitura@campolivre.test', 'Gestora Municipal'],
+  ])('autentica a persona de demonstração %s', async (email, nome) => {
+    const api = new AutenticacaoPrototipo();
+    await expect(
+      api.login({ email, senha: 'senha-mock', plataforma: 'WEB' }),
+    ).resolves.toMatchObject({ usuario: { nome } });
+  });
+
   it('só permite login da conta cadastrada depois da confirmação de e-mail', async () => {
     const api = new AutenticacaoPrototipo();
     const resposta = await api.cadastrar(cadastro);

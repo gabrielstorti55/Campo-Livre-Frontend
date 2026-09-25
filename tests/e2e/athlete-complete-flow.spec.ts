@@ -72,17 +72,14 @@ test('perfil do atleta edita somente os dados pessoais disponíveis no contrato'
   ).toHaveCount(0);
 });
 
-test('área do atleta não substitui agenda pessoal ausente pelo catálogo público', async ({
+test('área do atleta apresenta a agenda demonstrável do time no protótipo', async ({
   page,
 }) => {
-  await autenticarEm(page, 'organizador', '/atleta/meus-eventos');
+  await autenticarEm(page, 'atleta', '/atleta/meus-eventos');
   await expect(
-    page.getByRole('heading', { name: 'Agenda pessoal ainda indisponível' }),
+    page.getByRole('heading', { name: 'Meus eventos' }),
   ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: /Copa Franca 2026/ }),
-  ).toHaveCount(0);
-  await expect(page.getByRole('tab')).toHaveCount(0);
+  await expect(page.getByText(/Copa Franca 2026/).first()).toBeVisible();
 });
 
 test('evento cancelado não é inventado sem projeção de agenda pessoal', async ({
@@ -90,7 +87,7 @@ test('evento cancelado não é inventado sem projeção de agenda pessoal', asyn
 }) => {
   await autenticarEm(page, 'atletaCancelado', '/atleta/meus-eventos');
   await expect(
-    page.getByRole('heading', { name: 'Agenda pessoal ainda indisponível' }),
+    page.getByRole('heading', { name: 'Meus eventos' }),
   ).toBeVisible();
   await expect(page.getByText('Copa Municipal Cancelada')).toHaveCount(0);
 });

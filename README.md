@@ -59,9 +59,44 @@ npm run check
 ## Modos da aplicação
 
 - `NEXT_PUBLIC_APP_MODE=integrado`: usa somente adapters HTTP e falha fechada; produção sempre resolve para este modo.
-- `NEXT_PUBLIC_APP_MODE=prototipo`: disponível somente fora de produção, usa dados em memória e mostra aviso permanente de simulação.
+- `NEXT_PUBLIC_APP_MODE=prototipo`: disponível somente fora de produção e usa dados em memória para demonstração.
 
 Não existe fallback HTTP → protótipo. A autenticação não é persistida em Web Storage nem em cookie acessível por JavaScript.
+
+### Executar a demonstração sem backend
+
+Para visualizar os dados e fluxos preparados para a apresentação, basta iniciar o frontend em modo protótipo:
+
+```bash
+npm run dev:prototype -- --hostname 127.0.0.1 --port 3001
+```
+
+Abra `http://127.0.0.1:3001`. Nesse modo não é necessário iniciar a API NestJS nem o PostgreSQL. Os dados criados durante a demonstração ficam somente em memória e são reiniciados quando o servidor é encerrado.
+
+### Contas de demonstração
+
+Todas as contas abaixo usam a senha `senha-mock` e representam identidades separadas:
+
+| Jornada               | Conta                         | Papel preparado                                                        |
+| --------------------- | ----------------------------- | ---------------------------------------------------------------------- |
+| Primeiro acesso       | `sem-time@campolivre.test`    | Lucas Ferreira, sem time e com convite pendente                        |
+| Jogador               | `atleta@campolivre.test`      | Diego Souza, atleta do Vila Nova FC, sem privilégios de organizador    |
+| Organizador           | `colaborador@campolivre.test` | Juliana Lopes, organizadora sem vínculo esportivo                      |
+| Jogador + organizador | `pessoa@campolivre.test`      | Marcos Oliveira, capitão do Vila Nova FC e responsável por campeonatos |
+| Prefeitura            | `prefeitura@campolivre.test`  | Gestora Municipal vinculada à Prefeitura de Franca                     |
+
+A conta da Prefeitura representa uma funcionária vinculada à instituição, e não uma identidade impessoal compartilhada. A conta `atleta-cancelado@campolivre.test` existe para testes de exceção e não faz parte do roteiro principal.
+
+### Roteiro resumido da apresentação
+
+1. **Visitante:** início → campeonatos → classificação/estrutura → partida e súmula → time → atleta.
+2. **Cadastro:** criar uma conta temporária, confirmar o e-mail no fluxo simulado e mostrar o primeiro acesso.
+3. **Jogador:** entrar como Diego Souza e mostrar perfil, time, campeonatos e eventos.
+4. **Organizador:** entrar como Juliana Lopes e mostrar campeonatos administrados, participantes, regulamento, estrutura e partidas.
+5. **Papéis acumulados:** entrar como Marcos Oliveira e demonstrar a troca entre área esportiva e organização.
+6. **Prefeitura:** entrar como Gestora Municipal e mostrar painel, campos e organizadores vinculados.
+
+Na área do organizador, **Meus Campeonatos** contém somente as competições que a conta pode administrar. **Explorar campeonatos** abre o catálogo público de todas as competições. **Minha área** permite retornar ao perfil da conta e escolher outra área disponível.
 
 ## Estrutura
 
