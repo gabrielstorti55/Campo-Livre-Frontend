@@ -38,6 +38,57 @@ export type PaginaArtilharia = {
   totalPaginas: number;
 };
 
+export type LinhaClassificacao = {
+  posicao: number;
+  timeId: string;
+  nome: string;
+  jogos: number;
+  vitorias: number;
+  empates: number;
+  derrotas: number;
+  golsPro: number;
+  golsContra: number;
+  saldoGols: number;
+  pontos: number;
+  classificado: boolean;
+};
+
+export type ConfrontoClassificacao = {
+  confrontoId: string;
+  rodada: number;
+  ordem: number;
+  estado:
+    | 'AGUARDANDO_PARTICIPANTES'
+    | 'AGUARDANDO_PARTIDA'
+    | 'EM_DISPUTA'
+    | 'DEFINIDO'
+    | 'BYE';
+  timeA: { timeId: string; nome: string } | null;
+  timeB: { timeId: string; nome: string } | null;
+  partidas: Array<{
+    partidaId: string;
+    estado: 'AGENDADA' | 'ENCERRADA_SUMULA' | 'ENCERRADA_WO';
+    placarRegulamentar: { mandante: number; visitante: number } | null;
+    placarProrrogacao: { mandante: number; visitante: number } | null;
+    placarPenaltis: { mandante: number; visitante: number } | null;
+  }>;
+  classificadoTimeId: string | null;
+  confrontoDestinoId: string | null;
+  posicaoDestino: 'A' | 'B' | null;
+};
+
+export type ClassificacaoCampeonato = {
+  campeonatoId: string;
+  faseId: string;
+  grupoId: string | null;
+  tipoProjecao: 'CLASSIFICACAO' | 'CHAVEAMENTO';
+  estadoProjecao: 'SEM_RESULTADOS' | 'PARCIAL' | 'DEFINITIVA';
+  criteriosAplicados: string[];
+  linhas: LinhaClassificacao[];
+  confrontos: ConfrontoClassificacao[];
+  atualizadoEm: string;
+};
+
 export type EstadoPartida =
   | 'PENDENTE_AGENDAMENTO'
   | 'AGENDADA'

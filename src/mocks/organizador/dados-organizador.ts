@@ -88,7 +88,7 @@ export const campeonatosOrganizadorMock: CampeonatoOrganizador[] = [
   },
   {
     id: 7,
-    nome: 'Torneio Municipal 2025',
+    nome: 'Copa Municipal Cancelada',
     modalidade: 'Futebol de Campo',
     formato: 'MATA_MATA',
     municipio: 'Franca',
@@ -163,7 +163,7 @@ export const reservasOrganizadorMock: ReservaCampeonatoOrganizador[] = [
     id: 1,
     campeonatoId: 1,
     campo: 'Campo Vera Cruz',
-    data: '2026-08-28',
+    data: '2026-09-27',
     inicio: '14:00',
     fim: '18:00',
     estado: 'APROVADA',

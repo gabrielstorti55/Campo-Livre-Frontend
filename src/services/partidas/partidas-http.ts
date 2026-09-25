@@ -5,6 +5,7 @@ import type {
   AgendamentoPartidaInput,
   AgendamentoPartidaSalvo,
   CancelamentoPartidaInput,
+  ClassificacaoCampeonato,
   DetalheAdministrativoPartida,
   DetalhePublicoPartida,
   FiltrosAgendaPartidas,
@@ -102,6 +103,20 @@ export class PartidasHttp implements PartidasApi {
   ): Promise<PaginaArtilharia> {
     return this.http.request(
       `/campeonatos/${encodeURIComponent(campeonatoId)}/artilharia?pagina=${pagina}&tamanho=${tamanho}`,
+    );
+  }
+
+  consultarClassificacao(
+    campeonatoId: string,
+    faseId: string,
+    grupoId?: string,
+    opcoes?: OpcoesConsulta,
+  ): Promise<ClassificacaoCampeonato> {
+    const query = new URLSearchParams({ faseId });
+    if (grupoId) query.set('grupoId', grupoId);
+    return this.http.request(
+      `/campeonatos/${encodeURIComponent(campeonatoId)}/classificacao?${query.toString()}`,
+      opcoes?.signal ? { signal: opcoes.signal } : undefined,
     );
   }
 

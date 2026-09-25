@@ -4,6 +4,7 @@ import type {
   AgendamentoPartidaInput,
   AgendamentoPartidaSalvo,
   CancelamentoPartidaInput,
+  ClassificacaoCampeonato,
   DetalheAdministrativoPartida,
   DetalhePublicoPartida,
   FiltrosAgendaPartidas,
@@ -49,6 +50,12 @@ export interface PartidasApi {
     pagina?: number,
     tamanho?: number,
   ): Promise<PaginaArtilharia>;
+  consultarClassificacao(
+    campeonatoId: string,
+    faseId: string,
+    grupoId?: string,
+    opcoes?: OpcoesConsulta,
+  ): Promise<ClassificacaoCampeonato>;
   registrarWo(
     partidaId: string,
     accessToken: string,

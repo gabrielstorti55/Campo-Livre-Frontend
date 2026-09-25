@@ -17,7 +17,7 @@ import { cn } from '@/utils/classes';
 const cardFocus =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 const selectClass =
-  'h-11 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+  'h-11 min-w-0 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 const estadoLabel: Record<CampeonatoPublicoResumo['status'], string> = {
   EM_ANDAMENTO: 'Em andamento',

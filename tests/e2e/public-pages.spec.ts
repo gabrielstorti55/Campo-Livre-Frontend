@@ -81,12 +81,12 @@ test('conta autenticada usa a mesma página canônica com acesso à sua área', 
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Minha área' })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Agenda publicada' }),
+    page.getByRole('heading', { name: 'Partidas e resultados' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
 });
 
-test('campeonato público mostra agenda e acessos esportivos sem dados pessoais', async ({
+test('campeonato público mostra classificação, estrutura e resultados sem dados pessoais', async ({
   page,
 }) => {
   await page.goto('/campeonatos/1');
@@ -98,12 +98,19 @@ test('campeonato público mostra agenda e acessos esportivos sem dados pessoais'
   await expect(page.getByText('João Silva')).toHaveCount(0);
 
   await expect(
+    page.getByRole('heading', { name: 'Classificação' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Estrutura da competição' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Partidas e resultados' }),
+  ).toBeVisible();
+  await expect(page.getByText('3 × 1')).toBeVisible();
+  await expect(
     page.getByRole('link', { name: /Times participantes/ }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: /Artilharia/ })).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Agenda publicada' }),
-  ).toBeVisible();
 });
 
 test('detalhe público permanece legível sem estourar a página no mobile', async ({
@@ -112,13 +119,34 @@ test('detalhe público permanece legível sem estourar a página no mobile', asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/campeonatos/1');
   await expect(
-    page.getByRole('heading', { name: 'Agenda publicada' }),
+    page.getByRole('heading', { name: 'Partidas e resultados' }),
   ).toBeVisible();
 
   const pageOverflows = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
   );
   expect(pageOverflows).toBe(false);
+});
+
+test('filtro UF permanece dentro do painel de campeonatos no desktop', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1185, height: 800 });
+  await page.goto('/campeonatos');
+
+  const painel = page.getByRole('region', { name: 'Filtros de campeonatos' });
+  const uf = page.getByLabel('UF', { exact: true });
+  await expect(uf).toBeVisible();
+
+  const [painelBox, ufBox] = await Promise.all([
+    painel.boundingBox(),
+    uf.boundingBox(),
+  ]);
+  expect(painelBox).not.toBeNull();
+  expect(ufBox).not.toBeNull();
+  expect(ufBox!.x + ufBox!.width).toBeLessThanOrEqual(
+    painelBox!.x + painelBox!.width,
+  );
 });
 
 test('times públicos expõem somente o elenco esportivo permitido', async ({
@@ -129,7 +157,7 @@ test('times públicos expõem somente o elenco esportivo permitido', async ({
   await expect(page.getByRole('heading', { name: 'Leões FC' })).toBeVisible();
   const elenco = page.getByRole('region', { name: 'Elenco público' });
   await expect(
-    elenco.getByRole('heading', { name: 'Rafael Lima' }),
+    elenco.getByRole('heading', { name: 'Henrique Alves' }),
   ).toBeVisible();
   await expect(page.getByText(/@campolivre\.test/)).toHaveCount(0);
 });

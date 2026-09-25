@@ -1,3 +1,7 @@
+import {
+  atletasPublicosMock,
+  timesPublicosMock,
+} from '@/mocks/publico/dados-publicos';
 import { ErroApi } from '@/services/api/problem-details';
 import type { TimesApi } from '@/services/times/times-api';
 import type {
@@ -44,6 +48,13 @@ const estatisticasZeradas = {
 
 const timesAtivos: readonly TimeResumido[] = [
   {
+    id: '1',
+    nome: 'Vila Nova FC',
+    sigla: 'VNF',
+    escudoUrl: null,
+    municipio: { nome: 'Franca', uf: 'SP' },
+  },
+  {
     id: '2',
     nome: 'Leões FC',
     sigla: 'LEO',
@@ -52,26 +63,206 @@ const timesAtivos: readonly TimeResumido[] = [
   },
   {
     id: '3',
-    nome: 'Tigres da Vila',
-    sigla: 'TIG',
+    nome: 'Unidos do Vale',
+    sigla: 'UNI',
+    escudoUrl: null,
+    municipio: { nome: 'Franca', uf: 'SP' },
+  },
+  {
+    id: '4',
+    nome: 'Estrela Azul',
+    sigla: 'EST',
+    escudoUrl: null,
+    municipio: { nome: 'Batatais', uf: 'SP' },
+  },
+  {
+    id: '5',
+    nome: 'Bairro Sul FC',
+    sigla: 'BSF',
+    escudoUrl: null,
+    municipio: { nome: 'Franca', uf: 'SP' },
+  },
+  {
+    id: '6',
+    nome: 'Real Aeroporto',
+    sigla: 'REA',
     escudoUrl: null,
     municipio: { nome: 'Franca', uf: 'SP' },
   },
 ];
 
-const elencoPorTime: Readonly<Record<string, readonly MembroElenco[]>> = {
-  '2': [
+const estatisticasPorTime: Readonly<
+  Record<string, typeof estatisticasZeradas>
+> = {
+  '1': { ...estatisticasZeradas, partidas: 4, vitorias: 3, gols: 12 },
+  '2': { ...estatisticasZeradas, partidas: 4, vitorias: 3, gols: 10 },
+  '5': { ...estatisticasZeradas, partidas: 4, vitorias: 1, gols: 5 },
+  '6': { ...estatisticasZeradas, partidas: 4, vitorias: 1, gols: 4 },
+};
+
+const elencoPorTime: Record<string, readonly MembroElenco[]> = {
+  '1': [
     {
-      membroId: 'membro-1',
+      membroId: 'membro-marcos',
+      nome: 'Marcos Oliveira',
+      nomeUsuario: 'marcosoliveira',
+      fotoUrl: null,
+      funcao: 'CAPITAO',
+      entrouEm: '2024-01-15T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 14,
+        vitorias: 9,
+        gols: 7,
+      },
+    },
+    {
+      membroId: 'membro-rafael',
       nome: 'Rafael Lima',
       nomeUsuario: 'rafaellima',
       fotoUrl: null,
-      funcao: 'CAPITAO',
+      funcao: 'ATLETA',
+      entrouEm: '2024-02-01T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 12,
+        vitorias: 8,
+        defesas: 31,
+      },
+    },
+    {
+      membroId: 'membro-diego',
+      nome: 'Diego Souza',
+      nomeUsuario: 'diegosouza',
+      fotoUrl: null,
+      funcao: 'ATLETA',
       entrouEm: '2025-01-10T12:00:00.000Z',
-      estatisticas: { ...estatisticasZeradas, partidas: 12, vitorias: 8 },
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 11,
+        vitorias: 7,
+        gols: 1,
+      },
+    },
+    {
+      membroId: 'membro-bruno',
+      nome: 'Bruno Alves',
+      nomeUsuario: 'brunoalves',
+      fotoUrl: null,
+      funcao: 'ATLETA',
+      entrouEm: '2025-01-10T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 10,
+        vitorias: 6,
+        gols: 2,
+      },
+    },
+  ],
+  '2': [
+    {
+      membroId: 'membro-henrique',
+      nome: 'Henrique Alves',
+      nomeUsuario: 'henriquealves',
+      fotoUrl: null,
+      funcao: 'CAPITAO',
+      entrouEm: '2023-01-10T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 13,
+        vitorias: 8,
+        gols: 5,
+      },
+    },
+    {
+      membroId: 'membro-matheus',
+      nome: 'Matheus Costa',
+      nomeUsuario: 'matheuscosta',
+      fotoUrl: null,
+      funcao: 'ATLETA',
+      entrouEm: '2024-01-10T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 12,
+        vitorias: 7,
+        gols: 3,
+      },
+    },
+  ],
+  '5': [
+    {
+      membroId: 'membro-eduardo',
+      nome: 'Eduardo Nunes',
+      nomeUsuario: 'eduardonunes',
+      fotoUrl: null,
+      funcao: 'CAPITAO',
+      entrouEm: '2024-03-10T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 7,
+        vitorias: 3,
+        gols: 2,
+      },
+    },
+  ],
+  '6': [
+    {
+      membroId: 'membro-leonardo',
+      nome: 'Leonardo Paiva',
+      nomeUsuario: 'leonardopaiva',
+      fotoUrl: null,
+      funcao: 'CAPITAO',
+      entrouEm: '2022-03-10T12:00:00.000Z',
+      estatisticas: {
+        ...estatisticasZeradas,
+        partidas: 9,
+        vitorias: 4,
+        defesas: 28,
+      },
     },
   ],
 };
+
+const atletasPublicosPorId = new Map(
+  atletasPublicosMock.map((atleta) => [atleta.id, atleta]),
+);
+
+for (const time of timesPublicosMock) {
+  const existentes = elencoPorTime[String(time.id)] ?? [];
+  const nomesExistentes = new Set(existentes.map((membro) => membro.nome));
+  const complementares = time.atletaIds.flatMap((atletaId) => {
+    const atleta = atletasPublicosPorId.get(atletaId);
+    if (!atleta || nomesExistentes.has(atleta.nome)) return [];
+    const vinculo = atleta.historicoTimes.find(
+      (item) => item.time === time.nome && !item.fim,
+    );
+    return [
+      {
+        membroId: `membro-${atleta.id}`,
+        nome: atleta.nome,
+        nomeUsuario: atleta.nome
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLocaleLowerCase('pt-BR')
+          .replace(/\s+/g, ''),
+        fotoUrl: null,
+        funcao: vinculo?.funcao.toLocaleLowerCase('pt-BR').includes('capitão')
+          ? ('CAPITAO' as const)
+          : ('ATLETA' as const),
+        entrouEm: `${vinculo?.inicio ?? '2026'}-01-10T12:00:00.000Z`,
+        estatisticas: {
+          ...estatisticasZeradas,
+          partidas: atleta.partidasPublicadas,
+          vitorias: Math.floor(atleta.partidasPublicadas * 0.6),
+          gols: atleta.golsPublicados,
+          defesas:
+            atleta.posicao === 'Goleiro' ? atleta.partidasPublicadas * 2 : 0,
+        },
+      },
+    ];
+  });
+  elencoPorTime[String(time.id)] = [...existentes, ...complementares];
+}
 
 const convitesPorConta: Readonly<
   Record<string, readonly ConviteTimePendente[]>
@@ -86,8 +277,8 @@ const convitesPorConta: Readonly<
         escudoUrl: null,
       },
       remetente: {
-        nome: 'Rafael Lima',
-        nomeUsuario: 'rafaellima',
+        nome: 'Henrique Alves',
+        nomeUsuario: 'henriquealves',
       },
       expiraEm: '2030-01-07T12:00:00.000Z',
     },
@@ -251,11 +442,11 @@ export class TimesPrototipo implements TimesApi {
               funcao: 'CAPITAO' as const,
               entrouEm: '2025-01-10T12:00:00.000Z',
               time: {
-                id: '2',
-                nome: 'Leões FC',
-                sigla: 'LEO',
-                escudoUrl: this.escudos.get('2') ?? null,
-                status: this.timesDesativados.has('2')
+                id: '1',
+                nome: 'Vila Nova FC',
+                sigla: 'VNF',
+                escudoUrl: this.escudos.get('1') ?? null,
+                status: this.timesDesativados.has('1')
                   ? ('DESATIVADO' as const)
                   : ('ATIVO' as const),
               },
@@ -341,7 +532,7 @@ export class TimesPrototipo implements TimesApi {
   ): Promise<SaidaVoluntariaTime> {
     const contaId = this.obterContaAtivaId(accessToken);
     if (!contaId) throw this.erroNaoAutenticado();
-    if (timeId === '2' && contaId === 'mock-person-1') {
+    if (timeId === '1' && contaId === 'mock-person-1') {
       throw new ErroApi({
         type: 'https://campolivre.app/problemas/capitao-deve-transferir-funcao',
         title: 'Transfira a capitania antes de sair',
@@ -383,8 +574,8 @@ export class TimesPrototipo implements TimesApi {
       {
         membroId: 'membro-capitao',
         usuarioId: 'mock-person-1',
-        nome: 'Rafael Lima',
-        entrouEm: '2028-01-01T12:00:00.000Z',
+        nome: 'Marcos Oliveira',
+        entrouEm: '2024-01-15T12:00:00.000Z',
         saiuEm: null,
         funcaoAtual: 'CAPITAO' as const,
         eventosFuncao: [],
@@ -424,7 +615,7 @@ export class TimesPrototipo implements TimesApi {
   ): Promise<ReativacaoTime> {
     const contaId = this.obterContaAtivaId(accessToken);
     if (!contaId) throw this.erroNaoAutenticado();
-    if (timeId !== '2' || contaId !== 'mock-person-1') {
+    if (timeId !== '1' || contaId !== 'mock-person-1') {
       throw this.erroNaoAutorizado();
     }
     this.timesDesativados.delete(timeId);
@@ -435,7 +626,7 @@ export class TimesPrototipo implements TimesApi {
     email: string,
     accessToken: string,
   ): Promise<AtletaParaConvite> {
-    this.garantirCapitao('2', accessToken);
+    this.garantirCapitao('1', accessToken);
     if (email.trim().toLowerCase() !== 'atleta@campolivre.test') {
       throw new ErroApi({
         type: 'https://campolivre.app/problemas/usuario-nao-encontrado',
@@ -646,10 +837,18 @@ export class TimesPrototipo implements TimesApi {
         ...resumo.municipio,
       },
       status: this.timesDesativados.has(timeId) ? 'DESATIVADO' : 'ATIVO',
-      capitao: { nome: 'Rafael Lima', nomeUsuario: 'rafaellima' },
+      capitao: (() => {
+        const capitao = (elencoPorTime[timeId] ?? []).find(
+          (membro) => membro.funcao === 'CAPITAO',
+        );
+        return {
+          nome: capitao?.nome ?? 'Capitão do time',
+          nomeUsuario: capitao?.nomeUsuario ?? 'capitao',
+        };
+      })(),
       elencoResumo: [],
       historicoPartidas: [],
-      estatisticasGerais: { ...estatisticasZeradas, partidas: 12, vitorias: 8 },
+      estatisticasGerais: estatisticasPorTime[timeId] ?? estatisticasZeradas,
       estatisticasPorCampeonato: [],
       posicoesLeaderboards: [],
       titulosEColocacoes: [],
@@ -807,7 +1006,7 @@ export class TimesPrototipo implements TimesApi {
     }
     const criado = this.timesCriados.get(timeId);
     const capitaoDoCriado = criado?.contaId === contaId;
-    if (!capitaoDoCriado && (timeId !== '2' || contaId !== 'mock-person-1')) {
+    if (!capitaoDoCriado && (timeId !== '1' || contaId !== 'mock-person-1')) {
       throw new ErroApi({
         type: 'https://campolivre.app/problemas/nao-autorizado',
         title: 'Operação não autorizada',

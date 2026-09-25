@@ -2,6 +2,7 @@ import { vinculosCampeonatoOrganizadorMock } from '@/mocks/organizador/dados-org
 import { obterPublicacaoPartidaMock } from '@/mocks/partidas/publicacao-partida.mock';
 import {
   campeonatosPublicosMock,
+  classificacaoPublicaMock,
   locaisPartidaPublicosMock,
   partidasPublicasMock,
   timesPublicosMock,
@@ -14,6 +15,7 @@ import type {
   AgendamentoPartidaInput,
   AgendamentoPartidaSalvo,
   CancelamentoPartidaInput,
+  ClassificacaoCampeonato,
   DetalheAdministrativoPartida,
   DetalhePublicoPartida,
   FiltrosAgendaPartidas,
@@ -57,29 +59,29 @@ export class PartidasPrototipo implements PartidasApi {
       {
         partidaId: '1',
         campeonatoId: '1',
-        faseId: 'fase-prototipo',
+        faseId: 'fase-classificatoria-1',
         grupoId: null,
         confrontoId: null,
         rodada: 1,
         mandante: {
           timeCampeonatoId: 'tc-1',
           timeId: '1',
-          nome: 'Mandante',
+          nome: 'Vila Nova FC',
         },
         visitante: {
           timeCampeonatoId: 'tc-2',
           timeId: '2',
-          nome: 'Visitante',
+          nome: 'Leões FC',
         },
-        estado: 'PENDENTE_AGENDAMENTO',
+        estado: 'AGENDADA',
         agendamento: {
-          inicioEm: null,
-          campoId: null,
+          inicioEm: '2026-09-27T18:00:00.000Z',
+          campoId: '1',
           versao: 1,
-          autorizacaoExternaConfirmada: false,
+          autorizacaoExternaConfirmada: true,
         },
         motivoAdministrativo: null,
-        operacoesPermitidas: ['AGENDAR', 'CANCELAR', 'REGISTRAR_WO'],
+        operacoesPermitidas: ['REAGENDAR', 'ADIAR', 'CANCELAR', 'REGISTRAR_WO'],
         pdfOficial: { status: 'INEXISTENTE' },
         atualizadoEm: agora(),
       },
@@ -178,7 +180,7 @@ export class PartidasPrototipo implements PartidasApi {
     opcoes?: OpcoesConsulta,
   ): Promise<PaginaAgendaPartidas> {
     opcoes?.signal?.throwIfAborted();
-    const todos = Array.from(this.partidas.values())
+    const operacionais = Array.from(this.partidas.values())
       .filter(
         (partida) =>
           (!campeonatoId || partida.campeonatoId === campeonatoId) &&
@@ -201,33 +203,118 @@ export class PartidasPrototipo implements PartidasApi {
               partida.agendamento.inicioEm <= inicioAte,
             )),
       )
-      .map((partida) => ({
-        partidaId: partida.partidaId,
-        campeonato: {
-          id: partida.campeonatoId,
-          nome: `Campeonato ${partida.campeonatoId} (simulado)`,
-        },
-        faseId: partida.faseId,
-        rodada: partida.rodada,
-        mandante: {
-          timeId: partida.mandante.timeId,
-          nome: partida.mandante.nome,
-          sigla: 'MAN',
-        },
-        visitante: {
-          timeId: partida.visitante.timeId,
-          nome: partida.visitante.nome,
-          sigla: 'VIS',
-        },
-        inicioEm: partida.agendamento.inicioEm,
-        campo: partida.agendamento.campoId
-          ? {
-              id: partida.agendamento.campoId,
-              nome: `Campo ${partida.agendamento.campoId} (simulado)`,
-            }
-          : null,
-        estado: partida.estado,
-      }));
+      .map((partida) => {
+        const campeonato = campeonatosPublicosMock.find(
+          (item) => String(item.id) === partida.campeonatoId,
+        );
+        const mandante = timesPublicosMock.find(
+          (item) => String(item.id) === partida.mandante.timeId,
+        );
+        const visitante = timesPublicosMock.find(
+          (item) => String(item.id) === partida.visitante.timeId,
+        );
+        const campo = locaisPartidaPublicosMock.find(
+          (item) => String(item.id) === partida.agendamento.campoId,
+        );
+        return {
+          partidaId: partida.partidaId,
+          campeonato: {
+            id: partida.campeonatoId,
+            nome: campeonato?.nome ?? 'Campeonato',
+          },
+          faseId: partida.faseId,
+          rodada: partida.rodada,
+          mandante: {
+            timeId: partida.mandante.timeId,
+            nome: partida.mandante.nome,
+            sigla: mandante?.escudo ?? 'MAN',
+          },
+          visitante: {
+            timeId: partida.visitante.timeId,
+            nome: partida.visitante.nome,
+            sigla: visitante?.escudo ?? 'VIS',
+          },
+          inicioEm: partida.agendamento.inicioEm,
+          campo: partida.agendamento.campoId
+            ? {
+                id: partida.agendamento.campoId,
+                nome: campo?.nome ?? 'Campo cadastrado',
+              }
+            : null,
+          estado: partida.estado,
+        };
+      });
+    const idsOperacionais = new Set(
+      operacionais.map((partida) => partida.partidaId),
+    );
+    const legadas = partidasPublicasMock
+      .filter(
+        (partida) =>
+          !idsOperacionais.has(String(partida.id)) &&
+          partida.estado !== 'AGUARDANDO_PUBLICACAO',
+      )
+      .map((partida) => {
+        const campeonato = campeonatosPublicosMock.find(
+          (item) => item.id === partida.campeonatoId,
+        );
+        const mandante = timesPublicosMock.find(
+          (item) => item.id === partida.timeCasaId,
+        );
+        const visitante = timesPublicosMock.find(
+          (item) => item.id === partida.timeForaId,
+        );
+        const campo = locaisPartidaPublicosMock.find(
+          (item) => item.id === partida.campoId,
+        );
+        const inicioEm =
+          partida.data && partida.hora
+            ? `${partida.data}T${partida.hora}:00.000Z`
+            : null;
+        return {
+          partidaId: String(partida.id),
+          campeonato: {
+            id: String(partida.campeonatoId),
+            nome: campeonato?.nome ?? 'Campeonato',
+          },
+          faseId: `${partida.campeonatoId}-fase-1`,
+          rodada: Number.parseInt(partida.rodada.replace(/\D/g, ''), 10) || 1,
+          mandante: {
+            timeId: String(partida.timeCasaId),
+            nome: mandante?.nome ?? 'Time removido',
+            sigla: mandante?.escudo ?? 'TIM',
+          },
+          visitante: {
+            timeId: String(partida.timeForaId),
+            nome: visitante?.nome ?? 'Time removido',
+            sigla: visitante?.escudo ?? 'TIM',
+          },
+          inicioEm,
+          campo: campo ? { id: String(campo.id), nome: campo.nome } : null,
+          estado: estadoPublicoParaApi[partida.estado],
+        };
+      })
+      .filter(
+        (partida) =>
+          (!campeonatoId || partida.campeonato.id === campeonatoId) &&
+          (!faseId || partida.faseId === faseId) &&
+          (!timeId ||
+            partida.mandante.timeId === timeId ||
+            partida.visitante.timeId === timeId) &&
+          (!campoId || partida.campo?.id === campoId) &&
+          (!municipioId ||
+            municipioId === '00000000-0000-4000-8000-000000000001') &&
+          (!estado || partida.estado === estado) &&
+          (!inicioDe ||
+            Boolean(partida.inicioEm && partida.inicioEm >= inicioDe)) &&
+          (!inicioAte ||
+            Boolean(partida.inicioEm && partida.inicioEm <= inicioAte)),
+      );
+    const todos = [
+      ...operacionais,
+      ...legadas.sort((a, b) =>
+        (a.inicioEm ?? '').localeCompare(b.inicioEm ?? ''),
+      ),
+    ];
     const inicio = (pagina - 1) * tamanho;
     return {
       itens: todos.slice(inicio, inicio + tamanho),
@@ -267,7 +354,7 @@ export class PartidasPrototipo implements PartidasApi {
         nome: campeonato?.nome ?? 'Campeonato',
       },
       fase: {
-        id: `fase-${partida.campeonatoId}`,
+        id: `${partida.campeonatoId}-fase-1`,
         nome: partida.fase,
         tipo: 'PONTOS_CORRIDOS',
       },
@@ -331,15 +418,27 @@ export class PartidasPrototipo implements PartidasApi {
     if (legada) return legada;
     const partida = this.obter(partidaId);
     const wo = this.resultadosWo.get(partidaId);
+    const campeonato = campeonatosPublicosMock.find(
+      (item) => String(item.id) === partida.campeonatoId,
+    );
+    const mandante = timesPublicosMock.find(
+      (item) => String(item.id) === partida.mandante.timeId,
+    );
+    const visitante = timesPublicosMock.find(
+      (item) => String(item.id) === partida.visitante.timeId,
+    );
+    const campo = locaisPartidaPublicosMock.find(
+      (item) => String(item.id) === partida.agendamento.campoId,
+    );
     return {
       partidaId,
       campeonato: {
         id: partida.campeonatoId,
-        nome: `Campeonato ${partida.campeonatoId} (simulado)`,
+        nome: campeonato?.nome ?? 'Campeonato',
       },
       fase: {
         id: partida.faseId,
-        nome: 'Fase simulada',
+        nome: 'Fase classificatória',
         tipo: 'PONTOS_CORRIDOS',
       },
       grupo: partida.grupoId
@@ -350,23 +449,18 @@ export class PartidasPrototipo implements PartidasApi {
       mandante: {
         timeId: partida.mandante.timeId,
         nome: partida.mandante.nome,
-        sigla: 'MAN',
+        sigla: mandante?.escudo ?? 'MAN',
         escudoUrl: null,
       },
       visitante: {
         timeId: partida.visitante.timeId,
         nome: partida.visitante.nome,
-        sigla: 'VIS',
+        sigla: visitante?.escudo ?? 'VIS',
         escudoUrl: null,
       },
       agendamento: {
         inicioEm: partida.agendamento.inicioEm,
-        campo: partida.agendamento.campoId
-          ? {
-              id: partida.agendamento.campoId,
-              nome: `Campo ${partida.agendamento.campoId} (simulado)`,
-            }
-          : null,
+        campo: campo ? { id: String(campo.id), nome: campo.nome } : null,
       },
       estado: partida.estado,
       motivoPublico: null,
@@ -437,7 +531,13 @@ export class PartidasPrototipo implements PartidasApi {
       estado: 'AGENDADA',
       agendamento: {
         inicioEm: input.inicioEm,
-        campo: { id: input.campoId, nome: `Campo ${input.campoId} (simulado)` },
+        campo: {
+          id: input.campoId,
+          nome:
+            locaisPartidaPublicosMock.find(
+              (item) => String(item.id) === input.campoId,
+            )?.nome ?? 'Campo selecionado',
+        },
         versao: partida.agendamento.versao,
         autorizacaoExternaConfirmada: true,
       },
@@ -536,6 +636,52 @@ export class PartidasPrototipo implements PartidasApi {
       tamanho,
       totalItens: todos.length,
       totalPaginas: Math.ceil(todos.length / tamanho),
+    };
+  }
+
+  async consultarClassificacao(
+    campeonatoId: string,
+    faseId: string,
+    grupoId?: string,
+    opcoes?: OpcoesConsulta,
+  ): Promise<ClassificacaoCampeonato> {
+    opcoes?.signal?.throwIfAborted();
+    const linhas = classificacaoPublicaMock
+      .filter((linha) => String(linha.campeonatoId) === campeonatoId)
+      .sort((a, b) => b.pontos - a.pontos || b.vitorias - a.vitorias)
+      .map((linha, indice) => {
+        const time = timesPublicosMock.find((item) => item.id === linha.timeId);
+        return {
+          posicao: indice + 1,
+          timeId: String(linha.timeId),
+          nome: time?.nome ?? 'Time removido',
+          jogos: linha.jogos,
+          vitorias: linha.vitorias,
+          empates: linha.empates,
+          derrotas: linha.derrotas,
+          golsPro: linha.golsPro,
+          golsContra: linha.golsContra,
+          saldoGols: linha.golsPro - linha.golsContra,
+          pontos: linha.pontos,
+          classificado: indice < 4,
+        };
+      });
+    return {
+      campeonatoId,
+      faseId,
+      grupoId: grupoId ?? null,
+      tipoProjecao: 'CLASSIFICACAO',
+      estadoProjecao: linhas.length > 0 ? 'PARCIAL' : 'SEM_RESULTADOS',
+      criteriosAplicados: [
+        'PONTOS',
+        'VITORIAS',
+        'SALDO_GOLS',
+        'GOLS_PRO',
+        'ORDEM_INSCRICAO',
+      ],
+      linhas,
+      confrontos: [],
+      atualizadoEm: '2026-09-24T12:00:00.000Z',
     };
   }
 

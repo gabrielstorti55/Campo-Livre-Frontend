@@ -247,9 +247,6 @@ export function TelaPerfilAtletaAutenticado() {
   const { session } = useSessao();
   if (!session) return <p role="status">Carregando perfil...</p>;
   return (
-    <EditorPerfil
-      key={session.minhaConta.id}
-      conta={session.minhaConta}
-    />
+    <EditorPerfil key={session.minhaConta.id} conta={session.minhaConta} />
   );
 }

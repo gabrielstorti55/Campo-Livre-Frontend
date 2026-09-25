@@ -36,9 +36,14 @@ describe('PartidasPrototipo', () => {
     );
     expect(detalhe.sumulaPublica?.substituicoes).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ entra: 'Vitor Nunes', minuto: 61 }),
+        expect.objectContaining({ entra: 'Gabriel Martins', minuto: 61 }),
       ]),
     );
+    expect(
+      detalhe.sumulaPublica?.gols.every(
+        (gol) => gol.time === 'Vila Nova FC' || gol.time === 'Bairro Sul FC',
+      ),
+    ).toBe(true);
   });
 
   it('projeta estados públicos sem expor resultado não publicado', async () => {

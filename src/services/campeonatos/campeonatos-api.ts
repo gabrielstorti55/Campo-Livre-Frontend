@@ -170,7 +170,7 @@ export interface CampeonatosApi {
   }>;
   consultarFases(
     campeonatoId: string,
-    accessToken: string,
+    accessToken?: string,
   ): Promise<FasesPersistidasCampeonato>;
   consultarDistribuicao(
     campeonatoId: string,

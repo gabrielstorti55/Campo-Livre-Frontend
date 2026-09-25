@@ -1,5 +1,9 @@
 import type { CampeonatosApi } from '@/services/campeonatos/campeonatos-api';
-import { campeonatosPublicosMock } from '@/mocks/publico/dados-publicos';
+import {
+  atletasPublicosMock,
+  campeonatosPublicosMock,
+  timesPublicosMock,
+} from '@/mocks/publico/dados-publicos';
 import {
   campeonatosOrganizadorMock,
   vinculosCampeonatoOrganizadorMock,
@@ -47,6 +51,25 @@ function serializarPayloadCanonico(valor: unknown): string {
   }
   return JSON.stringify(valor);
 }
+
+function obterTimePublico(timeId: string | number) {
+  return timesPublicosMock.find((time) => time.id === Number(timeId));
+}
+
+const atletasPorId = new Map(
+  atletasPublicosMock.map((atleta) => [atleta.id, atleta]),
+);
+
+const elencosCampeonatoMock: Readonly<Record<string, readonly string[]>> =
+  Object.fromEntries(
+    timesPublicosMock.map((time) => [
+      String(time.id),
+      time.atletaIds.flatMap((atletaId) => {
+        const atleta = atletasPorId.get(atletaId);
+        return atleta ? [atleta.nome] : [];
+      }),
+    ]),
+  );
 
 export class CampeonatosPrototipo implements CampeonatosApi {
   private readonly payloadsIdempotentes = new Map<string, string>();
@@ -773,14 +796,17 @@ export class CampeonatosPrototipo implements CampeonatosApi {
   ): Promise<PaginaTimesParticipantes> {
     if (accessToken) this.autenticar(accessToken);
     const campeonato = this.obter(campeonatoId);
-    const todos = campeonato.timeIds.map((timeId, indice) => ({
-      timeId: String(timeId),
-      nome: `Time ${timeId}`,
-      sigla: `T${String(timeId).padStart(2, '0')}`,
-      escudoUrl: null,
-      statusParticipacao: 'ATIVO' as const,
-      ordemInscricao: indice + 1,
-    }));
+    const todos = campeonato.timeIds.map((timeId, indice) => {
+      const time = obterTimePublico(timeId);
+      return {
+        timeId: String(timeId),
+        nome: time?.nome ?? `Time ${timeId}`,
+        sigla: time?.escudo ?? `T${String(timeId).padStart(2, '0')}`,
+        escudoUrl: null,
+        statusParticipacao: 'ATIVO' as const,
+        ordemInscricao: indice + 1,
+      };
+    });
     const inicio = (pagina - 1) * tamanho;
     return {
       itens: todos.slice(inicio, inicio + tamanho),
@@ -797,6 +823,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     accessToken: string,
   ) {
     this.autorizarOperacao(campeonatoId, accessToken, 'CONVIDAR_TIME');
+    const time = obterTimePublico(timeId);
     const convite = {
       conviteId: `convite-${campeonatoId}-${timeId}`,
       timeId,
@@ -806,8 +833,20 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     const enviados = this.convitesPorCampeonato.get(campeonatoId) ?? [];
     enviados.push({
       conviteId: convite.conviteId,
-      time: { id: timeId, nome: `Time ${timeId}`, sigla: 'TIM' },
-      destinatario: { usuarioId: `capitao-${timeId}`, nome: 'Capitão do time' },
+      time: {
+        id: timeId,
+        nome: time?.nome ?? `Time ${timeId}`,
+        sigla: time?.escudo ?? 'TIM',
+      },
+      destinatario: {
+        usuarioId: `capitao-${timeId}`,
+        nome:
+          timeId === '1'
+            ? 'Marcos Oliveira'
+            : timeId === '2'
+              ? 'Henrique Alves'
+              : `Capitão do ${time?.nome ?? 'time'}`,
+      },
       status: 'PENDENTE',
       enviadoEm: new Date().toISOString(),
       expiraEm: convite.expiraEm,
@@ -862,19 +901,33 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     accessToken: string,
   ): Promise<ElencoContextualCampeonato> {
     this.autorizar(campeonatoId, accessToken);
+    const time = obterTimePublico(timeId);
+    const nomesAtletas = elencosCampeonatoMock[timeId] ?? [];
+    const atletas = nomesAtletas.map((nome, indice) => ({
+      atletaCampeonatoId: `atleta-campeonato-${campeonatoId}-${timeId}-${indice + 1}`,
+      membroTimeId: `membro-${timeId}-${indice + 1}`,
+      nomeUsuario: nome
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/\s+/g, ''),
+      nomeExibicao: nome,
+      status: 'ATIVO' as const,
+      inscritoEm: '2026-08-10T12:00:00.000Z',
+    }));
     return {
       campeonatoId,
       time: {
         id: timeId,
-        nome: `Time ${timeId}`,
-        sigla: 'TIM',
+        nome: time?.nome ?? `Time ${timeId}`,
+        sigla: time?.escudo ?? 'TIM',
         statusParticipacao: 'ATIVO',
       },
       limiteAtletasPorTime: 25,
-      minimoAtletas: 11,
-      atletas: [],
-      quantidadeAtivos: 0,
-      pendencias: ['Elenco abaixo do mínimo'],
+      minimoAtletas: 7,
+      atletas,
+      quantidadeAtivos: atletas.length,
+      pendencias: atletas.length < 7 ? ['Elenco abaixo do mínimo'] : [],
       atualizadoEm: new Date().toISOString(),
     };
   }
@@ -903,13 +956,37 @@ export class CampeonatosPrototipo implements CampeonatosApi {
 
   async consultarFases(
     campeonatoId: string,
-    accessToken: string,
+    accessToken?: string,
   ): Promise<FasesPersistidasCampeonato> {
-    this.autorizar(campeonatoId, accessToken);
-    const fases = this.fasesPorCampeonato.get(campeonatoId) ?? [];
+    if (accessToken) this.autorizar(campeonatoId, accessToken);
+    const campeonato = this.obter(campeonatoId);
+    const fasesConfiguradas = this.fasesPorCampeonato.get(campeonatoId);
+    const fases = fasesConfiguradas ?? [
+      {
+        ordem: 1,
+        nome:
+          campeonato.formato === 'MATA_MATA'
+            ? 'Fase eliminatória'
+            : 'Fase classificatória',
+        tipo:
+          campeonato.formato === 'MATA_MATA'
+            ? ('MATA_MATA' as const)
+            : ('PONTOS_CORRIDOS' as const),
+        turnos: 'TURNO_UNICO' as const,
+        pontosVitoria: 3,
+        pontosEmpate: 1,
+        pontosDerrota: 0,
+        quantidadeGrupos: null,
+        classificadosPorGrupo: null,
+        numeroPartidasConfronto: null,
+        permiteProrrogacao: null,
+        permitePenaltis: null,
+        golDeOuro: null,
+      },
+    ];
     const materializadas =
       this.fasesMaterializadasPorCampeonato.get(campeonatoId) ??
-      new Set<string>();
+      new Set<string>(fasesConfiguradas ? [] : [`${campeonatoId}-fase-1`]);
     return {
       campeonatoId,
       versaoConfiguracao: 3,

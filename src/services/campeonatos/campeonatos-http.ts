@@ -357,11 +357,11 @@ export class CampeonatosHttp implements CampeonatosApi {
 
   consultarFases(
     campeonatoId: string,
-    accessToken: string,
+    accessToken?: string,
   ): Promise<FasesPersistidasCampeonato> {
     return this.client.request<FasesPersistidasCampeonato>(
       `/campeonatos/${campeonatoId}/fases`,
-      { accessToken },
+      accessToken ? { accessToken } : undefined,
     );
   }
 

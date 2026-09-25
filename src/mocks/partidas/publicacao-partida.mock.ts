@@ -15,15 +15,20 @@ const publicacaoPorPartida: Record<string, PublicacaoPartidaMock> = {
     resultadoPublicado: true,
     sumulaPublica: {
       gols: [
-        { autor: 'Marcos Oliveira', time: 'Time A', minuto: 12 },
-        { autor: 'Felipe Rocha', time: 'Time A', minuto: 37 },
-        { autor: 'Rogério Lima', time: 'Bairro Sul FC', minuto: 51 },
-        { autor: 'Lucas Prado', time: 'Time A', minuto: 68 },
+        { autor: 'Marcos Oliveira', time: 'Vila Nova FC', minuto: 12 },
+        { autor: 'Bruno Alves', time: 'Vila Nova FC', minuto: 37 },
+        { autor: 'Eduardo Nunes', time: 'Bairro Sul FC', minuto: 51 },
+        { autor: 'Marcos Oliveira', time: 'Vila Nova FC', minuto: 68 },
       ],
       cartoes: [
-        { jogador: 'Diego Souza', time: 'Time A', minuto: 44, tipo: 'amarelo' },
         {
-          jogador: 'Rogério Lima',
+          jogador: 'Diego Souza',
+          time: 'Vila Nova FC',
+          minuto: 44,
+          tipo: 'amarelo',
+        },
+        {
+          jogador: 'Eduardo Nunes',
           time: 'Bairro Sul FC',
           minuto: 73,
           tipo: 'vermelho',
@@ -31,10 +36,10 @@ const publicacaoPorPartida: Record<string, PublicacaoPartidaMock> = {
       ],
       substituicoes: [
         {
-          time: 'Time A',
+          time: 'Vila Nova FC',
           minuto: 61,
-          sai: 'Felipe Rocha',
-          entra: 'Vitor Nunes',
+          sai: 'Bruno Alves',
+          entra: 'Gabriel Martins',
         },
       ],
     },

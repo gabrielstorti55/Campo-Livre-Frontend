@@ -9,7 +9,7 @@ import '@fontsource/barlow-condensed/800.css';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import { IndicadorModoPrototipo } from '@/components/layout/indicador-modo-prototipo';
+// import { IndicadorModoPrototipo } from '@/components/layout/indicador-modo-prototipo';
 import { obterModoAplicacao } from '@/config/modo-aplicacao';
 import { ProvedoresAplicacao } from '@/layouts/provedores-aplicacao';
 
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <body>
         <ProvedoresAplicacao modo={modo}>{children}</ProvedoresAplicacao>
-        <IndicadorModoPrototipo modo={modo} />
+        {/* <IndicadorModoPrototipo modo={modo} /> */}
       </body>
     </html>
   );

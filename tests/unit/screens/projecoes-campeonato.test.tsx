@@ -10,6 +10,22 @@ const consultarCampeonato = vi.fn().mockResolvedValue({
   formato: 'PONTOS_CORRIDOS',
   municipio: { id: 'municipio-1', nome: 'Franca', uf: 'SP' },
 });
+const consultarFases = vi.fn().mockResolvedValue({
+  campeonatoId: 'campeonato-1',
+  versaoConfiguracao: 3,
+  fases: [
+    {
+      faseId: 'fase-1',
+      nome: 'Fase classificatória',
+      ordem: 1,
+      tipo: 'PONTOS_CORRIDOS',
+      quantidadeTurnos: 1,
+      classificadosPorGrupo: null,
+      grupos: [],
+      statusMaterializacao: 'GERADA',
+    },
+  ],
+});
 const listarAgenda = vi.fn().mockResolvedValue({
   itens: [
     {
@@ -29,8 +45,34 @@ const listarAgenda = vi.fn().mockResolvedValue({
   totalItens: 1,
   totalPaginas: 1,
 });
-const campeonatosApi = { consultarCampeonato };
-const partidasApi = { listarAgenda };
+const consultarClassificacao = vi.fn().mockResolvedValue({
+  campeonatoId: 'campeonato-1',
+  faseId: 'fase-1',
+  grupoId: null,
+  tipoProjecao: 'CLASSIFICACAO',
+  estadoProjecao: 'PARCIAL',
+  criteriosAplicados: ['PONTOS', 'VITORIAS', 'SALDO_GOLS', 'ORDEM_INSCRICAO'],
+  linhas: [
+    {
+      posicao: 1,
+      timeId: 'time-1',
+      nome: 'Leões',
+      jogos: 4,
+      vitorias: 3,
+      empates: 1,
+      derrotas: 0,
+      golsPro: 10,
+      golsContra: 3,
+      saldoGols: 7,
+      pontos: 10,
+      classificado: true,
+    },
+  ],
+  confrontos: [],
+  atualizadoEm: '2026-09-24T12:00:00.000Z',
+});
+const campeonatosApi = { consultarCampeonato, consultarFases };
+const partidasApi = { listarAgenda, consultarClassificacao };
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'campeonato-1' }),
@@ -43,7 +85,7 @@ vi.mock('@/contexts/partidas-api', () => ({
 }));
 
 describe('projeções esportivas do campeonato', () => {
-  it('compõe detalhe, agenda e links públicos somente pelas portas publicadas', async () => {
+  it('compõe classificação, estrutura, partidas e links somente pelas portas publicadas', async () => {
     render(<TelaDetalhesCampeonato />);
 
     expect(screen.getByRole('status')).toHaveTextContent(
@@ -54,6 +96,17 @@ describe('projeções esportivas do campeonato', () => {
     ).toBeVisible();
     expect(screen.getByText('Leões × Tigres')).toBeVisible();
     expect(
+      screen.getByRole('heading', { name: 'Classificação' }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: 'Estrutura da competição' }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: 'Partidas e resultados' }),
+    ).toBeVisible();
+    expect(screen.getByRole('columnheader', { name: 'Pts' })).toBeVisible();
+    expect(screen.getByText('Fase classificatória')).toBeVisible();
+    expect(
       screen.getByRole('link', { name: /Times participantes/ }),
     ).toHaveAttribute('href', '/campeonatos/campeonato-1/participantes');
     expect(screen.getByRole('link', { name: /Artilharia/ })).toHaveAttribute(
@@ -61,6 +114,11 @@ describe('projeções esportivas do campeonato', () => {
       '/campeonatos/campeonato-1/artilharia',
     );
     expect(consultarCampeonato).toHaveBeenCalledWith('campeonato-1');
+    expect(consultarFases).toHaveBeenCalledWith('campeonato-1');
+    expect(consultarClassificacao).toHaveBeenCalledWith(
+      'campeonato-1',
+      'fase-1',
+    );
     expect(listarAgenda).toHaveBeenCalledWith(
       { campeonatoId: 'campeonato-1', pagina: 1, tamanho: 20 },
       expect.objectContaining({ signal: expect.any(AbortSignal) }),

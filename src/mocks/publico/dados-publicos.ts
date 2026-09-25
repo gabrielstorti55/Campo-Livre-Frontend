@@ -21,7 +21,7 @@ export const campeonatosPublicosMock: CampeonatoPublico[] = [
     inscricoesAbertas: false,
     publicado: true,
     rodada: '4 de 7',
-    responsavel: { nome: 'Ana Costa', funcao: 'Organizadora' },
+    responsavel: { nome: 'Marcos Oliveira', funcao: 'Organizador responsável' },
     timeIds: [1, 2, 5, 6],
     estrutura: ['Fase classificatória', 'Turno único', 'Final por pontos'],
   },
@@ -43,12 +43,12 @@ export const campeonatosPublicosMock: CampeonatoPublico[] = [
   },
   {
     id: 3,
-    nome: 'Torneio Amigos 2025',
+    nome: 'Torneio Regional 2026',
     modalidade: 'Society',
     formato: 'MATA_MATA',
     municipio: 'Batatais',
     uf: 'SP',
-    inicio: '2025-09-05',
+    inicio: '2026-09-06',
     estado: 'EM_ANDAMENTO',
     inscricoesAbertas: false,
     publicado: true,
@@ -73,7 +73,7 @@ export const campeonatosPublicosMock: CampeonatoPublico[] = [
     inscricoesAbertas: true,
     publicado: true,
     rodada: 'Configuração publicada',
-    responsavel: { nome: 'Ana Costa', funcao: 'Organizadora' },
+    responsavel: { nome: 'Marcos Oliveira', funcao: 'Organizador responsável' },
     timeIds: [],
     estrutura: ['Fase de grupos', 'Semifinais', 'Final'],
   },
@@ -89,7 +89,7 @@ export const campeonatosPublicosMock: CampeonatoPublico[] = [
     inscricoesAbertas: false,
     publicado: true,
     rodada: 'Final',
-    responsavel: { nome: 'Ana Costa', funcao: 'Organizadora' },
+    responsavel: { nome: 'Marcos Oliveira', funcao: 'Organizador responsável' },
     timeIds: [1, 2],
     estrutura: ['Fase classificatória', 'Finalizada em 12/11/2025'],
   },
@@ -130,13 +130,13 @@ export const campeonatosPublicosMock: CampeonatoPublico[] = [
 export const timesPublicosMock: TimePublico[] = [
   {
     id: 1,
-    nome: 'Time A',
+    nome: 'Vila Nova FC',
     municipio: 'Franca',
     uf: 'SP',
     fundadoEm: '2021',
-    escudo: 'TA',
+    escudo: 'VN',
     publicado: true,
-    atletaIds: [1, 2, 3, 4],
+    atletaIds: [1, 2, 3, 4, 11, 12, 13],
     campeonatoIds: [1, 5],
   },
   {
@@ -147,7 +147,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2019',
     escudo: 'LF',
     publicado: true,
-    atletaIds: [5, 6],
+    atletaIds: [5, 6, 14, 15, 16, 17, 18],
     campeonatoIds: [1, 5],
   },
   {
@@ -158,7 +158,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2020',
     escudo: 'UV',
     publicado: true,
-    atletaIds: [7],
+    atletaIds: [7, 19, 20, 21, 22, 23, 24],
     campeonatoIds: [2],
   },
   {
@@ -169,7 +169,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2018',
     escudo: 'EA',
     publicado: true,
-    atletaIds: [8],
+    atletaIds: [8, 25, 26, 27, 28, 29, 30],
     campeonatoIds: [2, 3],
   },
   {
@@ -180,7 +180,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2022',
     escudo: 'BS',
     publicado: true,
-    atletaIds: [9],
+    atletaIds: [9, 31, 32, 33, 34, 35, 36],
     campeonatoIds: [1, 3, 7],
   },
   {
@@ -191,12 +191,12 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2017',
     escudo: 'RA',
     publicado: true,
-    atletaIds: [10],
+    atletaIds: [10, 37, 38, 39, 40, 41, 42],
     campeonatoIds: [1, 7],
   },
 ];
 
-export const atletasPublicosMock: AtletaPublico[] = [
+const atletasPrincipaisMock: AtletaPublico[] = [
   {
     id: 1,
     nome: 'Marcos Oliveira',
@@ -208,7 +208,7 @@ export const atletasPublicosMock: AtletaPublico[] = [
     golsPublicados: 7,
     partidasPublicadas: 14,
     historicoTimes: [
-      { time: 'Time A', funcao: 'Capitão e atacante', inicio: '2024' },
+      { time: 'Vila Nova FC', funcao: 'Capitão e atacante', inicio: '2024' },
       { time: 'Juventude FC', funcao: 'Atacante', inicio: '2022', fim: '2023' },
     ],
     campeonatos: [
@@ -229,7 +229,9 @@ export const atletasPublicosMock: AtletaPublico[] = [
     posicao: 'Goleiro',
     golsPublicados: 0,
     partidasPublicadas: 12,
-    historicoTimes: [],
+    historicoTimes: [
+      { time: 'Vila Nova FC', funcao: 'Goleiro', inicio: '2024' },
+    ],
     campeonatos: [],
   },
   {
@@ -241,7 +243,9 @@ export const atletasPublicosMock: AtletaPublico[] = [
     posicao: 'Zagueiro',
     golsPublicados: 1,
     partidasPublicadas: 11,
-    historicoTimes: [{ time: 'Time A', funcao: 'Zagueiro', inicio: '2025' }],
+    historicoTimes: [
+      { time: 'Vila Nova FC', funcao: 'Zagueiro', inicio: '2025' },
+    ],
     campeonatos: [
       {
         campeonato: 'Copa Franca 2026',
@@ -259,7 +263,9 @@ export const atletasPublicosMock: AtletaPublico[] = [
     posicao: 'Lateral',
     golsPublicados: 2,
     partidasPublicadas: 10,
-    historicoTimes: [{ time: 'Time A', funcao: 'Lateral', inicio: '2025' }],
+    historicoTimes: [
+      { time: 'Vila Nova FC', funcao: 'Lateral', inicio: '2025' },
+    ],
     campeonatos: [],
   },
   {
@@ -346,6 +352,272 @@ export const atletasPublicosMock: AtletaPublico[] = [
   },
 ];
 
+type AtletaComplementar = {
+  id: number;
+  nome: string;
+  foto: string;
+  posicao: string;
+  time: string;
+  municipio?: string;
+};
+
+const atletasComplementaresMock: AtletaPublico[] = (
+  [
+    {
+      id: 11,
+      nome: 'Gabriel Martins',
+      foto: 'GM',
+      posicao: 'Meia',
+      time: 'Vila Nova FC',
+    },
+    {
+      id: 12,
+      nome: 'Lucas Tavares',
+      foto: 'LT',
+      posicao: 'Zagueiro',
+      time: 'Vila Nova FC',
+    },
+    {
+      id: 13,
+      nome: 'Caio Mendes',
+      foto: 'CM',
+      posicao: 'Atacante',
+      time: 'Vila Nova FC',
+    },
+    {
+      id: 14,
+      nome: 'João Pedro',
+      foto: 'JP',
+      posicao: 'Goleiro',
+      time: 'Leões FC',
+    },
+    {
+      id: 15,
+      nome: 'Lucas Freitas',
+      foto: 'LF',
+      posicao: 'Zagueiro',
+      time: 'Leões FC',
+    },
+    {
+      id: 16,
+      nome: 'Caio Rodrigues',
+      foto: 'CR',
+      posicao: 'Lateral',
+      time: 'Leões FC',
+    },
+    {
+      id: 17,
+      nome: 'Felipe Rocha',
+      foto: 'FR',
+      posicao: 'Meia',
+      time: 'Leões FC',
+    },
+    {
+      id: 18,
+      nome: 'Vitor Nunes',
+      foto: 'VN',
+      posicao: 'Atacante',
+      time: 'Leões FC',
+    },
+    {
+      id: 19,
+      nome: 'Daniel Martins',
+      foto: 'DM',
+      posicao: 'Goleiro',
+      time: 'Unidos do Vale',
+    },
+    {
+      id: 20,
+      nome: 'Paulo Henrique',
+      foto: 'PH',
+      posicao: 'Zagueiro',
+      time: 'Unidos do Vale',
+    },
+    {
+      id: 21,
+      nome: 'Igor Santos',
+      foto: 'IS',
+      posicao: 'Lateral',
+      time: 'Unidos do Vale',
+    },
+    {
+      id: 22,
+      nome: 'Wesley Gomes',
+      foto: 'WG',
+      posicao: 'Meia',
+      time: 'Unidos do Vale',
+    },
+    {
+      id: 23,
+      nome: 'Murilo Dias',
+      foto: 'MD',
+      posicao: 'Meia',
+      time: 'Unidos do Vale',
+    },
+    {
+      id: 24,
+      nome: 'Renato Lima',
+      foto: 'RL',
+      posicao: 'Atacante',
+      time: 'Unidos do Vale',
+    },
+    {
+      id: 25,
+      nome: 'Bruno Duarte',
+      foto: 'BD',
+      posicao: 'Goleiro',
+      time: 'Estrela Azul',
+      municipio: 'Batatais',
+    },
+    {
+      id: 26,
+      nome: 'Vinícius Alves',
+      foto: 'VA',
+      posicao: 'Zagueiro',
+      time: 'Estrela Azul',
+      municipio: 'Batatais',
+    },
+    {
+      id: 27,
+      nome: 'Gustavo Reis',
+      foto: 'GR',
+      posicao: 'Lateral',
+      time: 'Estrela Azul',
+      municipio: 'Batatais',
+    },
+    {
+      id: 28,
+      nome: 'Thiago Moreira',
+      foto: 'TM',
+      posicao: 'Meia',
+      time: 'Estrela Azul',
+      municipio: 'Batatais',
+    },
+    {
+      id: 29,
+      nome: 'Pedro Henrique',
+      foto: 'PH',
+      posicao: 'Zagueiro',
+      time: 'Estrela Azul',
+      municipio: 'Batatais',
+    },
+    {
+      id: 30,
+      nome: 'Léo Costa',
+      foto: 'LC',
+      posicao: 'Atacante',
+      time: 'Estrela Azul',
+      municipio: 'Batatais',
+    },
+    {
+      id: 31,
+      nome: 'Vinícius Melo',
+      foto: 'VM',
+      posicao: 'Goleiro',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 32,
+      nome: 'Pedro Lucas',
+      foto: 'PL',
+      posicao: 'Zagueiro',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 33,
+      nome: 'Thiago Reis',
+      foto: 'TR',
+      posicao: 'Lateral',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 34,
+      nome: 'André Santos',
+      foto: 'AS',
+      posicao: 'Meia',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 35,
+      nome: 'Rogério Lima',
+      foto: 'RL',
+      posicao: 'Zagueiro',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 36,
+      nome: 'Rafael Nunes',
+      foto: 'RN',
+      posicao: 'Meia',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 37,
+      nome: 'Felipe Alves',
+      foto: 'FA',
+      posicao: 'Zagueiro',
+      time: 'Real Aeroporto',
+    },
+    {
+      id: 38,
+      nome: 'Gustavo Silva',
+      foto: 'GS',
+      posicao: 'Lateral',
+      time: 'Real Aeroporto',
+    },
+    {
+      id: 39,
+      nome: 'Renan Costa',
+      foto: 'RC',
+      posicao: 'Meia',
+      time: 'Real Aeroporto',
+    },
+    {
+      id: 40,
+      nome: 'Murilo Rocha',
+      foto: 'MR',
+      posicao: 'Atacante',
+      time: 'Real Aeroporto',
+    },
+    {
+      id: 41,
+      nome: 'Danilo Pereira',
+      foto: 'DP',
+      posicao: 'Zagueiro',
+      time: 'Real Aeroporto',
+    },
+    {
+      id: 42,
+      nome: 'Mateus Ribeiro',
+      foto: 'MR',
+      posicao: 'Atacante',
+      time: 'Real Aeroporto',
+    },
+  ] satisfies AtletaComplementar[]
+).map((atleta) => ({
+  id: atleta.id,
+  nome: atleta.nome,
+  foto: atleta.foto,
+  municipio: atleta.municipio ?? 'Franca',
+  uf: 'SP',
+  posicao: atleta.posicao,
+  golsPublicados: 0,
+  partidasPublicadas: 4,
+  historicoTimes: [
+    {
+      time: atleta.time,
+      funcao: atleta.posicao,
+      inicio: '2026',
+    },
+  ],
+  campeonatos: [],
+}));
+
+export const atletasPublicosMock: AtletaPublico[] = [
+  ...atletasPrincipaisMock,
+  ...atletasComplementaresMock,
+];
+
 export const locaisPartidaPublicosMock: LocalPartidaPublico[] = [
   { id: 1, nome: 'Campo Vera Cruz' },
   { id: 2, nome: 'Campo Santa Rita' },
@@ -361,7 +633,7 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 4',
     timeCasaId: 1,
     timeForaId: 2,
-    data: '2026-08-21',
+    data: '2026-09-27',
     hora: '15:00',
     campoId: 1,
     estado: 'AGENDADA',
@@ -376,7 +648,7 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 4',
     timeCasaId: 4,
     timeForaId: 3,
-    data: '2026-08-22',
+    data: '2026-09-28',
     hora: '17:00',
     campoId: 2,
     estado: 'AGENDADA',
@@ -389,7 +661,7 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 3',
     timeCasaId: 1,
     timeForaId: 5,
-    data: '2026-08-07',
+    data: '2026-09-13',
     hora: '15:00',
     campoId: 1,
     estado: 'RESULTADO_PUBLICADO',
@@ -407,7 +679,7 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 3',
     timeCasaId: 2,
     timeForaId: 6,
-    data: '2026-08-07',
+    data: '2026-09-20',
     hora: '17:00',
     campoId: 3,
     estado: 'AGUARDANDO_PUBLICACAO',
@@ -422,7 +694,10 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 5',
     timeCasaId: 5,
     timeForaId: 1,
-    estado: 'A_DEFINIR',
+    data: '2026-10-04',
+    hora: '15:00',
+    campoId: 2,
+    estado: 'AGENDADA',
     resultadoPublicado: false,
   },
   {
@@ -432,7 +707,10 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 5',
     timeCasaId: 6,
     timeForaId: 2,
-    estado: 'A_DEFINIR',
+    data: '2026-10-04',
+    hora: '17:00',
+    campoId: 3,
+    estado: 'AGENDADA',
     resultadoPublicado: false,
   },
   {
@@ -442,6 +720,9 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 6',
     timeCasaId: 1,
     timeForaId: 6,
+    data: '2026-09-30',
+    hora: '19:30',
+    campoId: 1,
     estado: 'ADIADA',
     motivoPublico: 'Condição do campo',
     resultadoPublicado: false,
@@ -453,7 +734,7 @@ export const partidasPublicasMock: PartidaPublica[] = [
     rodada: 'Rodada 7',
     timeCasaId: 3,
     timeForaId: 4,
-    data: '2026-08-28',
+    data: '2026-09-21',
     hora: '17:00',
     campoId: 1,
     estado: 'CANCELADA',

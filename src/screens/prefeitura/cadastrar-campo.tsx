@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCamposApi } from '@/contexts/campos-api';
 import { usePrefeiturasApi } from '@/contexts/prefeituras-api';
 import { useSessao } from '@/hooks/use-sessao';
+import { useEstadoOperacionalPrefeitura } from '@/stores/estado-operacional-prefeitura';
 import type { PrefeituraDaConta } from '@/types/api/prefeituras';
 
 export function TelaCadastrarCampo() {
@@ -20,6 +21,7 @@ export function TelaCadastrarCampo() {
   const camposApi = useCamposApi();
   const prefeiturasApi = usePrefeiturasApi();
   const { session, executarAutenticado } = useSessao();
+  const { createField } = useEstadoOperacionalPrefeitura();
   const identidade = session?.account.id ?? null;
   const [vinculos, setVinculos] = useState<{
     identidade: string | null;
@@ -91,6 +93,15 @@ export function TelaCadastrarCampo() {
           descricao: descricaoNormalizada,
         }),
       );
+      if (session?.prototipo) {
+        createField({
+          name: nomeNormalizado,
+          address: enderecoNormalizado,
+          neighborhood: 'Franca',
+          turf: 'Natural',
+          notes: descricaoNormalizada ?? '',
+        });
+      }
       router.push(`/campos/${criado.id}`);
     } catch {
       setErro('Não foi possível cadastrar o Campo. Tente novamente.');
