@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Trophy } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
@@ -12,7 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAutenticacaoApi } from '@/contexts/autenticacao-api';
 import { useMunicipiosApi } from '@/contexts/municipios-api';
 import { useSessao } from '@/hooks/use-sessao';
+import { obterAtletaPublicoDaContaPrototipo } from '@/mocks/atleta/perfis-contas';
 import type { MinhaConta, PosicaoPrincipal } from '@/types/api/autenticacao';
+import type { AtletaPublico } from '@/types/publico';
 import type { Municipio } from '@/types/api/municipios';
 
 const posicoes: Array<{ value: PosicaoPrincipal; label: string }> = [
@@ -23,7 +26,13 @@ const posicoes: Array<{ value: PosicaoPrincipal; label: string }> = [
   { value: 'ATACANTE', label: 'Atacante' },
 ];
 
-function EditorPerfil({ conta }: { conta: MinhaConta }) {
+function EditorPerfil({
+  conta,
+  atletaPublico,
+}: {
+  conta: MinhaConta;
+  atletaPublico?: AtletaPublico | undefined;
+}) {
   const api = useAutenticacaoApi();
   const municipiosApi = useMunicipiosApi();
   const { executarAutenticado, recarregarMinhaConta } = useSessao();
@@ -40,6 +49,10 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const titulos =
+    atletaPublico?.campeonatos.filter(
+      (participacao) => participacao.resultado === 'Campeão',
+    ) ?? [];
 
   useEffect(() => {
     void municipiosApi
@@ -118,6 +131,66 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
           </Button>
         }
       />
+
+      {atletaPublico ? (
+        <section
+          aria-label="Suas estatísticas"
+          className="mb-6 border-t-4 border-accent bg-green-dark p-5 text-white"
+        >
+          <h2 className="font-display text-xl font-bold uppercase">
+            Suas estatísticas
+          </h2>
+          <p className="mt-1 text-sm text-white/70">
+            Números publicados nas competições do CampoLivre
+          </p>
+          <dl className="mt-5 grid max-w-sm grid-cols-2 gap-6">
+            <div>
+              <dt className="text-sm text-white/70">Partidas</dt>
+              <dd className="font-display text-4xl font-bold">
+                {atletaPublico.partidasPublicadas}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-white/70">Gols</dt>
+              <dd className="font-display text-4xl font-bold">
+                {atletaPublico.golsPublicados}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      ) : null}
+
+      {titulos.length ? (
+        <section
+          aria-label="Títulos conquistados"
+          className="mb-6 border-y border-border bg-card py-5 sm:p-6"
+        >
+          <div className="flex items-center gap-3">
+            <Trophy className="h-6 w-6 text-accent" aria-hidden="true" />
+            <div>
+              <h2 className="font-display text-xl font-bold uppercase">
+                Títulos conquistados
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Campanhas publicadas em que você terminou como campeão
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 space-y-3">
+            {titulos.map((titulo) => (
+              <article
+                key={`${titulo.campeonato}-${titulo.ano}`}
+                className="border-l-2 border-accent pl-4"
+              >
+                <h3 className="font-semibold">{titulo.campeonato}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {titulo.resultado} · {titulo.ano}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <form onSubmit={salvar}>
         <CartaoFormulario>
@@ -246,7 +319,14 @@ function EditorPerfil({ conta }: { conta: MinhaConta }) {
 export function TelaPerfilAtletaAutenticado() {
   const { session } = useSessao();
   if (!session) return <p role="status">Carregando perfil...</p>;
+  const atletaPublico = session.prototipo
+    ? obterAtletaPublicoDaContaPrototipo(session.minhaConta.id)
+    : undefined;
   return (
-    <EditorPerfil key={session.minhaConta.id} conta={session.minhaConta} />
+    <EditorPerfil
+      key={session.minhaConta.id}
+      conta={session.minhaConta}
+      atletaPublico={atletaPublico}
+    />
   );
 }

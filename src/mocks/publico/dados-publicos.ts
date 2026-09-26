@@ -214,6 +214,11 @@ const atletasPrincipaisMock: AtletaPublico[] = [
     campeonatos: [
       { campeonato: 'Copa Franca 2025', resultado: 'Campeão', ano: '2025' },
       {
+        campeonato: 'Torneio dos Bairros 2024',
+        resultado: 'Campeão',
+        ano: '2024',
+      },
+      {
         campeonato: 'Liga Municipal 2025',
         resultado: 'Semifinalista',
         ano: '2025',
