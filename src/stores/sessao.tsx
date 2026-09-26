@@ -101,7 +101,9 @@ function criarSessao(
     ? linksOperacionaisMock(account)
     : { ...emptyLinks };
   const capabilities: ContextoPessoal[] = [
-    ...(links.teamIds.length ? (['atleta'] as const) : []),
+    ...(links.teamIds.length && !links.institutionalOrganizationIds.length
+      ? (['atleta'] as const)
+      : []),
     ...(account.organizadorHabilitado ? (['organizador'] as const) : []),
     ...(links.institutionalOrganizationIds.length
       ? (['prefeitura'] as const)
@@ -424,6 +426,7 @@ export function ProvedorSessao({
     if (!permitirMocksDominio) return;
     setSession((current) => {
       if (!current) return current;
+      if (current.capabilities.includes('prefeitura')) return current;
       return {
         ...current,
         capabilities: current.capabilities.includes('atleta')
@@ -441,6 +444,7 @@ export function ProvedorSessao({
 
   function createTeam(input: Omit<VinculoTimeCriado, 'id' | 'role'>) {
     if (!permitirMocksDominio) return '';
+    if (session?.capabilities.includes('prefeitura')) return '';
     const teamId = `local-${Date.now()}`;
     setSession((current) => {
       if (!current) return current;

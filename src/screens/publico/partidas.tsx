@@ -9,6 +9,7 @@ import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { Button } from '@/components/ui/button';
 import { usePartidasApi } from '@/contexts/partidas-api';
 import type {
+  DetalhePublicoPartida,
   ItemAgendaPartida,
   PaginaAgendaPartidas,
 } from '@/types/api/partidas';
@@ -22,7 +23,17 @@ const estadoLabel: Record<ItemAgendaPartida['estado'], string> = {
   ENCERRADA_WO: 'Encerrada por WO',
 };
 
-function CartaoPartida({ partida }: { partida: ItemAgendaPartida }) {
+function CartaoPartida({
+  partida,
+  resultado,
+}: {
+  partida: ItemAgendaPartida;
+  resultado: DetalhePublicoPartida['resultado'] | undefined;
+}) {
+  const placar =
+    partida.estado === 'ENCERRADA_SUMULA' && resultado?.tipo === 'SUMULA'
+      ? resultado.placarRegulamentar
+      : null;
   return (
     <Link
       href={`/partidas/${partida.partidaId}`}
@@ -47,7 +58,7 @@ function CartaoPartida({ partida }: { partida: ItemAgendaPartida }) {
           {partida.mandante.nome}
         </p>
         <div className="bg-green-dark px-3 py-2 font-display font-bold text-white">
-          ×
+          {placar ? `${placar.mandante} × ${placar.visitante}` : '×'}
         </div>
         <p className="text-right font-display text-lg font-semibold">
           {partida.visitante.nome}
@@ -70,6 +81,9 @@ export function TelaPartidas() {
   const [pagina, setPagina] = useState(1);
   const [tentativa, setTentativa] = useState(0);
   const [resultado, setResultado] = useState<PaginaAgendaPartidas | null>(null);
+  const [resultados, setResultados] = useState<
+    Record<string, DetalhePublicoPartida['resultado']>
+  >({});
   const [carregando, setCarregando] = useState(true);
   const [falhou, setFalhou] = useState(false);
 
@@ -82,15 +96,32 @@ export function TelaPartidas() {
       setCarregando(true);
       setFalhou(false);
       setResultado(null);
-      return api.listarAgenda(
+      setResultados({});
+      const agenda = await api.listarAgenda(
         { pagina, tamanho: 20 },
         { signal: controller.signal },
       );
+      const encerradas = agenda.itens.filter(
+        (partida) => partida.estado === 'ENCERRADA_SUMULA',
+      );
+      const detalhes = await Promise.all(
+        encerradas.map((partida) =>
+          api.consultarPartida(partida.partidaId, {
+            signal: controller.signal,
+          }),
+        ),
+      );
+      return { agenda, detalhes };
     };
     void carregar().then(
-      (resposta) => {
+      ({ agenda, detalhes }) => {
         if (controller.signal.aborted) return;
-        setResultado(resposta);
+        setResultado(agenda);
+        setResultados(
+          Object.fromEntries(
+            detalhes.map((partida) => [partida.partidaId, partida.resultado]),
+          ),
+        );
         setCarregando(false);
       },
       (erro: unknown) => {
@@ -137,7 +168,11 @@ export function TelaPartidas() {
       {resultado?.itens.length ? (
         <div className="grid gap-4 xl:grid-cols-2">
           {resultado.itens.map((partida) => (
-            <CartaoPartida key={partida.partidaId} partida={partida} />
+            <CartaoPartida
+              key={partida.partidaId}
+              partida={partida}
+              resultado={resultados[partida.partidaId]}
+            />
           ))}
         </div>
       ) : null}

@@ -73,6 +73,16 @@ export class PartidasChaveamentoPrototipo {
     );
   }
 
+  obterSumula(partidaId: string): SumulaCompletaPrototipo | null {
+    for (const confrontos of this.confrontosPorCampeonato.values()) {
+      const sumula = confrontos.find(
+        (item) => item.partidaId === partidaId,
+      )?.sumula;
+      if (sumula) return structuredClone(sumula);
+    }
+    return null;
+  }
+
   registrarResultado(
     partidaId: string,
     golsMandante: number,

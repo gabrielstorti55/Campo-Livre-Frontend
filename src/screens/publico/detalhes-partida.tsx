@@ -89,6 +89,7 @@ export function TelaDetalhesPartida() {
   }
 
   const placar = partida.resultado?.placarRegulamentar;
+  const penaltis = partida.resultado?.placarPenaltis;
   const inicio = partida.agendamento.inicioEm
     ? new Date(partida.agendamento.inicioEm)
     : null;
@@ -190,7 +191,13 @@ export function TelaDetalhesPartida() {
         </p>
         {placar ? (
           <p className="mt-2 font-display text-2xl font-bold">
-            Placar final: {placar.mandante} × {placar.visitante}
+            {penaltis ? 'Placar no jogo' : 'Placar final'}: {placar.mandante} ×{' '}
+            {placar.visitante}
+          </p>
+        ) : null}
+        {penaltis ? (
+          <p className="mt-2 font-display text-xl font-bold">
+            Pênaltis: {penaltis.mandante} × {penaltis.visitante}
           </p>
         ) : null}
         {!partida.resultado ? (

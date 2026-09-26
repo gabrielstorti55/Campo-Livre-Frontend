@@ -136,7 +136,7 @@ export class PartidasPrototipo implements PartidasApi {
           timeId: gerada.visitanteTimeId,
           nome: visitante?.nome ?? 'Time removido',
         },
-        estado: 'PENDENTE_AGENDAMENTO',
+        estado: gerada.resultado ? 'ENCERRADA_SUMULA' : 'PENDENTE_AGENDAMENTO',
         agendamento: {
           inicioEm: null,
           campoId: null,
@@ -144,7 +144,9 @@ export class PartidasPrototipo implements PartidasApi {
           autorizacaoExternaConfirmada: false,
         },
         motivoAdministrativo: null,
-        operacoesPermitidas: ['AGENDAR', 'CANCELAR', 'REGISTRAR_WO'],
+        operacoesPermitidas: gerada.resultado
+          ? []
+          : ['AGENDAR', 'CANCELAR', 'REGISTRAR_WO'],
         pdfOficial: { status: 'INEXISTENTE' },
         atualizadoEm: agora(),
       });
@@ -596,6 +598,7 @@ export class PartidasPrototipo implements PartidasApi {
     if (legada) return legada;
     const partida = this.obter(partidaId);
     const wo = this.resultadosWo.get(partidaId);
+    const sumula = this.partidasChaveamento.obterSumula(partidaId);
     const campeonato = campeonatosPublicosMock.find(
       (item) => String(item.id) === partida.campeonatoId,
     );
@@ -652,7 +655,17 @@ export class PartidasPrototipo implements PartidasApi {
             placarProrrogacao: null,
             placarPenaltis: null,
           }
-        : null,
+        : sumula
+          ? {
+              tipo: 'SUMULA',
+              placarRegulamentar: {
+                mandante: sumula.golsMandante,
+                visitante: sumula.golsVisitante,
+              },
+              placarProrrogacao: null,
+              placarPenaltis: sumula.placarPenaltis,
+            }
+          : null,
       sumulaPublica: null,
     };
   }

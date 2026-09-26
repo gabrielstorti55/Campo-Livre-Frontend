@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+test('lista de partidas mostra o placar da súmula publicada', async ({
+  page,
+}) => {
+  await page.goto('/partidas');
+
+  const partida = page.getByRole('link', {
+    name: /Vila Nova FC.*Bairro Sul FC/,
+  });
+  await expect(partida).toContainText('Encerrada com súmula');
+  await expect(partida).toContainText('3 × 1');
+});
+
 test('visitante vê o resumo de uma partida com resultado publicado', async ({
   page,
 }) => {

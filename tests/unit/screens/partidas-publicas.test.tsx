@@ -165,4 +165,45 @@ describe('Partidas públicas', () => {
       screen.getByRole('region', { name: 'Substituições' }),
     ).toHaveTextContent('Carla Sai → Dani Entra');
   });
+
+  it('mostra o resultado do jogo e da disputa por pênaltis na súmula', async () => {
+    consultarPartida.mockResolvedValue({
+      partidaId: 'partida-publica-1',
+      campeonato: { id: 'camp-1', nome: 'Copa do Contrato' },
+      fase: { id: 'fase-1', nome: 'Final', tipo: 'MATA_MATA' },
+      grupo: null,
+      rodada: 1,
+      confrontoId: 'confronto-1',
+      mandante: {
+        timeId: 'time-1',
+        nome: 'Leões',
+        sigla: 'LEO',
+        escudoUrl: null,
+      },
+      visitante: {
+        timeId: 'time-2',
+        nome: 'Tigres',
+        sigla: 'TIG',
+        escudoUrl: null,
+      },
+      agendamento: { inicioEm: null, campo: null },
+      estado: 'ENCERRADA_SUMULA',
+      motivoPublico: null,
+      resultado: {
+        tipo: 'SUMULA',
+        placarRegulamentar: { mandante: 1, visitante: 1 },
+        placarProrrogacao: null,
+        placarPenaltis: { mandante: 4, visitante: 3 },
+      },
+      sumulaPublica: null,
+    });
+
+    render(<TelaDetalhesPartida />);
+
+    const resumo = await screen.findByRole('region', {
+      name: 'Resumo da partida',
+    });
+    expect(resumo).toHaveTextContent('Placar no jogo: 1 × 1');
+    expect(resumo).toHaveTextContent('Pênaltis: 4 × 3');
+  });
 });

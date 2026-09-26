@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { vinculosCampeonatoOrganizadorMock } from '@/mocks/organizador/dados-organizador';
 import { PartidasPrototipo } from '@/services/partidas/partidas-prototipo';
+import { PartidasChaveamentoPrototipo } from '@/services/prototipo/partidas-chaveamento-prototipo';
 
 const agendamento = (versaoEsperada: number) => ({
   inicioEm: '2026-09-01T18:00:00.000Z',
@@ -12,6 +13,54 @@ const agendamento = (versaoEsperada: number) => ({
 });
 
 describe('PartidasPrototipo', () => {
+  it('publica o empate do jogo e o placar dos pênaltis da súmula', async () => {
+    const chaveamento = new PartidasChaveamentoPrototipo();
+    chaveamento.substituir('1', [
+      {
+        confrontoId: 'confronto-penaltis',
+        partidaId: 'partida-penaltis',
+        campeonatoId: '1',
+        faseId: 'fase-mata-mata',
+        rodada: 1,
+        ordem: 1,
+        timeAId: '1',
+        timeBId: '5',
+        confrontoDestinoId: null,
+        posicaoDestino: null,
+        resultado: { golsTimeA: 1, golsTimeB: 1, vencedorTimeId: '1' },
+        sumula: {
+          golsMandante: 1,
+          golsVisitante: 1,
+          placarPenaltis: { mandante: 4, visitante: 3 },
+          arbitragem: {
+            arbitro: 'Árbitro',
+            primeiroAssistente: 'Assistente 1',
+            segundoAssistente: 'Assistente 2',
+            quartoArbitro: 'Quarto árbitro',
+          },
+          escalacaoMandante: [],
+          escalacaoVisitante: [],
+          gols: [],
+          cartoes: [],
+          substituicoes: [],
+          relatorio: '',
+        },
+      },
+    ]);
+    const api = new PartidasPrototipo(() => null, chaveamento);
+
+    await expect(
+      api.consultarPartida('partida-penaltis'),
+    ).resolves.toMatchObject({
+      estado: 'ENCERRADA_SUMULA',
+      resultado: {
+        tipo: 'SUMULA',
+        placarRegulamentar: { mandante: 1, visitante: 1 },
+        placarPenaltis: { mandante: 4, visitante: 3 },
+      },
+    });
+  });
+
   it('projeta resultado e eventos públicos de uma súmula definitiva', async () => {
     const api = new PartidasPrototipo(() => null);
 

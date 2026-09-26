@@ -117,21 +117,13 @@ export function TelaMinhaArea() {
             >
               Consultar dados da conta
             </Link>
-            {!prefeituraVinculada && !organizerEnabled ? (
-              <Link
-                href="/minha-conta/convites-prefeitura"
-                className="mt-2 block font-semibold text-white underline underline-offset-4"
-              >
-                Consultar convites de Prefeitura
-              </Link>
-            ) : null}
           </div>
         </div>
       </section>
 
-      {!hasTeam || !organizerEnabled ? (
+      {(!prefeituraVinculada && !hasTeam) || !organizerEnabled ? (
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          {!hasTeam ? (
+          {!prefeituraVinculada && !hasTeam ? (
             <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
               <CardHeader>
                 <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-green-pale text-green-dark">

@@ -48,6 +48,20 @@ vi.mock('@/hooks/use-sessao', () => ({
 }));
 
 describe('TelaMinhaArea da Prefeitura', () => {
+  it('não oferece contexto nem entrada para a área de atleta', () => {
+    render(<TelaMinhaArea />);
+
+    expect(
+      screen.queryByRole('article', { name: 'Contexto de atleta' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Entrar em um time' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Criar um time' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('permite ativar o contexto de organizador sem remover o contexto municipal', async () => {
     render(<TelaMinhaArea />);
 
