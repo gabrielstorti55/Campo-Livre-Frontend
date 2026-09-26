@@ -1,0 +1,45 @@
+Passo a passo da apresentação — CampoLivre
+Senha de todas as contas: senha-mock
+1. Lucas — Sem vínculo
+Conta: sem-time@campolivre.test
+1. Fazer login e mostrar Minha área.
+2. Mostrar o aviso de que não participa de nenhum time.
+3. Mostrar as opções Entrar em um time, Criar um time e Ativar painel de organizador.
+4. Fazer logout sem ativar nada.
+
+2. Diego — Atleta
+Conta: atleta@campolivre.test
+1. Fazer login → Minha área → Entrar como atleta.
+2. Abrir Times e convites e mostrar o Vila Nova FC.
+3. Abrir Perfil → Suas estatísticas (11 partidas e 1 gol).
+4. Fazer logout.
+
+3. Juliana — Organizadora
+Conta: colaborador@campolivre.test
+1. Fazer login → Minha área → Entrar como organizador.
+2. Abrir Meus Campeonatos.
+3. Entrar no campeonato administrado por Juliana.
+4. Mostrar as abas Geral, Participantes, Regulamento, Estrutura e Partidas.
+5. Fazer logout.
+
+4. Marcos — Atleta, capitão e organizador
+Conta: pessoa@campolivre.test
+1. Fazer login e mostrar os dois contextos em Minha área.
+2. Entrar como atleta → Times e convites → Vila Nova FC (Capitão).
+3. Abrir Perfil e mostrar as estatísticas (14 partidas, 7 gols) e os dois títulos.
+4. Voltar para Minha área → Entrar como organizador.
+5. Abrir Meus Campeonatos → Copa Demonstração 2026 (campeonato 8).
+6. Abrir Participantes e mostrar os 8 atletas do elenco e os 7 inscritos.
+7. Abrir Estrutura ou Chaveamento e mostrar as semifinais e a final.
+8. Abrir Partidas → Súmula, sem confirmar definitivamente.
+9. Fazer logout.
+
+5. Gestora Municipal — Prefeitura
+Conta: prefeitura@campolivre.test
+1. Fazer login → Minha área → Entrar como Prefeitura.
+2. Mostrar o painel de gestão municipal.
+3. Abrir Campos.
+4. Voltar para Minha área → Ativar painel de organizador.
+5. Entrar como Organizador → Novo campeonato.
+6. Selecionar Prefeitura de Franca como contexto responsável.
+7. Mostrar o formulário sem precisar criar o campeonato.
