@@ -86,6 +86,36 @@ test('conta autenticada usa a mesma página canônica com acesso à sua área', 
   await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
 });
 
+test('navegação pública preserva o contexto organizador e mantém meus campeonatos recuperável', async ({
+  page,
+}) => {
+  await autenticarEm(page, 'organizador', '/minha-area');
+  await page.getByRole('button', { name: 'Área do organizador' }).click();
+  await expect(page).toHaveURL(/\/organizador\/campeonatos$/);
+
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  const menu = page.getByRole('dialog', { name: 'Menu principal' });
+  await menu.getByRole('link', { name: 'Campeonatos', exact: true }).click();
+  await expect(page).toHaveURL(/\/campeonatos$/);
+
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  const menuPublico = page.getByRole('dialog', { name: 'Menu principal' });
+  await expect(menuPublico.getByText('Meus Campeonatos')).toBeVisible();
+  await menuPublico.getByRole('link', { name: 'Meus Campeonatos' }).click();
+  await expect(page).toHaveURL(/\/organizador\/campeonatos$/);
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await expect(
+    page
+      .getByRole('dialog', { name: 'Menu principal' })
+      .getByText('Meus Campeonatos'),
+  ).toBeVisible();
+
+  await page.goto('/organizador/inicio');
+  await expect(page).toHaveURL(/\/organizador\/campeonatos$/);
+});
+
 test('campeonato público mostra classificação, estrutura e resultados sem dados pessoais', async ({
   page,
 }) => {

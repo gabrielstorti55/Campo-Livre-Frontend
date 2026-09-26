@@ -59,15 +59,8 @@ export const campeonatosOrganizadorMock: CampeonatoOrganizador[] = [
     responsavel: 'Marcos Oliveira',
     timeIds: [1, 2],
     partidaIds: [],
-    pendencias: [
-      'Publicar regulamento',
-      'Configurar critérios de desempate',
-      'Validar elencos inscritos',
-      'Distribuir times nos grupos',
-      'Gerar programação completa',
-      'Resolver convites pendentes',
-    ],
-    convitesPendentes: 1,
+    pendencias: [],
+    convitesPendentes: 0,
   },
   {
     id: 5,
@@ -103,6 +96,23 @@ export const campeonatosOrganizadorMock: CampeonatoOrganizador[] = [
     pendencias: [],
     convitesPendentes: 0,
   },
+  {
+    id: 8,
+    nome: 'Copa Demonstração 2026',
+    modalidade: 'Futebol de Campo',
+    formato: 'MATA_MATA',
+    municipio: 'Franca',
+    uf: 'SP',
+    inicio: '2026-10-10',
+    visibilidade: 'PUBLICO',
+    estado: 'EM_INSCRICOES',
+    contexto: { tipo: 'PESSOAL', nome: 'Marcos Oliveira' },
+    responsavel: 'mock-person-1',
+    timeIds: [1, 2, 5, 6],
+    partidaIds: [],
+    pendencias: [],
+    convitesPendentes: 0,
+  },
 ];
 
 export const vinculosCampeonatoOrganizadorMock: VinculoCampeonatoOrganizador[] =
@@ -112,6 +122,7 @@ export const vinculosCampeonatoOrganizadorMock: VinculoCampeonatoOrganizador[] =
     { contaId: 'mock-person-1', campeonatoId: 4, papel: 'RESPONSAVEL' },
     { contaId: 'mock-person-1', campeonatoId: 5, papel: 'RESPONSAVEL' },
     { contaId: 'mock-person-1', campeonatoId: 7, papel: 'RESPONSAVEL' },
+    { contaId: 'mock-person-1', campeonatoId: 8, papel: 'RESPONSAVEL' },
     {
       contaId: 'mock-person-collaborator-1',
       campeonatoId: 4,

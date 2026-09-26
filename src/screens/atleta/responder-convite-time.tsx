@@ -150,7 +150,7 @@ export function TelaResponderConviteTime() {
             </p>
             {resultado === 'ACEITO' ? (
               <Button asChild variant="campo">
-                <Link href="/atleta/inicio">Abrir sua área esportiva</Link>
+                <Link href="/atleta/time/buscar">Abrir Times e convites</Link>
               </Button>
             ) : null}
           </div>

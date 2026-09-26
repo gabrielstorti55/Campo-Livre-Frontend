@@ -1,4 +1,7 @@
-import { vinculosCampeonatoOrganizadorMock } from '@/mocks/organizador/dados-organizador';
+import {
+  campeonatosOrganizadorMock,
+  vinculosCampeonatoOrganizadorMock,
+} from '@/mocks/organizador/dados-organizador';
 import { obterPublicacaoPartidaMock } from '@/mocks/partidas/publicacao-partida.mock';
 import {
   campeonatosPublicosMock,
@@ -8,6 +11,7 @@ import {
   timesPublicosMock,
 } from '@/mocks/publico/dados-publicos';
 import type { PartidasApi } from '@/services/partidas/partidas-api';
+import { PartidasChaveamentoPrototipo } from '@/services/prototipo/partidas-chaveamento-prototipo';
 import type { OpcoesConsulta } from '@/services/api/opcoes-consulta';
 import { listarArtilhariaPublica } from '@/services/publico/catalogo-publico.mock';
 import type {
@@ -24,6 +28,7 @@ import type {
   PartidaAdiada,
   PartidaCancelada,
   RegistroWo,
+  SumulaCompletaPrototipo,
   WoRegistrado,
 } from '@/types/api/partidas';
 
@@ -49,6 +54,10 @@ const motivoPublicoParaApi = {
 
 export class PartidasPrototipo implements PartidasApi {
   private readonly resultadosWo = new Map<string, WoRegistrado>();
+  private readonly partidasLegadasAdministrativas = new Map<
+    string,
+    DetalheAdministrativoPartida
+  >();
   private readonly respostasPorChave = new Map<
     string,
     { payload: string; resposta: WoRegistrado }
@@ -90,12 +99,176 @@ export class PartidasPrototipo implements PartidasApi {
 
   constructor(
     private readonly autenticar: (accessToken: string) => string | null,
+    private readonly partidasChaveamento = new PartidasChaveamentoPrototipo(),
   ) {}
 
+  private sincronizarPartidasDoChaveamento() {
+    for (const gerada of this.partidasChaveamento.listar()) {
+      const existente = this.partidas.get(gerada.partidaId);
+      if (existente) {
+        if (gerada.resultado) {
+          existente.estado = 'ENCERRADA_SUMULA';
+          existente.operacoesPermitidas = [];
+          existente.atualizadoEm = agora();
+        }
+        continue;
+      }
+      const mandante = timesPublicosMock.find(
+        (time) => String(time.id) === gerada.mandanteTimeId,
+      );
+      const visitante = timesPublicosMock.find(
+        (time) => String(time.id) === gerada.visitanteTimeId,
+      );
+      this.partidas.set(gerada.partidaId, {
+        partidaId: gerada.partidaId,
+        campeonatoId: gerada.campeonatoId,
+        faseId: gerada.faseId,
+        grupoId: null,
+        confrontoId: gerada.confrontoId,
+        rodada: gerada.rodada,
+        mandante: {
+          timeCampeonatoId: `tc-${gerada.campeonatoId}-${gerada.mandanteTimeId}`,
+          timeId: gerada.mandanteTimeId,
+          nome: mandante?.nome ?? 'Time removido',
+        },
+        visitante: {
+          timeCampeonatoId: `tc-${gerada.campeonatoId}-${gerada.visitanteTimeId}`,
+          timeId: gerada.visitanteTimeId,
+          nome: visitante?.nome ?? 'Time removido',
+        },
+        estado: 'PENDENTE_AGENDAMENTO',
+        agendamento: {
+          inicioEm: null,
+          campoId: null,
+          versao: 1,
+          autorizacaoExternaConfirmada: false,
+        },
+        motivoAdministrativo: null,
+        operacoesPermitidas: ['AGENDAR', 'CANCELAR', 'REGISTRAR_WO'],
+        pdfOficial: { status: 'INEXISTENTE' },
+        atualizadoEm: agora(),
+      });
+    }
+  }
+
+  async registrarSumulaPrototipo(
+    partidaId: string,
+    accessToken: string,
+    input: SumulaCompletaPrototipo,
+  ) {
+    const { partida } = this.contextoAutorizado(partidaId, accessToken);
+    if (partida.estado !== 'AGENDADA') {
+      throw new Error('PARTIDA_NAO_AGENDADA');
+    }
+    if (
+      input.gols.filter((gol) => gol.lado === 'MANDANTE').length !==
+        input.golsMandante ||
+      input.gols.filter((gol) => gol.lado === 'VISITANTE').length !==
+        input.golsVisitante
+    ) {
+      throw new Error('SUMULA_INCONSISTENTE');
+    }
+    if (
+      input.golsMandante === input.golsVisitante &&
+      (!input.placarPenaltis ||
+        !Number.isInteger(input.placarPenaltis.mandante) ||
+        !Number.isInteger(input.placarPenaltis.visitante) ||
+        input.placarPenaltis.mandante < 0 ||
+        input.placarPenaltis.visitante < 0 ||
+        input.placarPenaltis.mandante === input.placarPenaltis.visitante)
+    ) {
+      throw new Error('DESEMPATE_NAO_INFORMADO');
+    }
+    if (
+      Object.values(input.arbitragem).some((nome) => !nome.trim()) ||
+      input.escalacaoMandante.length === 0 ||
+      input.escalacaoVisitante.length === 0
+    ) {
+      throw new Error('SUMULA_INCOMPLETA');
+    }
+    const resultado = this.partidasChaveamento.registrarSumula(
+      partidaId,
+      input,
+    );
+    partida.estado = 'ENCERRADA_SUMULA';
+    partida.operacoesPermitidas = [];
+    partida.atualizadoEm = agora();
+    this.sincronizarPartidasDoChaveamento();
+    return {
+      partidaId,
+      estado: 'ENCERRADA_SUMULA' as const,
+      placar: {
+        golsMandante: input.golsMandante,
+        golsVisitante: input.golsVisitante,
+      },
+      ...resultado,
+    };
+  }
+
   private obter(partidaId: string) {
-    const partida = this.partidas.get(partidaId);
+    this.sincronizarPartidasDoChaveamento();
+    const partida =
+      this.partidas.get(partidaId) ??
+      this.partidasLegadasAdministrativas.get(partidaId) ??
+      this.criarDetalheAdministrativoLegado(partidaId);
     if (!partida) throw new Error('RECURSO_NAO_ENCONTRADO');
     return partida;
+  }
+
+  private criarDetalheAdministrativoLegado(
+    partidaId: string,
+  ): DetalheAdministrativoPartida | null {
+    const origem = partidasPublicasMock.find(
+      (partida) => String(partida.id) === partidaId,
+    );
+    if (!origem) return null;
+    const mandante = timesPublicosMock.find(
+      (time) => time.id === origem.timeCasaId,
+    );
+    const visitante = timesPublicosMock.find(
+      (time) => time.id === origem.timeForaId,
+    );
+    const estado = estadoPublicoParaApi[origem.estado];
+    const inicioEm =
+      origem.data && origem.hora
+        ? `${origem.data}T${origem.hora}:00.000Z`
+        : null;
+    const detalhe: DetalheAdministrativoPartida = {
+      partidaId,
+      campeonatoId: String(origem.campeonatoId),
+      faseId: `${origem.campeonatoId}-fase-1`,
+      grupoId: origem.grupo ?? null,
+      confrontoId: null,
+      rodada: Number.parseInt(origem.rodada.replace(/\D/g, ''), 10) || 1,
+      mandante: {
+        timeCampeonatoId: `tc-${origem.campeonatoId}-${origem.timeCasaId}`,
+        timeId: String(origem.timeCasaId),
+        nome: mandante?.nome ?? 'Time removido',
+      },
+      visitante: {
+        timeCampeonatoId: `tc-${origem.campeonatoId}-${origem.timeForaId}`,
+        timeId: String(origem.timeForaId),
+        nome: visitante?.nome ?? 'Time removido',
+      },
+      estado,
+      agendamento: {
+        inicioEm,
+        campoId: origem.campoId ? String(origem.campoId) : null,
+        versao: 1,
+        autorizacaoExternaConfirmada: Boolean(inicioEm && origem.campoId),
+      },
+      motivoAdministrativo: origem.motivoPublico ?? null,
+      operacoesPermitidas:
+        estado === 'PENDENTE_AGENDAMENTO' || estado === 'ADIADA'
+          ? ['AGENDAR', 'CANCELAR', 'REGISTRAR_WO']
+          : estado === 'AGENDADA'
+            ? ['REAGENDAR', 'ADIAR', 'CANCELAR', 'REGISTRAR_WO']
+            : [],
+      pdfOficial: { status: 'INEXISTENTE' },
+      atualizadoEm: inicioEm ?? agora(),
+    };
+    this.partidasLegadasAdministrativas.set(partidaId, detalhe);
+    return detalhe;
   }
 
   private contextoAutorizado(partidaId: string, accessToken: string) {
@@ -180,6 +353,7 @@ export class PartidasPrototipo implements PartidasApi {
     opcoes?: OpcoesConsulta,
   ): Promise<PaginaAgendaPartidas> {
     opcoes?.signal?.throwIfAborted();
+    this.sincronizarPartidasDoChaveamento();
     const operacionais = Array.from(this.partidas.values())
       .filter(
         (partida) =>
@@ -207,6 +381,9 @@ export class PartidasPrototipo implements PartidasApi {
         const campeonato = campeonatosPublicosMock.find(
           (item) => String(item.id) === partida.campeonatoId,
         );
+        const campeonatoAdministrado = campeonatosOrganizadorMock.find(
+          (item) => String(item.id) === partida.campeonatoId,
+        );
         const mandante = timesPublicosMock.find(
           (item) => String(item.id) === partida.mandante.timeId,
         );
@@ -220,7 +397,8 @@ export class PartidasPrototipo implements PartidasApi {
           partidaId: partida.partidaId,
           campeonato: {
             id: partida.campeonatoId,
-            nome: campeonato?.nome ?? 'Campeonato',
+            nome:
+              campeonato?.nome ?? campeonatoAdministrado?.nome ?? 'Campeonato',
           },
           faseId: partida.faseId,
           rodada: partida.rodada,
@@ -490,6 +668,16 @@ export class PartidasPrototipo implements PartidasApi {
       accessToken,
     );
     const detalhe = structuredClone(partida);
+    const partidaGerada = this.partidasChaveamento
+      .listar()
+      .find((item) => item.partidaId === partidaId);
+    detalhe.resultadoPrototipo = partidaGerada?.resultado
+      ? {
+          golsMandante: partidaGerada.resultado.golsTimeA,
+          golsVisitante: partidaGerada.resultado.golsTimeB,
+          vencedorTimeId: partidaGerada.resultado.vencedorTimeId,
+        }
+      : null;
     if (vinculo.papel !== 'RESPONSAVEL') {
       detalhe.operacoesPermitidas = detalhe.operacoesPermitidas.filter(
         (operacao) => operacao !== 'REGISTRAR_WO',

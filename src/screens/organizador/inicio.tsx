@@ -27,7 +27,11 @@ export function TelaInicioOrganizador() {
           </Button>
         }
       />
-      <section aria-label="Meus campeonatos" className="space-y-4">
+      <section
+        id="meus-campeonatos"
+        aria-label="Meus campeonatos"
+        className="scroll-mt-24 space-y-4"
+      >
         <h2 className="font-display text-2xl font-semibold">
           Meus campeonatos
         </h2>

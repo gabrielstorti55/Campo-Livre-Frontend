@@ -35,6 +35,7 @@ import { MunicipiosPrototipo } from '@/services/municipios/municipios-prototipo'
 import type { PartidasApi } from '@/services/partidas/partidas-api';
 import { PartidasHttp } from '@/services/partidas/partidas-http';
 import { PartidasPrototipo } from '@/services/partidas/partidas-prototipo';
+import { PartidasChaveamentoPrototipo } from '@/services/prototipo/partidas-chaveamento-prototipo';
 import type { GestaoPrefeiturasApi } from '@/services/prefeituras/gestao-prefeituras-api';
 import type { PrefeiturasApi } from '@/services/prefeituras/prefeituras-api';
 import { PrefeiturasHttp } from '@/services/prefeituras/prefeituras-http';
@@ -61,6 +62,7 @@ type ApisAplicacao = {
 export function criarApisAplicacao(modo: ModoAplicacao): ApisAplicacao {
   if (modo === 'prototipo') {
     const autenticacao = new AutenticacaoPrototipo();
+    const partidasChaveamento = new PartidasChaveamentoPrototipo();
     return {
       autenticacao,
       times: new TimesPrototipo((accessToken) =>
@@ -75,11 +77,13 @@ export function criarApisAplicacao(modo: ModoAplicacao): ApisAplicacao {
         autenticacao.obterContaAtivaId(accessToken),
       ),
       gestaoPrefeituras: null,
-      campeonatos: new CampeonatosPrototipo((accessToken) =>
-        autenticacao.obterContaAtivaId(accessToken),
+      campeonatos: new CampeonatosPrototipo(
+        (accessToken) => autenticacao.obterContaAtivaId(accessToken),
+        partidasChaveamento,
       ),
-      partidas: new PartidasPrototipo((accessToken) =>
-        autenticacao.obterContaAtivaId(accessToken),
+      partidas: new PartidasPrototipo(
+        (accessToken) => autenticacao.obterContaAtivaId(accessToken),
+        partidasChaveamento,
       ),
     };
   }

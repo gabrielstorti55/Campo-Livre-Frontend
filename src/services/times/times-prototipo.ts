@@ -51,6 +51,10 @@ const identidadesPrototipo: Record<
   { nome: string; nomeUsuario: string }
 > = {
   'mock-person-1': { nome: 'Marcos Oliveira', nomeUsuario: 'marcosoliveira' },
+  'mock-person-captain-2': {
+    nome: 'Henrique Alves',
+    nomeUsuario: 'henriquealves',
+  },
   'mock-person-unlinked-1': {
     nome: 'Lucas Ferreira',
     nomeUsuario: 'lucasferreira',
@@ -480,7 +484,24 @@ export class TimesPrototipo implements TimesApi {
               },
             },
           ]
-        : contaId === 'mock-person-athlete-1'
+        : contaId === 'mock-person-captain-2'
+          ? [
+              {
+                membroId: 'membro-capitao-2',
+                funcao: 'CAPITAO' as const,
+                entrouEm: '2025-02-01T12:00:00.000Z',
+                time: {
+                  id: '2',
+                  nome: 'Leões FC',
+                  sigla: 'LEO',
+                  escudoUrl: this.escudos.get('2') ?? null,
+                  status: this.timesDesativados.has('2')
+                    ? ('DESATIVADO' as const)
+                    : ('ATIVO' as const),
+                },
+              },
+            ]
+          : contaId === 'mock-person-athlete-1'
           ? [
               {
                 membroId: 'membro-diego',
@@ -500,10 +521,10 @@ export class TimesPrototipo implements TimesApi {
           : [];
     const criados = Array.from(this.timesCriados.values())
       .filter((item) => item.contaId === contaId)
-      .map(({ time }) => ({
+      .map(({ time, criadoEm }) => ({
         membroId: time.capitaoMembroId,
         funcao: 'CAPITAO' as const,
-        entrouEm: new Date().toISOString(),
+        entrouEm: criadoEm,
         time: {
           id: time.id,
           nome: time.nome,
@@ -1083,7 +1104,10 @@ export class TimesPrototipo implements TimesApi {
     }
     const criado = this.timesCriados.get(timeId);
     const capitaoDoCriado = criado?.contaId === contaId;
-    if (!capitaoDoCriado && (timeId !== '1' || contaId !== 'mock-person-1')) {
+    const capitaoDeTimeDemonstracao =
+      (timeId === '1' && contaId === 'mock-person-1') ||
+      (timeId === '2' && contaId === 'mock-person-captain-2');
+    if (!capitaoDoCriado && !capitaoDeTimeDemonstracao) {
       throw new ErroApi({
         type: 'https://campolivre.app/problemas/nao-autorizado',
         title: 'Operação não autorizada',

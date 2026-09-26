@@ -39,9 +39,8 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
   await page.setViewportSize({ width: 390, height: 844 });
 
   for (const { route, persona } of [
-    { route: '/atleta/inicio', persona: 'atleta' as const },
+    { route: '/atleta/time/buscar', persona: 'atleta' as const },
     { route: '/atleta/perfil', persona: 'atleta' as const },
-    { route: '/organizador/inicio', persona: 'organizador' as const },
     {
       route: '/organizador/campeonatos',
       persona: 'organizador' as const,
@@ -49,7 +48,7 @@ test('todo fluxo autenticado usa geometria editorial firme', async ({
   ]) {
     await autenticarEm(page, persona, route);
     await expectEditorialGeometry(page);
-    if (route === '/organizador/inicio') {
+    if (route === '/organizador/campeonatos') {
       await expect(page.locator('main')).not.toContainText(/EM_[A-Z_]+/);
       await expect(page.locator('main')).toContainText('Em andamento');
     }

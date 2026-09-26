@@ -1,5 +1,5 @@
-import { TelaInicioOrganizador } from '@/screens/organizador/inicio';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  return <TelaInicioOrganizador />;
+  redirect('/organizador/campeonatos');
 }

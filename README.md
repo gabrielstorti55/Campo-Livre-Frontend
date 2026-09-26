@@ -98,6 +98,19 @@ A conta da Prefeitura representa uma funcionária vinculada à instituição, e 
 
 Na área do organizador, **Meus Campeonatos** contém somente as competições que a conta pode administrar. **Explorar campeonatos** abre o catálogo público de todas as competições. **Minha área** permite retornar ao perfil da conta e escolher outra área disponível.
 
+### Elenco do time e inscrição no campeonato
+
+O protótipo trata o vínculo com o time e a inscrição esportiva como relações diferentes. Um atleta pode permanecer no elenco geral do time e não ser inscrito em determinado campeonato. Somente o subconjunto inscrito na competição fica disponível para escalação, gols, cartões e substituições na Súmula.
+
+Na `Copa Demonstração 2026` (`campeonatoId=8`), cada participante possui oito atletas no elenco geral e sete inscritos na competição. O cenário deixa fora do campeonato, sem remover do respectivo time:
+
+- Thiago Cardoso, do Vila Nova FC;
+- Arthur Lima, do Leões FC;
+- Pedro Henrique, do Bairro Sul FC;
+- André Gomes, do Real Aeroporto.
+
+A aba **Participantes** mostra a diferença entre elenco geral e inscritos. A **Súmula** lista exclusivamente os atletas inscritos no campeonato. Essa é uma simulação local do modo protótipo; o modo integrado continua dependendo da projeção contextual publicada pela API.
+
 ## Estrutura
 
 ```text

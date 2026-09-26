@@ -96,6 +96,22 @@ describe('PartidasPrototipo', () => {
     });
   });
 
+  it('expõe detalhe administrativo para todas as partidas listadas ao organizador', async () => {
+    const api = new PartidasPrototipo(() => 'mock-person-1');
+    const agenda = await api.listarAgenda({ campeonatoId: '1' });
+
+    const detalhes = await Promise.all(
+      agenda.itens.map((partida) =>
+        api.consultarAdministracao(partida.partidaId, 'token'),
+      ),
+    );
+
+    expect(detalhes).toHaveLength(agenda.itens.length);
+    expect(detalhes.map((detalhe) => detalhe.partidaId)).toEqual(
+      agenda.itens.map((partida) => partida.partidaId),
+    );
+  });
+
   it('nega detalhe e mutação à conta sem vínculo com o campeonato da partida', async () => {
     const api = new PartidasPrototipo(() => 'conta-sem-vinculo');
 

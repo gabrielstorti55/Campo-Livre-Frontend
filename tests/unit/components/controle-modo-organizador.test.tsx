@@ -3,12 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ControleModoOrganizador } from '@/components/prototipo/controle-modo-organizador';
 
-let pathname = '/organizador/inicio';
+let pathname = '/organizador/campeonatos';
 vi.mock('next/navigation', () => ({ usePathname: () => pathname }));
 
 describe('ControleModoOrganizador', () => {
   beforeEach(() => {
-    pathname = '/organizador/inicio';
+    pathname = '/organizador/campeonatos';
   });
 
   it('libera jornadas ligadas às portas HTTP no modo integrado', () => {

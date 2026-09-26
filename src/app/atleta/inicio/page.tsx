@@ -1,5 +1,5 @@
-import { TelaInicioAtleta } from '@/screens/atleta/inicio';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  return <TelaInicioAtleta />;
+  redirect('/atleta/time/buscar');
 }

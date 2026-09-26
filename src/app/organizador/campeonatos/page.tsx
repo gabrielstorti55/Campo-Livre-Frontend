@@ -1,5 +1,5 @@
-import { TelaCampeonatosOrganizador } from '@/screens/organizador/campeonatos';
+import { TelaInicioOrganizador } from '@/screens/organizador/inicio';
 
 export default function Page() {
-  return <TelaCampeonatosOrganizador />;
+  return <TelaInicioOrganizador />;
 }

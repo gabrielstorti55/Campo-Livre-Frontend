@@ -37,6 +37,29 @@ const emptyLinks: SessaoPessoal['links'] = {
   institutionalOrganizationIds: [],
 };
 
+const CHAVE_CONTEXTO_ATIVO = 'campolivre:contexto-ativo:';
+
+function lerContextoPersistido(
+  accountId: string,
+  capabilities: ContextoPessoal[],
+): ContextoPessoal | null {
+  if (typeof window === 'undefined') return null;
+  const contexto = window.localStorage.getItem(
+    `${CHAVE_CONTEXTO_ATIVO}${accountId}`,
+  ) as ContextoPessoal | null;
+  return contexto && capabilities.includes(contexto) ? contexto : null;
+}
+
+function persistirContexto(
+  accountId: string,
+  contexto: ContextoPessoal | null,
+) {
+  if (typeof window === 'undefined') return;
+  const chave = `${CHAVE_CONTEXTO_ATIVO}${accountId}`;
+  if (contexto) window.localStorage.setItem(chave, contexto);
+  else window.localStorage.removeItem(chave);
+}
+
 function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
   // TODO(domain-api): estes vínculos sustentam apenas as telas protótipo dos
   // outros domínios. Eles não são inferidos de /minha-conta nem autorizam APIs.
@@ -45,7 +68,7 @@ function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
       ...emptyLinks,
       teamIds: ['1'],
       captainTeamIds: ['1'],
-      organizedChampionshipIds: ['1', '2', '4', '5', '7'],
+      organizedChampionshipIds: ['1', '2', '4', '5', '7', '8'],
     };
   }
   if (account.id === 'conta-prefeitura') {
@@ -60,6 +83,9 @@ function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
   if (account.id === 'mock-person-athlete-1') {
     return { ...emptyLinks, teamIds: ['1'] };
   }
+  if (account.id === 'mock-person-captain-2') {
+    return { ...emptyLinks, teamIds: ['2'], captainTeamIds: ['2'] };
+  }
   if (account.id === 'mock-person-collaborator-1') {
     return { ...emptyLinks, organizedChampionshipIds: ['4'] };
   }
@@ -69,6 +95,7 @@ function linksOperacionaisMock(account: MinhaConta): SessaoPessoal['links'] {
 function criarSessao(
   account: MinhaConta,
   permitirMocksDominio: boolean,
+  contextoPreferido?: ContextoPessoal | null,
 ): SessaoPessoal {
   const links = permitirMocksDominio
     ? linksOperacionaisMock(account)
@@ -80,7 +107,10 @@ function criarSessao(
       ? (['prefeitura'] as const)
       : []),
   ];
-  const activeContext: ContextoPessoal | null = null;
+  const activeContext =
+    contextoPreferido && capabilities.includes(contextoPreferido)
+      ? contextoPreferido
+      : lerContextoPersistido(account.id, capabilities);
 
   return {
     sessionId: account.id,
@@ -144,7 +174,13 @@ export function ProvedorSessao({
           accessToken: renewal.accessToken,
           expiresAt: Date.parse(renewal.accessTokenExpiraEm),
         });
-        setSession(criarSessao(account, permitirMocksDominio));
+        setSession((current) =>
+          criarSessao(
+            account,
+            permitirMocksDominio,
+            current?.account.id === account.id ? current.activeContext : null,
+          ),
+        );
         setStatus('autenticado');
         return renewal.accessToken;
       } catch (error) {
@@ -242,7 +278,13 @@ export function ProvedorSessao({
     if (operacao !== operacaoAtual.current) {
       throw new Error('Recarga da conta substituída.');
     }
-    setSession(criarSessao(account, permitirMocksDominio));
+    setSession((current) =>
+      criarSessao(
+        account,
+        permitirMocksDominio,
+        current?.account.id === account.id ? current.activeContext : null,
+      ),
+    );
     return account;
   }
 
@@ -259,7 +301,13 @@ export function ProvedorSessao({
           accessToken: renewal.accessToken,
           expiresAt: Date.parse(renewal.accessTokenExpiraEm),
         });
-        setSession(criarSessao(account, permitirMocksDominio));
+        setSession((current) =>
+          criarSessao(
+            account,
+            permitirMocksDominio,
+            current?.account.id === account.id ? current.activeContext : null,
+          ),
+        );
         setStatus('autenticado');
       } catch (error) {
         if (!active || operacao !== operacaoAtual.current) return;
@@ -349,11 +397,13 @@ export function ProvedorSessao({
 
   async function signOut(): Promise<void> {
     const accessToken = credentialRef.current?.accessToken;
+    const accountId = session?.account.id;
     ++operacaoAtual.current;
     setCredential(null);
     setSession(null);
     setStatus('visitante');
     setErroSessao(null);
+    if (accountId) persistirContexto(accountId, null);
 
     try {
       await api.logout(accessToken);
@@ -365,6 +415,7 @@ export function ProvedorSessao({
   function switchContext(context: ContextoPessoal) {
     setSession((current) => {
       if (!current || !current.capabilities.includes(context)) return current;
+      persistirContexto(current.account.id, context);
       return { ...current, activeContext: context };
     });
   }
@@ -423,6 +474,7 @@ export function ProvedorSessao({
       throw new Error('Desativação da conta substituída.');
     }
     ++operacaoAtual.current;
+    if (session) persistirContexto(session.account.id, null);
     setCredential(null);
     setSession(null);
     setStatus('visitante');

@@ -1,7 +1,9 @@
 import type { ContextoPessoal, SessaoPessoal } from '@/types/sessao';
 
 export function obterInicioContexto(context: ContextoPessoal) {
-  return context === 'organizador' ? '/organizador/inicio' : '/atleta/inicio';
+  return context === 'organizador'
+    ? '/organizador/campeonatos'
+    : '/atleta/time/buscar';
 }
 
 export function obterInicioSessao(_session: SessaoPessoal) {
@@ -9,17 +11,8 @@ export function obterInicioSessao(_session: SessaoPessoal) {
 }
 
 export function obterDestinoPosLogin(
-  candidate: string | null | undefined,
+  _candidate: string | null | undefined,
   session: SessaoPessoal,
 ) {
-  if (
-    !candidate ||
-    !candidate.startsWith('/') ||
-    candidate.startsWith('//') ||
-    candidate.includes('\\')
-  ) {
-    return obterInicioSessao(session);
-  }
-
-  return candidate;
+  return obterInicioSessao(session);
 }

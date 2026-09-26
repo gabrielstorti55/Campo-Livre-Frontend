@@ -80,10 +80,7 @@ export function TelaLogin() {
 
             try {
               const session = await signIn(email, senha);
-              const returnTo = new URLSearchParams(window.location.search).get(
-                'returnTo',
-              );
-              router.push(obterDestinoPosLogin(returnTo, session));
+              router.push(obterDestinoPosLogin(null, session));
             } catch (error) {
               const errosMapeados =
                 error instanceof ErroApi

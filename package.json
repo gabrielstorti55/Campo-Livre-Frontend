@@ -6,7 +6,7 @@
   "sideEffects": false,
   "scripts": {
     "dev": "next dev",
-    "dev:prototype": "cross-env NEXT_PUBLIC_APP_MODE=prototipo next dev",
+    "dev:prototype": "cross-env NEXT_PUBLIC_APP_MODE=prototipo next dev --port 3001",
     "build": "node scripts/limpar-tipos-dev-next.mjs && next build",
     "start": "next start",
     "format": "prettier --write .",

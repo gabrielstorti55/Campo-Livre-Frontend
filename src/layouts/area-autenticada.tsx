@@ -69,10 +69,7 @@ export function LayoutAreaAutenticada({
               : 'text-white/80 hover:border-white/15 hover:bg-white/8 hover:text-white',
           )}
         >
-          <item.icon
-            className="h-4.5 w-4.5 shrink-0"
-            aria-hidden="true"
-          />
+          <item.icon className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
           <span className="truncate">{item.label}</span>
         </Link>
       );

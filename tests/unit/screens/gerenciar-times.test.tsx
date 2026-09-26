@@ -395,6 +395,48 @@ describe('participantes do campeonato', () => {
     );
   });
 
+  it('bloqueia cliques duplicados enquanto o convite ainda está em envio', async () => {
+    listarConvitesEnviados.mockResolvedValueOnce({
+      itens: [],
+      pagina: 1,
+      tamanho: 100,
+      totalItens: 0,
+      totalPaginas: 0,
+    });
+    let concluirConvite!: () => void;
+    convidarTime.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          concluirConvite = () =>
+            resolve({
+              conviteId: 'convite-pendente',
+              timeId: '2',
+              status: 'PENDENTE',
+              expiraEm: '2026-09-04T00:00:00.000Z',
+            });
+        }),
+    );
+    render(<TelaGerenciarTimes campeonatoId="1" incorporada />);
+
+    const botao = await screen.findByRole('button', { name: 'Enviar convite' });
+    await waitFor(() => expect(botao).toBeEnabled());
+    fireEvent.click(botao);
+    fireEvent.click(botao);
+
+    expect(convidarTime).toHaveBeenCalledTimes(1);
+    expect(botao).toBeDisabled();
+    concluirConvite();
+  });
+
+  it('mantém envio bloqueado até a lista de convites ser carregada com sucesso', async () => {
+    listarConvitesEnviados.mockRejectedValueOnce(new Error('indisponível'));
+    render(<TelaGerenciarTimes campeonatoId="1" incorporada />);
+
+    const botao = await screen.findByRole('button', { name: 'Enviar convite' });
+    await screen.findByText('Não foi possível carregar os convites enviados.');
+    expect(botao).toBeDisabled();
+  });
+
   it('bloqueia novo convite para um time que já tem convite pendente', async () => {
     render(<TelaGerenciarTimes campeonatoId="1" incorporada />);
 

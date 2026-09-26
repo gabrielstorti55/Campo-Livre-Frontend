@@ -13,6 +13,8 @@ import type {
   PartidaAdiada,
   PartidaCancelada,
   RegistroWo,
+  ResultadoPrototipoRegistrado,
+  SumulaCompletaPrototipo,
   WoRegistrado,
 } from '@/types/api/partidas';
 
@@ -62,4 +64,10 @@ export interface PartidasApi {
     input: RegistroWo,
     idempotencyKey: string,
   ): Promise<WoRegistrado>;
+  /** Súmula local completa; indisponível no adaptador HTTP até publicação do contrato. */
+  registrarSumulaPrototipo?(
+    partidaId: string,
+    accessToken: string,
+    input: SumulaCompletaPrototipo,
+  ): Promise<ResultadoPrototipoRegistrado>;
 }

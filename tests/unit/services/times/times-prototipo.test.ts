@@ -3,6 +3,29 @@ import { describe, expect, it } from 'vitest';
 import { TimesPrototipo } from '@/services/times/times-prototipo';
 
 describe('TimesPrototipo', () => {
+  it('mantém a mesma data de entrada do fundador em todas as projeções do time criado', async () => {
+    const api = new TimesPrototipo(() => 'mock-person-unlinked-1');
+    const criado = await api.criarTime(
+      'token',
+      {
+        nome: 'Estrela do Norte',
+        sigla: 'EDN',
+        municipioId: 'municipio-franca',
+        descricao: null,
+      },
+      'criar-estrela-data',
+    );
+
+    const [meusTimes, elenco, historico] = await Promise.all([
+      api.listarMeusTimes('token'),
+      api.listarElenco(criado.id),
+      api.listarHistoricoElenco(criado.id, 'token'),
+    ]);
+
+    expect(meusTimes.itens[0]?.entrouEm).toBe(elenco.itens[0]?.entrouEm);
+    expect(meusTimes.itens[0]?.entrouEm).toBe(historico.itens[0]?.entrouEm);
+  });
+
   it('cria Time recuperável e vincula a idempotência ao payload', async () => {
     const api = new TimesPrototipo(() => 'conta-criadora');
     const input = {

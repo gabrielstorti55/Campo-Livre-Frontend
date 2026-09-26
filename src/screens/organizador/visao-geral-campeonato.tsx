@@ -102,6 +102,7 @@ export function TelaVisaoGeralCampeonato({
     setCampeonato(detalhe);
     setNome(detalhe.nome);
     setInicio(detalhe.inicioPrevistoEm);
+    setRegulamento(detalhe.regulamentoTexto ?? '');
     return detalhe;
   }
 
@@ -179,6 +180,7 @@ export function TelaVisaoGeralCampeonato({
         setCampeonato(detalhe);
         setNome(detalhe.nome);
         setInicio(detalhe.inicioPrevistoEm);
+        setRegulamento(detalhe.regulamentoTexto ?? '');
         if (equipe) setOrganizadores(equipe);
       })
       .catch(() => {
@@ -224,6 +226,9 @@ export function TelaVisaoGeralCampeonato({
     campeonato.operacoesPermitidas.includes(operacao);
   const podeExecutarAcaoGeral = (operacao: string) =>
     pode(operacao) && campeonato.autoridade.permissoes.includes('EDITAR_DADOS');
+  const podeConfigurarEstrutura =
+    pode('CONFIGURAR_ESTRUTURA') &&
+    campeonato.autoridade.permissoes.includes('CONFIGURAR_ESTRUTURA');
 
   return (
     <>
@@ -567,11 +572,11 @@ export function TelaVisaoGeralCampeonato({
               className="mt-2"
               value={regulamento}
               onChange={(event) => setRegulamento(event.target.value)}
-              disabled={!session?.prototipo}
+              disabled={!session?.prototipo || !podeConfigurarEstrutura}
               placeholder="Ex.: formato dos jogos, duração e regras disciplinares"
             />
           </label>
-          {session?.prototipo ? (
+          {session?.prototipo && podeConfigurarEstrutura ? (
             <Button
               className="mt-5"
               variant="campo"

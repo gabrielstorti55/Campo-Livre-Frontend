@@ -142,7 +142,7 @@ export function OperacoesTime({
           </p>
         </div>
 
-        <CampoFormulario label="Motivo da remoção" htmlFor="motivo-remocao">
+        <CampoFormulario label="Motivo" htmlFor="motivo-remocao">
           <Input
             id="motivo-remocao"
             value={motivoRemocao}

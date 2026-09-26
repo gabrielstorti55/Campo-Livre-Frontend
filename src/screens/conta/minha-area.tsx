@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  ArrowRight,
+  CheckCircle2,
   MapPin,
   Search,
   ShieldCheck,
@@ -60,12 +62,17 @@ export function TelaMinhaArea() {
   if (!session) redirect('/login');
 
   const hasTeam = session.links.teamIds.length > 0;
-  const organizesChampionship =
-    session.links.organizedChampionshipIds.length > 0;
   const organizerEnabled = session.capabilities.includes('organizador');
   const prefeituraVinculada = session.capabilities.includes('prefeitura');
   const isAdministrator = session.minhaConta.administrador;
   const city = session.account.city || 'Cidade não informada';
+  const contextoAtivo = session.activeContext;
+  const colunasContexto =
+    session.capabilities.length >= 3
+      ? 'md:grid-cols-3'
+      : session.capabilities.length === 2
+        ? 'md:grid-cols-2'
+        : 'md:grid-cols-1';
 
   function escolherContexto(
     context: 'atleta' | 'organizador' | 'prefeitura',
@@ -122,68 +129,50 @@ export function TelaMinhaArea() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        {!prefeituraVinculada ? (
-          <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
-          <CardHeader>
-            <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-green-pale text-green-dark">
-              <Users className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <CardTitle className="font-display text-xl text-green-dark">
-              {hasTeam
-                ? 'Seus times'
-                : 'Você ainda não participa de nenhum time'}
-            </CardTitle>
-            <CardDescription className="leading-6">
-              {hasTeam
-                ? 'Acompanhe os times vinculados à sua conta.'
-                : 'Entre em uma equipe existente ou crie seu próprio time para começar a participar.'}
-            </CardDescription>
-          </CardHeader>
-          {hasTeam ? (
-            <CardContent>
-              <Button asChild variant="campo" tone="green">
-                <Link href="/atleta/inicio">Abrir área esportiva</Link>
-              </Button>
-            </CardContent>
-          ) : (
-            <CardContent className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild variant="campo" tone="green">
-                <Link href="/atleta/time/buscar">
-                  <Search aria-hidden="true" /> Entrar em um time
-                </Link>
-              </Button>
-              <Button asChild variant="campoOutline" tone="green">
-                <Link href="/atleta/time/criar">Criar um time</Link>
-              </Button>
-            </CardContent>
-          )}
-          </Card>
-        ) : null}
-
-        <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
-          <CardHeader>
-            <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-amber-100 text-amber-800">
-              <Trophy className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <CardTitle className="font-display text-xl text-green-dark">
-              {organizesChampionship
-                ? 'Campeonatos que você organiza'
-                : 'Nenhum campeonato organizado'}
-            </CardTitle>
-            <CardDescription className="leading-6">
-              {organizesChampionship
-                ? 'Continue a gestão dos campeonatos vinculados à sua conta.'
-                : 'Você ainda não organiza campeonatos, mas pode consultar competições, partidas e classificações.'}
-            </CardDescription>
-          </CardHeader>
-          {!organizesChampionship ? (
-            <CardContent className="flex flex-wrap gap-3">
-              {organizerEnabled ? (
+      {!hasTeam || !organizerEnabled ? (
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          {!hasTeam ? (
+            <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
+              <CardHeader>
+                <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-green-pale text-green-dark">
+                  <Users className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <CardTitle className="font-display text-xl text-green-dark">
+                  Você ainda não participa de nenhum time
+                </CardTitle>
+                <CardDescription className="leading-6">
+                  Entre em uma equipe existente ou crie seu próprio time para
+                  liberar a área de atleta.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild variant="campo" tone="green">
-                  <Link href="/organizador/novo">Criar campeonato</Link>
+                  <Link href="/atleta/time/buscar">
+                    <Search aria-hidden="true" /> Entrar em um time
+                  </Link>
                 </Button>
-              ) : (
+                <Button asChild variant="campoOutline" tone="green">
+                  <Link href="/atleta/time/criar">Criar um time</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {!organizerEnabled ? (
+            <Card className="rounded-md border-border/70 border-t-2 border-t-green-dark">
+              <CardHeader>
+                <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-md bg-amber-100 text-amber-800">
+                  <Trophy className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <CardTitle className="font-display text-xl text-green-dark">
+                  Ative a área de organizador
+                </CardTitle>
+                <CardDescription className="leading-6">
+                  Habilite esse contexto para criar e administrar seus próprios
+                  campeonatos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
                 <Button
                   variant="campo"
                   tone="green"
@@ -194,62 +183,182 @@ export function TelaMinhaArea() {
                 >
                   Ativar painel de organizador
                 </Button>
-              )}
-              <Button asChild variant="campoOutline" tone="green">
-                <Link href="/campeonatos">Explorar campeonatos</Link>
-              </Button>
-            </CardContent>
+                <Button asChild variant="campoOutline" tone="green">
+                  <Link href="/campeonatos">Explorar campeonatos</Link>
+                </Button>
+              </CardContent>
+            </Card>
           ) : null}
-        </Card>
-      </div>
+        </div>
+      ) : null}
 
       {session.capabilities.length > 0 ? (
         <section
-          className="mt-6 border-y border-border bg-card px-5 py-5"
+          className="mt-6 border-y-2 border-green-dark bg-card"
           aria-labelledby="escolher-contexto"
         >
-          <h2
-            id="escolher-contexto"
-            className="font-display text-xl font-semibold text-green-dark"
-          >
-            Escolher contexto
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            A navegação permanece neste contexto até você escolher outra área.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {session.capabilities.includes('atleta') ? (
-              <Button
-                variant="campoOutline"
-                tone="green"
-                onClick={() => escolherContexto('atleta', '/atleta/inicio')}
+          <div className="border-b border-border bg-green-dark px-5 py-5 text-white sm:flex sm:items-end sm:justify-between sm:gap-6">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.12em] text-accent uppercase">
+                Uma conta, diferentes atuações
+              </p>
+              <h2
+                id="escolher-contexto"
+                className="mt-1 font-display text-2xl font-semibold uppercase"
               >
-                Área esportiva
-              </Button>
+                Escolha como deseja acessar o CampoLivre
+              </h2>
+            </div>
+            <p className="mt-3 max-w-md text-sm leading-6 text-white/75 sm:mt-0 sm:text-right">
+              A troca altera apenas a área de trabalho e as permissões exibidas.
+              Sua conta e seus vínculos permanecem os mesmos.
+            </p>
+          </div>
+
+          <div className={`grid gap-px bg-border ${colunasContexto}`}>
+            {session.capabilities.includes('atleta') ? (
+              <article
+                className="flex min-h-60 flex-col bg-card p-5"
+                aria-label="Contexto de atleta"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center bg-green-pale text-green-dark">
+                    <UserRound className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  {contextoAtivo === 'atleta' ? (
+                    <span className="inline-flex items-center gap-1 bg-green-pale px-2 py-1 text-xs font-semibold text-green-dark">
+                      <CheckCircle2
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      Contexto ativo
+                    </span>
+                  ) : null}
+                </div>
+                <h3 className="mt-4 font-display text-xl font-semibold text-green-dark">
+                  Atleta
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
+                  Acompanhe seus times, convites, partidas e campeonatos como
+                  participante.
+                </p>
+                <Button
+                  className="mt-5 w-full justify-between"
+                  variant={
+                    contextoAtivo === 'atleta' ? 'campoOutline' : 'campo'
+                  }
+                  tone="green"
+                  disabled={contextoAtivo === 'atleta'}
+                  onClick={() =>
+                    escolherContexto('atleta', '/atleta/time/buscar')
+                  }
+                >
+                  {contextoAtivo === 'atleta'
+                    ? 'Você está nesta área'
+                    : 'Entrar como atleta'}
+                  {contextoAtivo !== 'atleta' ? (
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  ) : null}
+                </Button>
+              </article>
             ) : null}
             {session.capabilities.includes('organizador') ? (
-              <Button
-                variant="campo"
-                tone="green"
-                onClick={() =>
-                  escolherContexto('organizador', '/organizador/inicio')
-                }
+              <article
+                className="flex min-h-60 flex-col bg-card p-5"
+                aria-label="Contexto de organizador"
               >
-                Área do organizador
-              </Button>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center bg-amber-100 text-amber-800">
+                    <Trophy className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  {contextoAtivo === 'organizador' ? (
+                    <span className="inline-flex items-center gap-1 bg-green-pale px-2 py-1 text-xs font-semibold text-green-dark">
+                      <CheckCircle2
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      Contexto ativo
+                    </span>
+                  ) : null}
+                </div>
+                <h3 className="mt-4 font-display text-xl font-semibold text-green-dark">
+                  Organizador
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
+                  Crie e administre campeonatos, participantes, partidas e
+                  Súmulas.
+                </p>
+                <Button
+                  className="mt-5 w-full justify-between"
+                  variant={
+                    contextoAtivo === 'organizador' ? 'campoOutline' : 'campo'
+                  }
+                  tone="green"
+                  disabled={contextoAtivo === 'organizador'}
+                  onClick={() =>
+                    escolherContexto('organizador', '/organizador/campeonatos')
+                  }
+                >
+                  {contextoAtivo === 'organizador'
+                    ? 'Você está nesta área'
+                    : 'Entrar como organizador'}
+                  {contextoAtivo !== 'organizador' ? (
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  ) : null}
+                </Button>
+              </article>
             ) : null}
             {session.capabilities.includes('prefeitura') ? (
-              <Button
-                variant="campoOutline"
-                tone="navy"
-                onClick={() =>
-                  escolherContexto('prefeitura', '/prefeitura/painel')
-                }
+              <article
+                className="flex min-h-60 flex-col bg-card p-5"
+                aria-label="Contexto de Prefeitura"
               >
-                Área da Prefeitura
-              </Button>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center bg-blue-100 text-blue-900">
+                    <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  {contextoAtivo === 'prefeitura' ? (
+                    <span className="inline-flex items-center gap-1 bg-green-pale px-2 py-1 text-xs font-semibold text-green-dark">
+                      <CheckCircle2
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      Contexto ativo
+                    </span>
+                  ) : null}
+                </div>
+                <h3 className="mt-4 font-display text-xl font-semibold text-green-dark">
+                  Prefeitura
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
+                  Acesse os recursos institucionais vinculados ao município.
+                </p>
+                <Button
+                  className="mt-5 w-full justify-between"
+                  variant={
+                    contextoAtivo === 'prefeitura' ? 'campoOutline' : 'campo'
+                  }
+                  tone="navy"
+                  disabled={contextoAtivo === 'prefeitura'}
+                  onClick={() =>
+                    escolherContexto('prefeitura', '/prefeitura/painel')
+                  }
+                >
+                  {contextoAtivo === 'prefeitura'
+                    ? 'Você está nesta área'
+                    : 'Entrar como Prefeitura'}
+                  {contextoAtivo !== 'prefeitura' ? (
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  ) : null}
+                </Button>
+              </article>
             ) : null}
           </div>
+
+          <p className="border-t border-border bg-muted/40 px-5 py-3 text-xs leading-5 text-muted-foreground">
+            O contexto escolhido permanece ativo até uma nova troca explícita.
+            Abrir páginas públicas não altera essa seleção.
+          </p>
         </section>
       ) : null}
 
@@ -310,8 +419,9 @@ export function TelaMinhaArea() {
                 setErroAtivacao('');
                 try {
                   await enableOrganizer();
+                  switchContext('organizador');
                   setActivationOpen(false);
-                  router.push('/organizador/inicio');
+                  router.push('/organizador/campeonatos');
                 } catch {
                   setErroAtivacao(
                     'Não foi possível ativar o painel. Confirme que sua conta está ativa e o e-mail foi validado.',

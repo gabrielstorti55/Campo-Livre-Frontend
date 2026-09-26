@@ -1,13 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TelaChaveamento } from '@/screens/organizador/chaveamento';
+import {
+  criarConfrontosManuais,
+  TelaChaveamento,
+} from '@/screens/organizador/chaveamento';
 
 const controle = vi.hoisted(() => ({
   estado: 'EM_INSCRICOES',
   hydrated: true,
   accountId: 'responsavel-1',
   operacoes: ['CONFIGURAR_ESTRUTURA'],
+  prototipo: false,
 }));
 const selecionarEstruturaFases = vi.fn().mockResolvedValue({
   campeonatoId: '4',
@@ -97,6 +101,7 @@ vi.mock('@/hooks/use-sessao', () => ({
     hydrated: controle.hydrated,
     session: {
       sessionId: controle.accountId,
+      prototipo: controle.prototipo,
       account: { id: controle.accountId },
       links: { organizedChampionshipIds: ['4'] },
     },
@@ -130,11 +135,27 @@ vi.mock('@/services/publico/catalogo-publico.mock', () => ({
 }));
 
 describe('estrutura do campeonato', () => {
+  it('monta confrontos manuais seguindo a ordem das sementes', () => {
+    const confrontos = criarConfrontosManuais(['1', '2', '3', '4'], 'fase-1');
+
+    expect(confrontos).toHaveLength(3);
+    expect(confrontos.slice(0, 2)).toMatchObject([
+      { rodada: 1, timeAId: '1', timeBId: '4' },
+      { rodada: 1, timeAId: '2', timeBId: '3' },
+    ]);
+    expect(confrontos[2]).toMatchObject({
+      rodada: 2,
+      timeAId: null,
+      timeBId: null,
+    });
+  });
+
   beforeEach(() => {
     controle.estado = 'EM_INSCRICOES';
     controle.hydrated = true;
     controle.accountId = 'responsavel-1';
     controle.operacoes = ['CONFIGURAR_ESTRUTURA'];
+    controle.prototipo = false;
     vi.clearAllMocks();
     listarTimesParticipantes.mockResolvedValue({
       itens: Array.from({ length: 8 }, (_, indice) => ({
@@ -387,6 +408,31 @@ describe('estrutura do campeonato', () => {
     expect(
       screen.queryByRole('button', { name: 'Salvar estrutura de fases' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('permite revisar e substituir fases persistidas no protótipo', async () => {
+    controle.prototipo = true;
+    consultarFases.mockResolvedValueOnce({
+      campeonatoId: '4',
+      versaoConfiguracao: 3,
+      fases: [
+        {
+          faseId: 'fase-1',
+          nome: 'Fase eliminatória',
+          ordem: 1,
+          tipo: 'MATA_MATA',
+          quantidadeTurnos: null,
+          classificadosPorGrupo: null,
+          grupos: [],
+          statusMaterializacao: 'NAO_GERADA',
+        },
+      ],
+    });
+    render(<TelaChaveamento campeonatoId="4" incorporada />);
+
+    expect(
+      await screen.findByRole('button', { name: 'Salvar estrutura de fases' }),
+    ).toBeVisible();
   });
 
   it('retoma pela etapa persistida e reutiliza a chave da etapa que falhou', async () => {

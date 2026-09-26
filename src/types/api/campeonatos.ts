@@ -78,6 +78,7 @@ export type DetalheAdministrativoCampeonato = {
   contexto: 'PESSOAL' | 'PREFEITURA';
   prefeituraId: string | null;
   municipioId: string;
+  regulamentoTexto?: string;
   inicioPrevistoEm: string;
   fimPrevistoEm: string | null;
   situacaoComercial: 'AUTORIZADO' | 'AGUARDANDO_PAGAMENTO';
@@ -122,6 +123,17 @@ export type ConviteCampeonatoEnviado = {
   expiraEm: string;
   encerradoEm: string | null;
   podeCancelar: boolean;
+};
+
+export type ConviteCampeonatoRecebidoPrototipo = {
+  conviteId: string;
+  campeonato: { id: string; nome: string };
+  time: { id: string; nome: string; sigla: string };
+  status: 'PENDENTE' | 'ACEITO' | 'RECUSADO' | 'CANCELADO' | 'EXPIRADO';
+  enviadoEm: string;
+  expiraEm: string;
+  encerradoEm: string | null;
+  acoesPermitidas: Array<'ACEITAR' | 'RECUSAR'>;
 };
 
 export type ElencoContextualCampeonato = {

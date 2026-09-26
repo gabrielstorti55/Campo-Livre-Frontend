@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
 
 import { useSessao } from '@/hooks/use-sessao';
@@ -17,7 +17,6 @@ export function GuardaSessao({
   mensagem?: string;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const { status, session, erroSessao } = useSessao();
 
   useEffect(() => {
@@ -28,12 +27,11 @@ export function GuardaSessao({
     )
       return;
     if (!session) {
-      const returnTo = pathname.startsWith('/') ? pathname : '/minha-area';
-      router.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      router.replace('/login');
       return;
     }
     if (!autorizado) router.replace(destinoSemPermissao);
-  }, [autorizado, destinoSemPermissao, pathname, router, session, status]);
+  }, [autorizado, destinoSemPermissao, router, session, status]);
 
   if (
     status === 'carregando' ||

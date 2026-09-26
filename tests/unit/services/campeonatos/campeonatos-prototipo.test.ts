@@ -59,6 +59,111 @@ const posicoesDeTimes = (campeonatoId: string, timeIds: string[]) =>
   }));
 
 describe('CampeonatosPrototipo', () => {
+  it('entrega o convite ao capitão e confirma o time após o aceite', async () => {
+    let contaAtiva = 'conta-prefeitura';
+    const api = new CampeonatosPrototipo(() => contaAtiva);
+    const criado = await api.criarCampeonato(
+      'token',
+      {
+        ...inputCampeonato('Copa Municipal por convite'),
+        contexto: 'PREFEITURA',
+        prefeituraId: 'prefeitura-franca',
+      },
+      'criar-copa-convite',
+    );
+
+    await api.convidarTime(criado.id, '1', 'token');
+    contaAtiva = 'mock-person-1';
+
+    const recebidos = await api.listarConvitesRecebidosComoCapitao('token');
+    expect(recebidos.itens).toEqual([
+      expect.objectContaining({
+        campeonato: expect.objectContaining({
+          id: criado.id,
+          nome: 'Copa Municipal por convite',
+        }),
+        time: expect.objectContaining({ id: '1', nome: 'Vila Nova FC' }),
+        status: 'PENDENTE',
+      }),
+    ]);
+
+    await api.responderConviteCampeonato(
+      recebidos.itens[0]!.conviteId,
+      'ACEITAR',
+      'token',
+    );
+    contaAtiva = 'conta-prefeitura';
+
+    await expect(
+      api.listarTimesParticipantes(criado.id, 'token'),
+    ).resolves.toMatchObject({
+      itens: [expect.objectContaining({ timeId: '1', nome: 'Vila Nova FC' })],
+    });
+
+    contaAtiva = 'conta-prefeitura';
+    await expect(
+      api.finalizarInscricoes(criado.id, 'token', 'ainda-incompleto'),
+    ).rejects.toThrow('CONFIGURACAO_INVALIDA');
+
+    await api.convidarTime(criado.id, '2', 'token');
+    contaAtiva = 'mock-person-captain-2';
+    const conviteLeoes = (await api.listarConvitesRecebidosComoCapitao('token'))
+      .itens[0]!;
+    await api.responderConviteCampeonato(
+      conviteLeoes.conviteId,
+      'ACEITAR',
+      'token',
+    );
+    contaAtiva = 'conta-prefeitura';
+
+    await expect(
+      api.finalizarInscricoes(criado.id, 'token', 'dois-confirmados'),
+    ).resolves.toMatchObject({ status: 'AGUARDANDO_SORTEIO' });
+  });
+
+  it('preserva o município escolhido na projeção administrativa', async () => {
+    const api = new CampeonatosPrototipo(() => 'mock-person-unlinked-1');
+    const criado = await api.criarCampeonato(
+      'token',
+      {
+        ...inputCampeonato('Copa Batatais'),
+        municipioId: '00000000-0000-4000-8000-000000000002',
+      },
+      'criar-copa-batatais',
+    );
+
+    await expect(
+      api.consultarAdministracao(criado.id, 'token'),
+    ).resolves.toMatchObject({
+      municipioId: '00000000-0000-4000-8000-000000000002',
+    });
+  });
+
+  it('persiste o regulamento configurado na projeção administrativa', async () => {
+    const api = new CampeonatosPrototipo(() => 'mock-person-unlinked-1');
+    const criado = await api.criarCampeonato(
+      'token',
+      inputCampeonato('Copa com regulamento'),
+      'criar-copa-regulamento',
+    );
+
+    await api.configurarRegulamento(criado.id, 'token', {
+      regulamentoTexto: 'Partidas de dois tempos de 40 minutos.',
+      limiteAtletasPorTime: 22,
+      permiteWo: true,
+      placarWoMandante: 3,
+      placarWoVisitante: 0,
+      criterioBye: 'ORDEM_INSCRICAO',
+    });
+
+    await expect(
+      api.consultarAdministracao(criado.id, 'token'),
+    ).resolves.toMatchObject({
+      regulamentoTexto: 'Partidas de dois tempos de 40 minutos.',
+      configuracao: { limiteAtletasPorTime: 22 },
+    });
+  });
+
   it('projeta a identidade humana do responsável sem expor IDs mockados', async () => {
     const api = new CampeonatosPrototipo(() => 'mock-person-unlinked-1');
     const criado = await api.criarCampeonato(
@@ -320,12 +425,26 @@ describe('CampeonatosPrototipo', () => {
     ).rejects.toThrow('OPERACAO_NAO_PERMITIDA');
   });
 
-  it('só finaliza inscrições válidas, em EM_INSCRICOES, e de forma idempotente', async () => {
+  it('finaliza as inscrições do campeonato 4 e avança para o sorteio', async () => {
     const api = new CampeonatosPrototipo(() => 'mock-person-1');
 
     await expect(
-      api.finalizarInscricoes('4', 'token', 'finalizar-pendente'),
-    ).rejects.toThrow('CONFIGURACAO_INVALIDA');
+      api.finalizarInscricoes('4', 'token', 'finalizar-copa-verao'),
+    ).resolves.toMatchObject({
+      id: '4',
+      status: 'AGUARDANDO_SORTEIO',
+    });
+
+    await expect(
+      api.consultarAdministracao('4', 'token'),
+    ).resolves.toMatchObject({
+      status: 'AGUARDANDO_SORTEIO',
+      configuracao: { valida: true, pendencias: [] },
+    });
+  });
+
+  it('só finaliza inscrições em EM_INSCRICOES e de forma idempotente', async () => {
+    const api = new CampeonatosPrototipo(() => 'mock-person-1');
 
     const criado = await api.criarCampeonato(
       'token',

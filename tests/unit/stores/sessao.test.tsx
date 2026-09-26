@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { useEffect, useRef, useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ErroApi } from '@/services/api/problem-details';
 import type { AutenticacaoApi } from '@/services/autenticacao/autenticacao-api';
@@ -129,6 +129,76 @@ function Probe() {
 }
 
 describe('ProvedorSessao', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  it('preserva o contexto escolhido ao recarregar a conta e ao remontar o provedor', async () => {
+    const contaOrganizadora = { ...account, organizadorHabilitado: true };
+    const api = createApi({
+      consultarMinhaConta: vi.fn().mockResolvedValue(contaOrganizadora),
+    });
+
+    function ProbeContexto() {
+      const auth = useSessao();
+      return (
+        <>
+          <span data-testid="contexto-ativo">
+            {auth.session?.activeContext ?? 'nenhum'}
+          </span>
+          <button
+            type="button"
+            onClick={() => auth.switchContext('organizador')}
+          >
+            escolher organizador
+          </button>
+          <button
+            type="button"
+            onClick={() => void auth.recarregarMinhaConta()}
+          >
+            recarregar conta
+          </button>
+        </>
+      );
+    }
+
+    const primeiraMontagem = render(
+      <ProvedorSessao api={api} modo="prototipo">
+        <ProbeContexto />
+      </ProvedorSessao>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('contexto-ativo')).toHaveTextContent('nenhum'),
+    );
+
+    screen.getByRole('button', { name: 'escolher organizador' }).click();
+    await waitFor(() =>
+      expect(screen.getByTestId('contexto-ativo')).toHaveTextContent(
+        'organizador',
+      ),
+    );
+
+    screen.getByRole('button', { name: 'recarregar conta' }).click();
+    await waitFor(() =>
+      expect(screen.getByTestId('contexto-ativo')).toHaveTextContent(
+        'organizador',
+      ),
+    );
+
+    primeiraMontagem.unmount();
+    render(
+      <ProvedorSessao api={api} modo="prototipo">
+        <ProbeContexto />
+      </ProvedorSessao>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('contexto-ativo')).toHaveTextContent(
+        'organizador',
+      ),
+    );
+  });
+
   it('recupera a sessão por refresh e consulta a própria conta', async () => {
     const api = createApi();
     render(

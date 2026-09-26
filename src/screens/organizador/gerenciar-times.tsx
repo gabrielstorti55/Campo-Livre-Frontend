@@ -16,6 +16,7 @@ import type {
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { obterAtletasDoTimeNoCampeonatoPrototipo } from '@/mocks/organizador/inscricoes-atletas-campeonato';
 
 const rotulosStatusConvite: Record<ConviteCampeonatoEnviado['status'], string> =
   {
@@ -64,6 +65,8 @@ export function TelaGerenciarTimes({
   );
   const [elencos, setElencos] = useState<Record<string, EstadoElenco>>({});
   const [feedback, setFeedback] = useState('');
+  const [enviandoConvite, setEnviandoConvite] = useState(false);
+  const conviteEmEnvioRef = useRef(false);
   const identidadeSessao = `${campeonatoId}:${session?.sessionId ?? ''}:${session?.account.id ?? ''}`;
   const identidadeSessaoAtual = useRef(identidadeSessao);
   useLayoutEffect(() => {
@@ -345,7 +348,10 @@ export function TelaGerenciarTimes({
         (convite.status === 'PENDENTE' || convite.status === 'ACEITO'),
     );
   const podeConvidarTime =
-    Boolean(timeConvidado) && !conviteAtivoParaTime(timeConvidado);
+    Boolean(timeConvidado) &&
+    !carregandoConvites &&
+    !erroConvites &&
+    !conviteAtivoParaTime(timeConvidado);
 
   return (
     <>
@@ -396,9 +402,18 @@ export function TelaGerenciarTimes({
             <Button
               variant="campo"
               className="self-end"
-              disabled={!podeConvidarTime}
+              disabled={!podeConvidarTime || enviandoConvite}
               onClick={async () => {
                 const identidadeDaOperacao = identidadeSessao;
+                if (
+                  conviteEmEnvioRef.current ||
+                  carregandoConvites ||
+                  erroConvites ||
+                  conviteAtivoParaTime(timeConvidado)
+                )
+                  return;
+                conviteEmEnvioRef.current = true;
+                setEnviandoConvite(true);
                 try {
                   await executarAutenticado((accessToken) =>
                     campeonatosApi.convidarTime(
@@ -451,6 +466,10 @@ export function TelaGerenciarTimes({
                 } catch {
                   if (identidadeSessaoAtual.current === identidadeDaOperacao)
                     setFeedback('Não foi possível enviar o convite.');
+                } finally {
+                  conviteEmEnvioRef.current = false;
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao)
+                    setEnviandoConvite(false);
                 }
               }}
             >
@@ -529,6 +548,9 @@ export function TelaGerenciarTimes({
         ) : null}
         {participantes.map((time) => {
           const elenco = elencos[time.timeId];
+          const inscricaoPrototipo = session?.prototipo
+            ? obterAtletasDoTimeNoCampeonatoPrototipo(campeonatoId, time.timeId)
+            : null;
           return (
             <section
               key={time.timeId}
@@ -567,6 +589,23 @@ export function TelaGerenciarTimes({
                       mínimo {elenco.dados.minimoAtletas} · limite{' '}
                       {elenco.dados.limiteAtletasPorTime}
                     </p>
+                    {inscricaoPrototipo?.naoInscritos.length ? (
+                      <div className="mt-3 border-l-2 border-blue-900/40 pl-3 text-sm">
+                        <p className="font-semibold">
+                          {inscricaoPrototipo.inscritos.length} inscritos no
+                          campeonato de um elenco geral com{' '}
+                          {inscricaoPrototipo.inscritos.length +
+                            inscricaoPrototipo.naoInscritos.length}{' '}
+                          atletas
+                        </p>
+                        <p className="mt-1 text-muted-foreground">
+                          Vinculado ao time, mas fora desta competição:{' '}
+                          {inscricaoPrototipo.naoInscritos
+                            .map((atleta) => atleta.nome)
+                            .join(', ')}
+                        </p>
+                      </div>
+                    ) : null}
                     {elenco.dados.atletas.length === 0 ? (
                       <p className="mt-3 text-sm text-muted-foreground">
                         Nenhum atleta no elenco contextual.

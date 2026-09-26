@@ -100,6 +100,16 @@ const contas: Record<string, MinhaConta> = {
     nascimento: '1999-06-12',
     idade: 27,
   }),
+  'capitao2@campolivre.test': criarContaPrototipo({
+    id: 'mock-person-captain-2',
+    nome: 'Henrique Alves',
+    nomeUsuario: 'henriquealves',
+    email: 'capitao2@campolivre.test',
+    cpf: '77777777777',
+    rgNumero: '777777777',
+    nascimento: '1994-07-18',
+    idade: 32,
+  }),
   'atleta-cancelado@campolivre.test': criarContaPrototipo({
     id: 'conta-atleta-cancelado',
     nome: 'Rafael Lima',

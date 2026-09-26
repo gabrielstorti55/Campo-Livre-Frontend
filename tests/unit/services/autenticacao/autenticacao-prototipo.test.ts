@@ -22,6 +22,7 @@ describe('AutenticacaoPrototipo', () => {
   it.each([
     ['sem-time@campolivre.test', 'Lucas Ferreira'],
     ['atleta@campolivre.test', 'Diego Souza'],
+    ['capitao2@campolivre.test', 'Henrique Alves'],
     ['colaborador@campolivre.test', 'Juliana Lopes'],
     ['pessoa@campolivre.test', 'Marcos Oliveira'],
     ['prefeitura@campolivre.test', 'Gestora Municipal'],

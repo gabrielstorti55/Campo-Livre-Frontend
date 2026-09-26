@@ -3,14 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ControleModoAtleta } from '@/components/prototipo/controle-modo-atleta';
 
-let pathname = '/atleta/inicio';
+let pathname = '/atleta/time/buscar';
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
 }));
 
 describe('ControleModoAtleta', () => {
   beforeEach(() => {
-    pathname = '/atleta/inicio';
+    pathname = '/atleta/time/buscar';
   });
 
   it('libera a consulta integrada de convites', () => {

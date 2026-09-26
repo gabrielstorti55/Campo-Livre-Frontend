@@ -307,9 +307,9 @@ test('@integrado consulta convites por HTTP sem liberar outras telas simuladas',
     page.getByRole('heading', { name: 'Funcionalidade ainda não integrada' }),
   ).toHaveCount(0);
 
-  await page.goto('/atleta/inicio');
+  await page.goto('/atleta/time/buscar');
   await expect(
-    page.getByRole('heading', { name: 'Olá, Ana Souza' }),
+    page.getByRole('heading', { name: 'Times e convites' }),
   ).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Funcionalidade ainda não integrada' }),

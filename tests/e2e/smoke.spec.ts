@@ -33,10 +33,10 @@ test('renderiza as áreas principais e rotas parametrizadas sem erro', async ({
   await page.getByRole('button', { name: 'Entrar' }).click();
 
   const routes = [
-    '/atleta/inicio',
+    '/atleta/time/buscar',
     '/atleta/campeonato/1',
     '/atleta/time/1',
-    '/organizador/inicio',
+    '/organizador/campeonatos',
     '/organizador/campeonato/1',
     '/prefeitura/painel',
   ];

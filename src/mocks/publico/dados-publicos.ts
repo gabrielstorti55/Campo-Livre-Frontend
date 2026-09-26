@@ -136,7 +136,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2021',
     escudo: 'VN',
     publicado: true,
-    atletaIds: [1, 2, 3, 4, 11, 12, 13],
+    atletaIds: [1, 2, 3, 4, 11, 12, 13, 43],
     campeonatoIds: [1, 5],
   },
   {
@@ -147,7 +147,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2019',
     escudo: 'LF',
     publicado: true,
-    atletaIds: [5, 6, 14, 15, 16, 17, 18],
+    atletaIds: [5, 6, 14, 15, 16, 17, 18, 44],
     campeonatoIds: [1, 5],
   },
   {
@@ -180,7 +180,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2022',
     escudo: 'BS',
     publicado: true,
-    atletaIds: [9, 31, 32, 33, 34, 35, 36],
+    atletaIds: [9, 31, 32, 33, 34, 35, 36, 45],
     campeonatoIds: [1, 3, 7],
   },
   {
@@ -191,7 +191,7 @@ export const timesPublicosMock: TimePublico[] = [
     fundadoEm: '2017',
     escudo: 'RA',
     publicado: true,
-    atletaIds: [10, 37, 38, 39, 40, 41, 42],
+    atletaIds: [10, 37, 38, 39, 40, 41, 42, 46],
     campeonatoIds: [1, 7],
   },
 ];
@@ -591,6 +591,34 @@ const atletasComplementaresMock: AtletaPublico[] = (
       nome: 'Mateus Ribeiro',
       foto: 'MR',
       posicao: 'Atacante',
+      time: 'Real Aeroporto',
+    },
+    {
+      id: 43,
+      nome: 'Thiago Cardoso',
+      foto: 'TC',
+      posicao: 'Lateral',
+      time: 'Vila Nova FC',
+    },
+    {
+      id: 44,
+      nome: 'Arthur Lima',
+      foto: 'AL',
+      posicao: 'Meia',
+      time: 'Leões FC',
+    },
+    {
+      id: 45,
+      nome: 'Pedro Henrique',
+      foto: 'PH',
+      posicao: 'Zagueiro',
+      time: 'Bairro Sul FC',
+    },
+    {
+      id: 46,
+      nome: 'André Gomes',
+      foto: 'AG',
+      posicao: 'Meia',
       time: 'Real Aeroporto',
     },
   ] satisfies AtletaComplementar[]

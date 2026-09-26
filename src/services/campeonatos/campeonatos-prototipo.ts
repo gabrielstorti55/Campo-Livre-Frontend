@@ -1,9 +1,10 @@
 import type { CampeonatosApi } from '@/services/campeonatos/campeonatos-api';
+import { PartidasChaveamentoPrototipo } from '@/services/prototipo/partidas-chaveamento-prototipo';
 import {
-  atletasPublicosMock,
   campeonatosPublicosMock,
   timesPublicosMock,
 } from '@/mocks/publico/dados-publicos';
+import { obterAtletasDoTimeNoCampeonatoPrototipo } from '@/mocks/organizador/inscricoes-atletas-campeonato';
 import {
   campeonatosOrganizadorMock,
   vinculosCampeonatoOrganizadorMock,
@@ -17,6 +18,7 @@ import type {
   ConfrontoManual,
   ConfiguracaoFase,
   ConfiguracaoRegulamento,
+  ConviteCampeonatoRecebidoPrototipo,
   ConviteCampeonatoEnviado,
   CriterioDesempate,
   CriacaoCampeonato,
@@ -35,6 +37,27 @@ import type {
   ResultadoValidacaoCampeonato,
   UsuarioElegivelOrganizador,
 } from '@/types/api/campeonatos';
+
+const contaCapitaPorTime: Record<string, string> = {
+  '1': 'mock-person-1',
+  '2': 'mock-person-captain-2',
+};
+
+function pendenciasAtuais(campeonato: {
+  estado: string;
+  pendencias: string[];
+  timeIds: number[];
+}) {
+  const pendencias = [...campeonato.pendencias];
+  if (
+    (campeonato.estado === 'EM_CONFIGURACAO' ||
+      campeonato.estado === 'EM_INSCRICOES') &&
+    campeonato.timeIds.length < 2
+  ) {
+    pendencias.push('Confirme pelo menos 2 times participantes');
+  }
+  return pendencias;
+}
 
 function serializarPayloadCanonico(valor: unknown): string {
   if (Array.isArray(valor)) {
@@ -56,20 +79,24 @@ function obterTimePublico(timeId: string | number) {
   return timesPublicosMock.find((time) => time.id === Number(timeId));
 }
 
-const atletasPorId = new Map(
-  atletasPublicosMock.map((atleta) => [atleta.id, atleta]),
-);
+function embaralhar<T>(itens: readonly T[]): T[] {
+  const resultado = [...itens];
+  for (let indice = resultado.length - 1; indice > 0; indice -= 1) {
+    const aleatorio = new Uint32Array(1);
+    crypto.getRandomValues(aleatorio);
+    const destino = (aleatorio[0] ?? 0) % (indice + 1);
+    [resultado[indice], resultado[destino]] = [
+      resultado[destino]!,
+      resultado[indice]!,
+    ];
+  }
+  return resultado;
+}
 
-const elencosCampeonatoMock: Readonly<Record<string, readonly string[]>> =
-  Object.fromEntries(
-    timesPublicosMock.map((time) => [
-      String(time.id),
-      time.atletaIds.flatMap((atletaId) => {
-        const atleta = atletasPorId.get(atletaId);
-        return atleta ? [atleta.nome] : [];
-      }),
-    ]),
-  );
+const municipiosPrototipo: Record<string, { nome: string; uf: string }> = {
+  '00000000-0000-4000-8000-000000000001': { nome: 'Franca', uf: 'SP' },
+  '00000000-0000-4000-8000-000000000002': { nome: 'Batatais', uf: 'SP' },
+};
 
 export class CampeonatosPrototipo implements CampeonatosApi {
   private readonly payloadsIdempotentes = new Map<string, string>();
@@ -109,6 +136,24 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     string,
     ConviteCampeonatoEnviado[]
   >();
+  private readonly municipioIdsPorCampeonato = new Map<string, string>();
+  private readonly regulamentosPorCampeonato = new Map<
+    string,
+    ConfiguracaoRegulamento
+  >([
+    [
+      '4',
+      {
+        regulamentoTexto:
+          'Competição de futebol society com fase de grupos e mata-mata. As equipes devem respeitar os elencos inscritos e as decisões da arbitragem.',
+        limiteAtletasPorTime: 25,
+        permiteWo: true,
+        placarWoMandante: 3,
+        placarWoVisitante: 0,
+        criterioBye: 'ORDEM_INSCRICAO',
+      },
+    ],
+  ]);
   private proximoConviteId = 0;
   private readonly organizadoresPorCampeonato = new Map<
     string,
@@ -133,6 +178,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
 
   constructor(
     private readonly obterContaAtivaId: (accessToken: string) => string | null,
+    private readonly partidasChaveamento = new PartidasChaveamentoPrototipo(),
   ) {}
 
   private respostaIdempotente<T>(
@@ -374,6 +420,8 @@ export class CampeonatosPrototipo implements CampeonatosApi {
   ): Promise<DetalheAdministrativoCampeonato> {
     const { campeonato, vinculo } = this.autorizar(campeonatoId, accessToken);
     const responsavel = vinculo.papel === 'RESPONSAVEL';
+    const regulamento = this.regulamentosPorCampeonato.get(campeonatoId);
+    const pendencias = pendenciasAtuais(campeonato);
     return {
       campeonatoId,
       nome: campeonato.nome,
@@ -391,17 +439,22 @@ export class CampeonatosPrototipo implements CampeonatosApi {
         campeonato.contexto.tipo === 'PREFEITURA'
           ? campeonato.contexto.prefeituraId
           : null,
-      municipioId: '00000000-0000-4000-8000-000000000001',
+      municipioId:
+        this.municipioIdsPorCampeonato.get(campeonatoId) ??
+        (campeonato.municipio === 'Batatais'
+          ? '00000000-0000-4000-8000-000000000002'
+          : '00000000-0000-4000-8000-000000000001'),
+      regulamentoTexto: regulamento?.regulamentoTexto ?? '',
       inicioPrevistoEm: campeonato.inicio,
       fimPrevistoEm: null,
       situacaoComercial: 'AUTORIZADO',
       configuracao: {
         limiteTimes: 32,
-        limiteAtletasPorTime: 25,
+        limiteAtletasPorTime: regulamento?.limiteAtletasPorTime ?? 25,
         quantidadeTurnos: 1,
         versao: 3,
-        valida: campeonato.pendencias.length === 0,
-        pendencias: campeonato.pendencias,
+        valida: pendencias.length === 0,
+        pendencias,
       },
       autoridade: {
         funcao: responsavel ? 'RESPONSAVEL' : 'ORGANIZADOR',
@@ -553,9 +606,10 @@ export class CampeonatosPrototipo implements CampeonatosApi {
   async configurarRegulamento(
     campeonatoId: string,
     accessToken: string,
-    _input: ConfiguracaoRegulamento,
+    input: ConfiguracaoRegulamento,
   ) {
     this.autorizarOperacao(campeonatoId, accessToken, 'CONFIGURAR_ESTRUTURA');
+    this.regulamentosPorCampeonato.set(campeonatoId, structuredClone(input));
     return {
       campeonatoId,
       versaoConfiguracao: 2,
@@ -658,9 +712,10 @@ export class CampeonatosPrototipo implements CampeonatosApi {
       accessToken,
       'VALIDAR_CONFIGURACAO',
     );
+    const pendencias = pendenciasAtuais(campeonato);
     return {
-      valido: campeonato.pendencias.length === 0,
-      erros: campeonato.pendencias.map((mensagem) => ({
+      valido: pendencias.length === 0,
+      erros: pendencias.map((mensagem) => ({
         codigo: 'CONFIGURACAO_PENDENTE',
         mensagem,
       })),
@@ -692,7 +747,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
       accessToken,
       'FINALIZAR_INSCRICOES',
     );
-    if (campeonato.pendencias.length > 0) {
+    if (pendenciasAtuais(campeonato).length > 0) {
       throw new Error('CONFIGURACAO_INVALIDA');
     }
     campeonato.estado = 'AGUARDANDO_SORTEIO';
@@ -779,6 +834,10 @@ export class CampeonatosPrototipo implements CampeonatosApi {
       pagamentoNecessario: false,
     };
     const idNumerico = Number(resposta.id);
+    const municipio = municipiosPrototipo[input.municipioId] ?? {
+      nome: 'Município não identificado',
+      uf: '',
+    };
     campeonatosOrganizadorMock.push({
       id: idNumerico,
       nome: input.nome,
@@ -787,8 +846,8 @@ export class CampeonatosPrototipo implements CampeonatosApi {
         input.formato === 'GRUPOS_E_MATA_MATA'
           ? 'GRUPOS_MATA_MATA'
           : input.formato,
-      municipio: 'Franca',
-      uf: 'SP',
+      municipio: municipio.nome,
+      uf: municipio.uf,
       inicio: input.inicioPrevistoEm,
       visibilidade: 'PUBLICO',
       estado: 'EM_INSCRICOES',
@@ -821,6 +880,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
       campeonatoId: idNumerico,
       papel: 'RESPONSAVEL',
     });
+    this.municipioIdsPorCampeonato.set(resposta.id, input.municipioId);
     this.registrarRespostaIdempotente(chave, input, resposta, this.respostas);
     return resposta;
   }
@@ -885,7 +945,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
         sigla: time?.escudo ?? 'TIM',
       },
       destinatario: {
-        usuarioId: `capitao-${timeId}`,
+        usuarioId: contaCapitaPorTime[timeId] ?? `capitao-${timeId}`,
         nome:
           timeId === '1'
             ? 'Marcos Oliveira'
@@ -901,6 +961,71 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     });
     this.convitesPorCampeonato.set(campeonatoId, enviados);
     return convite;
+  }
+
+  async listarConvitesRecebidosComoCapitao(
+    accessToken: string,
+    pagina = 1,
+    tamanho = 20,
+  ): Promise<Pagina<ConviteCampeonatoRecebidoPrototipo>> {
+    const contaId = this.autenticar(accessToken);
+    const todos = [...this.convitesPorCampeonato.entries()]
+      .flatMap(([campeonatoId, convites]) =>
+        convites
+          .filter((convite) => convite.destinatario.usuarioId === contaId)
+          .map((convite) => {
+            const campeonato = this.obter(campeonatoId);
+            return {
+              conviteId: convite.conviteId,
+              campeonato: { id: campeonatoId, nome: campeonato.nome },
+              time: convite.time,
+              status: convite.status,
+              enviadoEm: convite.enviadoEm,
+              expiraEm: convite.expiraEm,
+              encerradoEm: convite.encerradoEm,
+              acoesPermitidas:
+                convite.status === 'PENDENTE'
+                  ? (['ACEITAR', 'RECUSAR'] as Array<'ACEITAR' | 'RECUSAR'>)
+                  : [],
+            };
+          }),
+      )
+      .sort((a, b) => b.enviadoEm.localeCompare(a.enviadoEm));
+    const inicio = (pagina - 1) * tamanho;
+    return {
+      itens: todos.slice(inicio, inicio + tamanho),
+      pagina,
+      tamanho,
+      totalItens: todos.length,
+      totalPaginas: Math.ceil(todos.length / tamanho),
+    };
+  }
+
+  async responderConviteCampeonato(
+    conviteId: string,
+    acao: 'ACEITAR' | 'RECUSAR',
+    accessToken: string,
+  ) {
+    const contaId = this.autenticar(accessToken);
+    for (const [campeonatoId, convites] of this.convitesPorCampeonato) {
+      const convite = convites.find((item) => item.conviteId === conviteId);
+      if (!convite) continue;
+      if (convite.destinatario.usuarioId !== contaId)
+        throw new Error('NAO_AUTORIZADO');
+      if (convite.status !== 'PENDENTE')
+        throw new Error('OPERACAO_NAO_PERMITIDA');
+      const encerradoEm = new Date().toISOString();
+      convite.status = acao === 'ACEITAR' ? 'ACEITO' : 'RECUSADO';
+      convite.encerradoEm = encerradoEm;
+      convite.podeCancelar = false;
+      if (acao === 'ACEITAR') {
+        const campeonato = this.obter(campeonatoId);
+        const timeId = Number(convite.time.id);
+        if (!campeonato.timeIds.includes(timeId)) campeonato.timeIds.push(timeId);
+      }
+      return { conviteId, status: convite.status, encerradoEm };
+    }
+    throw new Error('RECURSO_NAO_ENCONTRADO');
   }
 
   async cancelarConviteTime(
@@ -948,7 +1073,10 @@ export class CampeonatosPrototipo implements CampeonatosApi {
   ): Promise<ElencoContextualCampeonato> {
     this.autorizar(campeonatoId, accessToken);
     const time = obterTimePublico(timeId);
-    const nomesAtletas = elencosCampeonatoMock[timeId] ?? [];
+    const nomesAtletas = obterAtletasDoTimeNoCampeonatoPrototipo(
+      campeonatoId,
+      timeId,
+    ).inscritos.map((atleta) => atleta.nome);
     const atletas = nomesAtletas.map((nome, indice) => ({
       atletaCampeonatoId: `atleta-campeonato-${campeonatoId}-${timeId}-${indice + 1}`,
       membroTimeId: `membro-${timeId}-${indice + 1}`,
@@ -1130,7 +1258,7 @@ export class CampeonatosPrototipo implements CampeonatosApi {
     const posicoes =
       modo === 'MANUAL'
         ? posicoesManuais.map((item) => ({ ...item }))
-        : campeonato.timeIds.map((timeId, indice) => ({
+        : embaralhar(campeonato.timeIds).map((timeId, indice) => ({
             timeId: String(timeId),
             faseId,
             grupoId: null,
@@ -1459,6 +1587,28 @@ export class CampeonatosPrototipo implements CampeonatosApi {
         })),
       ],
     });
+    this.partidasChaveamento.substituir(
+      campeonatoId,
+      confrontosProjetados.map((confronto, indice) => ({
+        confrontoId: idsPorChave.get(confronto.chaveLocal)!,
+        partidaId:
+          confronto.tipo === 'NORMAL'
+            ? `${campeonatoId}-mata-mata-${indice + 1}`
+            : null,
+        campeonatoId,
+        faseId: confronto.faseId,
+        rodada: confronto.rodada,
+        ordem: confronto.ordem,
+        timeAId: confronto.timeAId,
+        timeBId: confronto.timeBId,
+        confrontoDestinoId: confronto.confrontoDestinoChaveLocal
+          ? (idsPorChave.get(confronto.confrontoDestinoChaveLocal) ?? null)
+          : null,
+        posicaoDestino: confronto.posicaoDestino,
+        resultado: null,
+        sumula: null,
+      })),
+    );
     confrontosProjetados.forEach((confronto) =>
       materializadas.add(confronto.faseId),
     );

@@ -89,6 +89,7 @@ export function LayoutExploracao({ children }: { children: ReactNode }) {
   if (session?.activeContext === 'prefeitura') {
     return <LayoutPrefeitura>{children}</LayoutPrefeitura>;
   }
+
   const accountHome = session ? obterInicioSessao(session) : null;
 
   return (

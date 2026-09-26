@@ -194,7 +194,74 @@ export type DetalheAdministrativoPartida = {
   motivoAdministrativo: string | null;
   operacoesPermitidas: string[];
   pdfOficial: { status: 'INEXISTENTE' | 'PENDENTE' | 'GERADO' | 'FALHOU' };
+  resultadoPrototipo?: {
+    golsMandante: number;
+    golsVisitante: number;
+    vencedorTimeId: string;
+  } | null;
   atualizadoEm: string;
+};
+
+export type RegistroResultadoPrototipo = {
+  golsMandante: number;
+  golsVisitante: number;
+};
+
+export type SumulaCompletaPrototipo = RegistroResultadoPrototipo & {
+  placarPenaltis: {
+    mandante: number;
+    visitante: number;
+  } | null;
+  arbitragem: {
+    arbitro: string;
+    primeiroAssistente: string;
+    segundoAssistente: string;
+    quartoArbitro: string;
+  };
+  escalacaoMandante: Array<{
+    atletaId: number;
+    situacao: 'TITULAR' | 'RESERVA';
+    posicaoUsada:
+      'GOLEIRO' | 'ZAGUEIRO' | 'LATERAL' | 'MEIO_CAMPO' | 'ATACANTE';
+  }>;
+  escalacaoVisitante: Array<{
+    atletaId: number;
+    situacao: 'TITULAR' | 'RESERVA';
+    posicaoUsada:
+      'GOLEIRO' | 'ZAGUEIRO' | 'LATERAL' | 'MEIO_CAMPO' | 'ATACANTE';
+  }>;
+  gols: Array<{
+    atletaId: number;
+    lado: 'MANDANTE' | 'VISITANTE';
+    periodo: 'PRIMEIRO_TEMPO' | 'SEGUNDO_TEMPO' | 'PRORROGACAO';
+    minuto: number;
+    acrescimo: number | null;
+  }>;
+  cartoes: Array<{
+    atletaId: number;
+    lado: 'MANDANTE' | 'VISITANTE';
+    tipo: 'AMARELO' | 'VERMELHO';
+    periodo: 'PRIMEIRO_TEMPO' | 'SEGUNDO_TEMPO' | 'PRORROGACAO';
+    minuto: number;
+    acrescimo: number | null;
+  }>;
+  substituicoes: Array<{
+    lado: 'MANDANTE' | 'VISITANTE';
+    atletaSaiId: number;
+    atletaEntraId: number;
+    periodo: 'PRIMEIRO_TEMPO' | 'SEGUNDO_TEMPO' | 'PRORROGACAO';
+    minuto: number;
+    acrescimo: number | null;
+  }>;
+  relatorio: string;
+};
+
+export type ResultadoPrototipoRegistrado = {
+  partidaId: string;
+  estado: 'ENCERRADA_SUMULA';
+  placar: RegistroResultadoPrototipo;
+  vencedorTimeId: string;
+  finalLiberada: boolean;
 };
 
 export type AgendamentoPartidaInput = {

@@ -36,7 +36,7 @@ test('capacidade de organizador não concede campeonatos de terceiros', async ({
 test('painel recupera somente vínculos administrativos e funções canônicas', async ({
   page,
 }) => {
-  await autenticarEm(page, 'organizador', '/organizador/inicio');
+  await autenticarEm(page, 'organizador', '/organizador/campeonatos');
 
   const meus = page.getByRole('region', { name: 'Meus campeonatos' });
   await expect(
@@ -80,8 +80,10 @@ test('participantes e estrutura usam projeções recuperáveis do campeonato', a
   await expect(
     page.getByRole('heading', { name: 'Times · Copa Verão 2026' }),
   ).toBeVisible();
-  await expect(page.getByText('Time 1', { exact: true })).toBeVisible();
-  await expect(page.getByText('Time 2', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Vila Nova FC', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('Leões FC', { exact: true })).toBeVisible();
 
   await autenticarEm(
     page,
@@ -89,11 +91,43 @@ test('participantes e estrutura usam projeções recuperáveis do campeonato', a
     '/organizador/campeonato/4/chaveamento',
   );
   await expect(page.getByText('2 Times confirmados')).toBeVisible();
-  await expect(page.getByText('Time 1', { exact: true })).toBeVisible();
-  await expect(page.getByText('Time 2', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Vila Nova FC', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('Leões FC', { exact: true })).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Salvar estrutura de fases' }),
   ).toBeVisible();
+});
+
+test('campeonato de demonstração permite chaveamento manual de ponta a ponta', async ({
+  page,
+}) => {
+  await autenticarEm(page, 'atletaOrganizador', '/organizador/campeonato/8');
+
+  await page.getByRole('tab', { name: 'Estrutura' }).click();
+  await expect(page.getByText('4 Times confirmados')).toBeVisible();
+  await page.getByRole('button', { name: 'Salvar estrutura de fases' }).click();
+  await expect(page.getByText('Estrutura de fases salva.')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Visão geral' }).click();
+  await page.getByRole('button', { name: 'Finalizar inscrições' }).click();
+  await expect(page.getByText('Inscrições finalizadas.')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Estrutura' }).click();
+  await page.getByRole('button', { name: 'Definir manualmente' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Ordem manual das sementes' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Descer' }).first().click();
+  await page
+    .getByRole('button', { name: 'Confirmar confrontos manuais' })
+    .click();
+
+  await expect(
+    page.getByText('Distribuição e confrontos gerados.'),
+  ).toBeVisible();
+  await expect(page.getByText('Distribuição manual confirmada.')).toBeVisible();
 });
 
 test('organizador ativo não recebe ações exclusivas do responsável', async ({

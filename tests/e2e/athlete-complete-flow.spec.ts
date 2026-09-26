@@ -8,7 +8,7 @@ async function loginWithoutTeam(page: Page, destino = '/minha-area') {
 test('atleta encerra a sessão e não retorna por deep link privado', async ({
   page,
 }) => {
-  await autenticarEm(page, 'organizador', '/atleta/inicio');
+  await autenticarEm(page, 'organizador', '/atleta/time/buscar');
 
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   await page.getByRole('button', { name: 'Sair da conta' }).click();
@@ -45,7 +45,7 @@ test('destinatário consulta o convite sem receber token na listagem', async ({
 });
 
 test('rotas pessoais exigem sessão autenticada', async ({ page }) => {
-  await page.goto('/atleta/inicio');
+  await page.goto('/atleta/time/buscar');
   await expect(page).toHaveURL((url) => url.pathname === '/login');
   await expect(page.getByText('Marcos Oliveira')).toHaveCount(0);
 

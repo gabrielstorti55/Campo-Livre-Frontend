@@ -113,11 +113,14 @@ export function TelaCampeonatos() {
         className="mb-7 rounded-md border border-border/70 bg-card p-4 shadow-none sm:p-5"
       >
         <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_14rem_12rem_8rem]">
-          <BarraBusca
-            placeholder="Buscar campeonatos..."
-            value={busca}
-            onChange={(valor) => reiniciarPagina(() => setBusca(valor))}
-          />
+          <label className="grid gap-1 text-xs font-semibold">
+            Pesquisar
+            <BarraBusca
+              placeholder="Buscar campeonatos..."
+              value={busca}
+              onChange={(valor) => reiniciarPagina(() => setBusca(valor))}
+            />
+          </label>
           <label className="grid gap-1 text-xs font-semibold">
             Município
             <select

@@ -110,7 +110,7 @@ test('conta sem vínculos entra em uma área pessoal vazia', async ({ page }) =>
 test('@dominio-prototipo ativa organizador preservando a mesma sessão pessoal', async ({
   page,
 }) => {
-  await preaquecerRota(page, '/organizador/inicio');
+  await preaquecerRota(page, '/organizador/campeonatos');
   await autenticarEm(page, 'semTime', '/minha-area');
 
   await page
@@ -120,7 +120,7 @@ test('@dominio-prototipo ativa organizador preservando a mesma sessão pessoal',
     .getByRole('button', { name: 'Confirmar ativação do painel' })
     .click();
 
-  await expect(page).toHaveURL(/\/organizador\/inicio$/);
+  await expect(page).toHaveURL(/\/organizador\/campeonatos$/);
 
   expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
   expect(await page.evaluate(() => localStorage.length)).toBe(0);

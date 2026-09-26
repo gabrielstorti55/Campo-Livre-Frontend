@@ -8,6 +8,7 @@ import type {
   ConfiguracaoFase,
   ConfiguracaoRegulamento,
   ConviteCampeonatoEnviado,
+  ConviteCampeonatoRecebidoPrototipo,
   CriterioDesempate,
   CriacaoCampeonato,
   DetalheAdministrativoCampeonato,
@@ -154,6 +155,20 @@ export interface CampeonatosApi {
     tamanho?: number,
     status?: ConviteCampeonatoEnviado['status'],
   ): Promise<Pagina<ConviteCampeonatoEnviado>>;
+  listarConvitesRecebidosComoCapitao?(
+    accessToken: string,
+    pagina?: number,
+    tamanho?: number,
+  ): Promise<Pagina<ConviteCampeonatoRecebidoPrototipo>>;
+  responderConviteCampeonato?(
+    conviteId: string,
+    acao: 'ACEITAR' | 'RECUSAR',
+    accessToken: string,
+  ): Promise<{
+    conviteId: string;
+    status: 'ACEITO' | 'RECUSADO';
+    encerradoEm: string;
+  }>;
   consultarElencoContextual(
     campeonatoId: string,
     timeId: string,

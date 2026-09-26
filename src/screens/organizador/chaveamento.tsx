@@ -9,6 +9,7 @@ import {
   type OpcoesEstruturaCampeonato,
 } from '@/services/campeonatos/estrutura-campeonato';
 import type {
+  ConfrontoManual,
   DetalheAdministrativoCampeonato,
   DistribuicaoCampeonato,
   EstruturaMaterializadaCampeonato,
@@ -32,6 +33,51 @@ function formatoCanonico(formato: string): FormatoCampeonato {
   return formato === 'GRUPOS_MATA_MATA'
     ? 'GRUPOS_E_MATA_MATA'
     : (formato as FormatoCampeonato);
+}
+
+export function criarConfrontosManuais(
+  timeIds: string[],
+  faseId: string,
+): ConfrontoManual[] {
+  if (timeIds.length < 2) return [];
+  const tamanhoChave = 2 ** Math.ceil(Math.log2(timeIds.length));
+  const times: Array<string | null> = [
+    ...timeIds,
+    ...Array.from({ length: tamanhoChave - timeIds.length }, () => null),
+  ];
+  const quantidadeRodadas = Math.log2(tamanhoChave);
+  const chavesPorRodada = Array.from(
+    { length: quantidadeRodadas },
+    (_, indice) =>
+      Array.from(
+        { length: tamanhoChave / 2 ** (indice + 1) },
+        (_item, posicao) => `manual-${indice + 1}-${posicao + 1}`,
+      ),
+  );
+
+  return chavesPorRodada.flatMap((chaves, indiceRodada) =>
+    chaves.map((chaveLocal, indice) => {
+      const rodada = indiceRodada + 1;
+      const timeAId = rodada === 1 ? (times[indice] ?? null) : null;
+      const timeBId =
+        rodada === 1 ? (times[tamanhoChave - 1 - indice] ?? null) : null;
+      const destino =
+        chavesPorRodada[indiceRodada + 1]?.[Math.floor(indice / 2)] ?? null;
+      const bye = rodada === 1 && Boolean(timeAId) !== Boolean(timeBId);
+      return {
+        chaveLocal,
+        faseId,
+        rodada,
+        ordem: indice + 1,
+        tipo: bye ? ('BYE' as const) : ('NORMAL' as const),
+        timeAId,
+        timeBId,
+        confrontoDestinoChaveLocal: destino,
+        posicaoDestino: destino ? (indice % 2 === 0 ? 'A' : 'B') : null,
+        criterioByeAplicado: bye ? ('SEMENTE' as const) : null,
+      };
+    }),
+  );
 }
 
 export function TelaChaveamento({
@@ -62,10 +108,12 @@ export function TelaChaveamento({
   const [participantes, setParticipantes] = useState<
     PaginaTimesParticipantes['itens']
   >([]);
+  const [ordemManual, setOrdemManual] = useState<string[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [editorFasesAberto, setEditorFasesAberto] = useState(true);
   const [gerando, setGerando] = useState(false);
+  const [iniciando, setIniciando] = useState(false);
   const [feedback, setFeedback] = useState('');
   const chavesEtapas = useRef<
     Partial<Record<'distribuicao' | 'pontosCorridos' | 'mataMata', string>>
@@ -128,10 +176,13 @@ export function TelaChaveamento({
         ([times, detalhe, fasesSalvas, distribuicaoSalva, estruturaSalva]) => {
           if (!ativo) return;
           setParticipantes(times);
+          setOrdemManual(times.map((time) => time.timeId));
           setCampeonato(detalhe);
           setFormato(formatoCanonico(detalhe.formato));
           setFasesPersistidas(fasesSalvas);
-          setEditorFasesAberto(fasesSalvas.fases.length === 0);
+          setEditorFasesAberto(
+            fasesSalvas.fases.length === 0 || Boolean(session?.prototipo),
+          );
           const faseClassificatoria = fasesSalvas.fases.find(
             (fase) => fase.tipo !== 'MATA_MATA',
           );
@@ -279,19 +330,41 @@ export function TelaChaveamento({
               ? `Distribuição ${distribuicao.modo === 'AUTOMATICA' ? 'automática' : 'manual'} confirmada.`
               : 'Distribuição ainda não executada.'}
           </p>
-          {estruturaPersistida?.mataMata.map((confronto) => (
-            <p key={confronto.confrontoId} className="mt-2 text-sm">
-              Rodada {confronto.rodada} · confronto {confronto.ordem} ·{' '}
-              {confronto.tipo}
-            </p>
-          ))}
+          {estruturaPersistida?.mataMata.length ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {estruturaPersistida.mataMata.map((confronto) => {
+                const timeA = participantes.find(
+                  (time) => time.timeId === confronto.timeAId,
+                );
+                const timeB = participantes.find(
+                  (time) => time.timeId === confronto.timeBId,
+                );
+                return (
+                  <Card key={confronto.confrontoId} className="p-4">
+                    <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                      Rodada {confronto.rodada} · Confronto {confronto.ordem}
+                    </p>
+                    <p className="mt-2 font-display text-lg font-semibold">
+                      {timeA?.nome ?? 'A definir'} ×{' '}
+                      {timeB?.nome ?? 'A definir'}
+                    </p>
+                    {confronto.tipo === 'BYE' ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Avanço automático por chave incompleta
+                      </p>
+                    ) : null}
+                  </Card>
+                );
+              })}
+            </div>
+          ) : null}
         </section>
       ) : null}
 
       {configuravel &&
       podeConfigurar &&
       editorFasesAberto &&
-      !parametrosPersistidosIncompletos ? (
+      (!parametrosPersistidosIncompletos || session?.prototipo) ? (
         <section aria-labelledby="configuracao-fases" className="space-y-6">
           <div>
             <h3
@@ -500,7 +573,7 @@ export function TelaChaveamento({
               id="geracao-confrontos"
               className="font-display text-xl font-semibold"
             >
-              Distribuição e geração
+              Sorteio do chaveamento
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               As inscrições estão encerradas. Escolha um modo integral para
@@ -517,17 +590,74 @@ export function TelaChaveamento({
             </Button>
             <Button
               variant={modo === 'MANUAL' ? 'campo' : 'campoOutline'}
-              disabled={gerado}
+              disabled={gerado || formato !== 'MATA_MATA'}
               onClick={() => setModo('MANUAL')}
             >
               Definir manualmente
             </Button>
           </div>
+          {modo === 'MANUAL' ? (
+            <div className="space-y-2 border-y border-border py-4">
+              <h4 className="font-display text-lg font-semibold">
+                Ordem manual das sementes
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Ajuste a ordem dos times. A primeira semente enfrenta a última.
+              </p>
+              {ordemManual.map((timeId, indice) => {
+                const time = participantes.find(
+                  (item) => item.timeId === timeId,
+                );
+                return (
+                  <div
+                    key={timeId}
+                    className="flex items-center justify-between gap-3 border-b border-border/70 py-2"
+                  >
+                    <span className="text-sm font-semibold">
+                      {indice + 1}. {time?.nome ?? 'Time'}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="campoOutline"
+                        disabled={indice === 0}
+                        onClick={() =>
+                          setOrdemManual((atual) => {
+                            const proxima = [...atual];
+                            const [movido] = proxima.splice(indice, 1);
+                            if (!movido) return atual;
+                            proxima.splice(indice - 1, 0, movido);
+                            return proxima;
+                          })
+                        }
+                      >
+                        Subir
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="campoOutline"
+                        disabled={indice === ordemManual.length - 1}
+                        onClick={() =>
+                          setOrdemManual((atual) => {
+                            const proxima = [...atual];
+                            const [movido] = proxima.splice(indice, 1);
+                            if (!movido) return atual;
+                            proxima.splice(indice + 1, 0, movido);
+                            return proxima;
+                          })
+                        }
+                      >
+                        Descer
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
           <Button
             variant="campo"
-            disabled={
-              gerado || gerando || participantes.length < 2 || modo === 'MANUAL'
-            }
+            disabled={gerado || gerando || participantes.length < 2}
             onClick={async () => {
               const identidadeDaOperacao = identidadeSessao;
               setGerando(true);
@@ -543,11 +673,22 @@ export function TelaChaveamento({
                     return;
                   if (distribuicaoAtual.estado !== 'EXECUTADA') {
                     chavesEtapas.current.distribuicao ??= crypto.randomUUID();
+                    const faseId =
+                      fasesPersistidas?.fases[0]?.faseId ??
+                      `${campeonatoId}-fase-1`;
                     await campeonatosApi.distribuirTimes(
                       campeonatoId,
                       accessToken,
-                      'AUTOMATICA',
-                      [],
+                      modo,
+                      modo === 'MANUAL'
+                        ? ordemManual.map((timeId, indice) => ({
+                            timeId,
+                            faseId,
+                            grupoId: null,
+                            posicao: indice + 1,
+                            semente: indice + 1,
+                          }))
+                        : [],
                       chavesEtapas.current.distribuicao,
                     );
                     if (identidadeSessaoAtual.current !== identidadeDaOperacao)
@@ -586,8 +727,15 @@ export function TelaChaveamento({
                     await campeonatosApi.materializarMataMata(
                       campeonatoId,
                       accessToken,
-                      'AUTOMATICA',
-                      [],
+                      modo,
+                      modo === 'MANUAL'
+                        ? criarConfrontosManuais(
+                            ordemManual,
+                            fasesPersistidas?.fases.find(
+                              (fase) => fase.tipo === 'MATA_MATA',
+                            )?.faseId ?? `${campeonatoId}-fase-1`,
+                          )
+                        : [],
                       chavesEtapas.current.mataMata,
                     );
                     if (identidadeSessaoAtual.current !== identidadeDaOperacao)
@@ -597,7 +745,11 @@ export function TelaChaveamento({
                 });
                 if (identidadeSessaoAtual.current !== identidadeDaOperacao)
                   return;
-                setFeedback('Distribuição e confrontos gerados.');
+                setFeedback(
+                  modo === 'AUTOMATICA'
+                    ? 'Chaveamento sorteado e confrontos gerados.'
+                    : 'Chaveamento manual confirmado.',
+                );
                 try {
                   const [distribuicaoAtualizada, estruturaAtualizada] =
                     await executarAutenticado((accessToken) =>
@@ -637,17 +789,67 @@ export function TelaChaveamento({
             {gerando
               ? 'Gerando estrutura...'
               : modo === 'AUTOMATICA'
-                ? 'Gerar confrontos automaticamente'
+                ? 'Sortear e gerar chaveamento'
                 : 'Confirmar confrontos manuais'}
           </Button>
-          {modo === 'MANUAL' ? (
-            <p className="text-sm text-muted-foreground">
-              A composição manual integral será liberada após carregar os IDs
-              persistidos das fases e dos grupos; nenhuma geração parcial será
-              enviada.
-            </p>
-          ) : null}
         </section>
+      ) : null}
+
+      {aguardandoGeracao && gerado ? (
+        <Card className="mt-7 border-green-dark/25 p-5 sm:p-6">
+          <p className="text-xs font-semibold tracking-[0.16em] text-green-dark uppercase">
+            Próxima etapa
+          </p>
+          <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <h3 className="font-display text-xl font-semibold">
+                Chaveamento pronto para começar
+              </h3>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Ao iniciar, o campeonato entra em andamento e as partidas
+                sorteadas ficam disponíveis para operação e registro de
+                resultados.
+              </p>
+            </div>
+            <Button
+              variant="campo"
+              disabled={iniciando}
+              onClick={async () => {
+                const identidadeDaOperacao = identidadeSessao;
+                setIniciando(true);
+                setFeedback('');
+                try {
+                  await executarAutenticado((accessToken) =>
+                    campeonatosApi.iniciarCampeonato(campeonatoId, accessToken),
+                  );
+                  if (identidadeSessaoAtual.current !== identidadeDaOperacao)
+                    return;
+                  const detalheAtualizado = await executarAutenticado(
+                    (accessToken) =>
+                      campeonatosApi.consultarAdministracao(
+                        campeonatoId,
+                        accessToken,
+                      ),
+                  );
+                  if (identidadeSessaoAtual.current !== identidadeDaOperacao)
+                    return;
+                  setCampeonato(detalheAtualizado);
+                  setFeedback('Campeonato iniciado.');
+                } catch {
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao) {
+                    setFeedback('Não foi possível iniciar o campeonato.');
+                  }
+                } finally {
+                  if (identidadeSessaoAtual.current === identidadeDaOperacao) {
+                    setIniciando(false);
+                  }
+                }
+              }}
+            >
+              {iniciando ? 'Iniciando...' : 'Iniciar campeonato'}
+            </Button>
+          </div>
+        </Card>
       ) : null}
 
       {!configuravel && !aguardandoGeracao ? (

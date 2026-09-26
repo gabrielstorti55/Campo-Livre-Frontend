@@ -4,20 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TelaInicioAtleta } from '@/screens/atleta/inicio';
 
 const listarMeusTimes = vi.fn();
+const timesApi = { listarMeusTimes };
 const executarAutenticado = <T,>(request: (token: string) => Promise<T>) =>
   request('access-token');
+const sessao = {
+  session: {
+    minhaConta: { nome: 'Rafael Lima' },
+  },
+  executarAutenticado,
+};
 
 vi.mock('@/contexts/times-api', () => ({
-  useTimesApi: () => ({ listarMeusTimes }),
+  useTimesApi: () => timesApi,
 }));
 
 vi.mock('@/hooks/use-sessao', () => ({
-  useSessao: () => ({
-    session: {
-      minhaConta: { nome: 'Rafael Lima' },
-    },
-    executarAutenticado,
-  }),
+  useSessao: () => sessao,
 }));
 
 describe('TelaInicioAtleta', () => {

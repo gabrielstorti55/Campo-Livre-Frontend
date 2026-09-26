@@ -6,8 +6,11 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Secao } from '@/components/layout/secao';
 import { Button } from '@/components/ui/button';
+import { useCampeonatosApi } from '@/contexts/campeonatos-api';
 import { useTimesApi } from '@/contexts/times-api';
 import { useSessao } from '@/hooks/use-sessao';
+import { ConteudoMeusTimes } from '@/screens/atleta/meus-times';
+import type { ConviteCampeonatoRecebidoPrototipo } from '@/types/api/campeonatos';
 import type { PaginaConvitesTime, PaginaTimes } from '@/types/api/times';
 
 function formatarValidade(valor: string): string {
@@ -137,9 +140,130 @@ export function ConteudoConvitesTime({
   );
 }
 
+function ConvitesCampeonatoPrototipo() {
+  const api = useCampeonatosApi();
+  const { executarAutenticado } = useSessao();
+  const [convites, setConvites] = useState<
+    ConviteCampeonatoRecebidoPrototipo[] | null
+  >(null);
+  const [erro, setErro] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [processando, setProcessando] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!api.listarConvitesRecebidosComoCapitao) return;
+    let ativo = true;
+    executarAutenticado((accessToken) =>
+      api.listarConvitesRecebidosComoCapitao!(accessToken, 1, 20),
+    ).then(
+      (pagina) => {
+        if (ativo) setConvites(pagina.itens);
+      },
+      () => {
+        if (ativo) setErro('Não foi possível carregar os convites de campeonatos.');
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [api, executarAutenticado]);
+
+  async function responder(
+    convite: ConviteCampeonatoRecebidoPrototipo,
+    acao: 'ACEITAR' | 'RECUSAR',
+  ) {
+    if (!api.responderConviteCampeonato || processando) return;
+    setProcessando(convite.conviteId);
+    setErro('');
+    setFeedback('');
+    try {
+      const resposta = await executarAutenticado((accessToken) =>
+        api.responderConviteCampeonato!(convite.conviteId, acao, accessToken),
+      );
+      setConvites((atuais) =>
+        atuais?.map((item) =>
+          item.conviteId === convite.conviteId
+            ? {
+                ...item,
+                status: resposta.status,
+                encerradoEm: resposta.encerradoEm,
+                acoesPermitidas: [],
+              }
+            : item,
+        ) ?? [],
+      );
+      setFeedback(
+        acao === 'ACEITAR'
+          ? 'Participação confirmada no campeonato.'
+          : 'Convite para campeonato recusado.',
+      );
+    } catch {
+      setErro('Não foi possível responder ao convite de campeonato.');
+    } finally {
+      setProcessando(null);
+    }
+  }
+
+  return (
+    <Secao title="Convites para campeonatos" className="mt-10">
+      {feedback ? (
+        <p className="border-l-2 border-green-mid bg-green-pale px-4 py-3 text-sm text-green-dark">
+          {feedback}
+        </p>
+      ) : null}
+      {erro ? (
+        <p role="alert" className="text-sm text-danger">
+          {erro}
+        </p>
+      ) : null}
+      {!convites && !erro ? <p role="status">Carregando convites...</p> : null}
+      {convites?.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Nenhum convite de campeonato recebido.
+        </p>
+      ) : null}
+      {convites?.map((convite) => (
+        <article
+          key={convite.conviteId}
+          className="border-l-2 border-green-mid bg-card py-3 pl-4"
+        >
+          <h3 className="font-display text-lg font-semibold">
+            {convite.campeonato.nome}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {convite.time.nome} · convite para disputar o campeonato
+          </p>
+          {convite.status === 'PENDENTE' ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                variant="campo"
+                disabled={Boolean(processando)}
+                onClick={() => void responder(convite, 'ACEITAR')}
+              >
+                Aceitar convite
+              </Button>
+              <Button
+                variant="campoOutline"
+                disabled={Boolean(processando)}
+                onClick={() => void responder(convite, 'RECUSAR')}
+              >
+                Recusar
+              </Button>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm font-semibold text-green-dark">
+              {convite.status === 'ACEITO' ? 'Participação aceita' : 'Convite recusado'}
+            </p>
+          )}
+        </article>
+      ))}
+    </Secao>
+  );
+}
+
 export function TelaBuscarTimes() {
   const api = useTimesApi();
-  const { executarAutenticado } = useSessao();
+  const { session, executarAutenticado } = useSessao();
   const [nome, setNome] = useState('');
   const [busca, setBusca] = useState<{
     carregando: boolean;
@@ -173,8 +297,8 @@ export function TelaBuscarTimes() {
   return (
     <>
       <CabecalhoPagina
-        title="Convites para times"
-        subtitle="A entrada em um time acontece por convite nominal enviado pelo capitão"
+        title="Times e convites"
+        subtitle="Consulte seus vínculos, acompanhe convites e encontre outras equipes"
         actions={
           <Button variant="campoOutline" asChild>
             <Link href="/atleta/time/criar">Criar meu próprio time</Link>
@@ -182,9 +306,13 @@ export function TelaBuscarTimes() {
         }
       />
 
-      <Secao title="Convites recebidos">
+      <ConteudoMeusTimes />
+
+      <Secao title="Convites recebidos" className="mt-10">
         <ConteudoConvitesTime carregar={carregar} />
       </Secao>
+
+      {session?.prototipo ? <ConvitesCampeonatoPrototipo /> : null}
 
       <Secao title="Encontrar times" className="mt-10">
         <form

@@ -57,7 +57,11 @@ export function LayoutOrganizador({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { session, signOut } = useSessao();
   const items = [
-    { label: 'Meus Campeonatos', to: '/organizador/campeonatos', icon: Trophy },
+    {
+      label: 'Meus Campeonatos',
+      to: '/organizador/campeonatos',
+      icon: Trophy,
+    },
     { label: 'Histórico', to: '/organizador/perfil', icon: CalendarDays },
   ];
 

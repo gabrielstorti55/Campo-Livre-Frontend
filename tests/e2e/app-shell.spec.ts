@@ -60,7 +60,7 @@ test('libera toda a largura e oferece o menu principal no cabeçalho móvel', as
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await loginAsAthlete(page, '/atleta/inicio');
+  await loginAsAthlete(page, '/atleta/time/buscar');
 
   const main = page.getByRole('main');
   const mainBox = await main.boundingBox();
@@ -84,7 +84,9 @@ test('oferece atalho de teclado para o conteúdo principal', async ({
   page,
 }) => {
   await loginAsMunicipality(page, '/prefeitura/painel');
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.evaluate(() =>
+    (document.activeElement as HTMLElement | null)?.blur(),
+  );
   await page.keyboard.press('Tab');
 
   const skipLink = page.getByRole('link', {
