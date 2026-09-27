@@ -322,7 +322,7 @@ describe('estrutura do campeonato', () => {
 
     fireEvent.click(
       await screen.findByRole('button', {
-        name: 'Gerar confrontos automaticamente',
+        name: 'Sortear e gerar chaveamento',
       }),
     );
 
@@ -369,7 +369,9 @@ describe('estrutura do campeonato', () => {
 
     expect(await screen.findByText('Grupo A')).toBeVisible();
     expect(screen.getByText(/Distribuição automática/i)).toBeVisible();
-    expect(screen.getByText(/BYE/i)).toBeVisible();
+    expect(
+      screen.getByText(/Avanço automático por chave incompleta/i),
+    ).toBeVisible();
     expect(consultarFases).toHaveBeenCalledWith('4', 'token');
     expect(consultarDistribuicao).toHaveBeenCalledWith('4', 'token');
     expect(consultarEstrutura).toHaveBeenCalledWith('4', 'token');
@@ -461,7 +463,7 @@ describe('estrutura do campeonato', () => {
     render(<TelaChaveamento campeonatoId="4" incorporada />);
 
     const botao = await screen.findByRole('button', {
-      name: 'Gerar confrontos automaticamente',
+      name: 'Sortear e gerar chaveamento',
     });
     fireEvent.click(botao);
     await screen.findByText('Não foi possível gerar a estrutura.');
@@ -500,7 +502,7 @@ describe('estrutura do campeonato', () => {
 
     fireEvent.click(
       await screen.findByRole('button', {
-        name: 'Gerar confrontos automaticamente',
+        name: 'Sortear e gerar chaveamento',
       }),
     );
 

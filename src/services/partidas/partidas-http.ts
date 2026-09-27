@@ -8,12 +8,15 @@ import type {
   ClassificacaoCampeonato,
   DetalheAdministrativoPartida,
   DetalhePublicoPartida,
+  EscalacaoPartida,
   FiltrosAgendaPartidas,
   PaginaAgendaPartidas,
   PaginaArtilharia,
   PartidaAdiada,
   PartidaCancelada,
   RegistroWo,
+  SumulaDefinitivaInput,
+  SumulaDefinitivaPublicada,
   WoRegistrado,
 } from '@/types/api/partidas';
 
@@ -60,6 +63,34 @@ export class PartidasHttp implements PartidasApi {
     return this.http.request(
       `/partidas/${encodeURIComponent(partidaId)}/administracao`,
       { accessToken, ...(opcoes?.signal ? { signal: opcoes.signal } : {}) },
+    );
+  }
+
+  consultarEscalacao(
+    partidaId: string,
+    timeCampeonatoId: string,
+    accessToken: string,
+  ): Promise<EscalacaoPartida> {
+    return this.http.request(
+      `/partidas/${encodeURIComponent(partidaId)}/escalacoes/${encodeURIComponent(timeCampeonatoId)}`,
+      { accessToken },
+    );
+  }
+
+  publicarSumula(
+    partidaId: string,
+    accessToken: string,
+    input: SumulaDefinitivaInput,
+    idempotencyKey: string,
+  ): Promise<SumulaDefinitivaPublicada> {
+    return this.http.request(
+      `/partidas/${encodeURIComponent(partidaId)}/sumulas`,
+      {
+        method: 'POST',
+        accessToken,
+        headers: { 'Idempotency-Key': idempotencyKey },
+        body: input,
+      },
     );
   }
 

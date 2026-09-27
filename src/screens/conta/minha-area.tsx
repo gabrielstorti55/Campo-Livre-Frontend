@@ -12,9 +12,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { redirect, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useSessao } from '@/hooks/use-sessao';
+import { useTimesApi } from '@/contexts/times-api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,19 +43,61 @@ function getInitials(name: string) {
 }
 
 export function TelaMinhaArea() {
-  const { session, hydrated, enableOrganizer, switchContext } = useSessao();
+  const {
+    session,
+    hydrated,
+    enableOrganizer,
+    switchContext,
+    executarAutenticado,
+    reconciliarVinculosTimes,
+  } = useSessao();
+  const timesApi = useTimesApi();
   const router = useRouter();
   const [activationOpen, setActivationOpen] = useState(false);
   const [ativando, setAtivando] = useState(false);
   const [erroAtivacao, setErroAtivacao] = useState('');
+  const [vinculosCarregados, setVinculosCarregados] = useState(false);
 
-  if (!hydrated) {
+  useEffect(() => {
+    if (!hydrated || !session) return;
+    if (session.prototipo) return;
+    let ativo = true;
+    void executarAutenticado((token) =>
+      timesApi.listarMeusTimes(token, 1, 100),
+    ).then(
+      (pagina) => {
+        if (!ativo) return;
+        reconciliarVinculosTimes(
+          pagina.itens.map((vinculo) => ({
+            timeId: vinculo.time.id,
+            funcao: vinculo.funcao,
+          })),
+        );
+        setVinculosCarregados(true);
+      },
+      () => {
+        if (!ativo) return;
+        setVinculosCarregados(true);
+      },
+    );
+    return () => {
+      ativo = false;
+    };
+  }, [
+    executarAutenticado,
+    hydrated,
+    reconciliarVinculosTimes,
+    session,
+    timesApi,
+  ]);
+
+  if (!hydrated || (session && !session.prototipo && !vinculosCarregados)) {
     return (
       <p
         className="px-4 py-10 text-center text-sm text-muted-foreground"
         role="status"
       >
-        Carregando sua conta...
+        Carregando sua conta e seus vínculos...
       </p>
     );
   }

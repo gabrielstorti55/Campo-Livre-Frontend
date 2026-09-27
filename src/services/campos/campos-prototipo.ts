@@ -1,8 +1,13 @@
 import type { CamposApi } from '@/services/campos/campos-api';
+import type { GestaoCamposApi } from '@/services/campos/gestao-campos-api';
 import type {
+  AlteracaoEstadoOperacionalCampo,
+  AtualizacaoCampo,
   CadastroCampo,
+  CampoAtualizado,
   CampoCriado,
   CampoDetalhado,
+  EstadoOperacionalCampoAlterado,
   FiltrosCampos,
   PaginaCampos,
 } from '@/types/api/campos';
@@ -24,7 +29,7 @@ const campos: CampoDetalhado[] = [
   },
 ];
 
-export class CamposPrototipo implements CamposApi {
+export class CamposPrototipo implements CamposApi, GestaoCamposApi {
   async listarCampos({
     nome,
     municipioId,
@@ -91,6 +96,41 @@ export class CamposPrototipo implements CamposApi {
       ...input,
       statusOperacional: 'ATIVO',
       criadoEm,
+    };
+  }
+
+  async atualizarCampo(
+    campoId: string,
+    _accessToken: string,
+    input: AtualizacaoCampo,
+  ): Promise<CampoAtualizado> {
+    const campo = campos.find((item) => item.id === campoId);
+    if (!campo) throw new Error('CAMPO_NAO_ENCONTRADO');
+    Object.assign(campo, input);
+    return {
+      id: campo.id,
+      nome: campo.nome,
+      endereco: campo.endereco,
+      descricao: campo.descricao,
+      atualizadoEm: new Date().toISOString(),
+    };
+  }
+
+  async alterarEstadoOperacional(
+    campoId: string,
+    _accessToken: string,
+    input: AlteracaoEstadoOperacionalCampo,
+  ): Promise<EstadoOperacionalCampoAlterado> {
+    const campo = campos.find((item) => item.id === campoId);
+    if (!campo) throw new Error('CAMPO_NAO_ENCONTRADO');
+    const estadoAnterior = campo.statusOperacional;
+    campo.statusOperacional = input.statusOperacional;
+    return {
+      id: campo.id,
+      estadoAnterior,
+      statusOperacional: campo.statusOperacional,
+      alterado: estadoAnterior !== campo.statusOperacional,
+      alteradoEm: new Date().toISOString(),
     };
   }
 }

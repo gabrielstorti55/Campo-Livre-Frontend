@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { useCampeonatosApi } from '@/contexts/campeonatos-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { useSessao } from '@/hooks/use-sessao';
 import {
   criarFasesPadrao,
@@ -87,7 +88,10 @@ export function TelaChaveamento({
   campeonatoId: string;
   incorporada?: boolean;
 }) {
+  const modoAplicacao = useModoAplicacao();
   const { hydrated, session, executarAutenticado } = useSessao();
+  const experienciaDemonstrativa =
+    session?.prototipo || modoAplicacao === 'hibrido';
   const campeonatosApi = useCampeonatosApi();
   const [campeonato, setCampeonato] =
     useState<DetalheAdministrativoCampeonato | null>(null);
@@ -181,7 +185,7 @@ export function TelaChaveamento({
           setFormato(formatoCanonico(detalhe.formato));
           setFasesPersistidas(fasesSalvas);
           setEditorFasesAberto(
-            fasesSalvas.fases.length === 0 || Boolean(session?.prototipo),
+            fasesSalvas.fases.length === 0 || Boolean(experienciaDemonstrativa),
           );
           const faseClassificatoria = fasesSalvas.fases.find(
             (fase) => fase.tipo !== 'MATA_MATA',
@@ -364,7 +368,7 @@ export function TelaChaveamento({
       {configuravel &&
       podeConfigurar &&
       editorFasesAberto &&
-      (!parametrosPersistidosIncompletos || session?.prototipo) ? (
+      (!parametrosPersistidosIncompletos || experienciaDemonstrativa) ? (
         <section aria-labelledby="configuracao-fases" className="space-y-6">
           <div>
             <h3
@@ -553,7 +557,7 @@ export function TelaChaveamento({
       {configuravel &&
       podeConfigurar &&
       parametrosPersistidosIncompletos &&
-      !session?.prototipo ? (
+      !experienciaDemonstrativa ? (
         <Card className="mb-7 border-warning p-5">
           <h3 className="font-display text-lg font-semibold">
             Substituição bloqueada

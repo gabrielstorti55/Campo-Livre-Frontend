@@ -17,6 +17,8 @@ vi.mock('@/hooks/use-sessao', () => ({
     hydrated: true,
     enableOrganizer,
     switchContext,
+    executarAutenticado: vi.fn(),
+    reconciliarVinculosTimes: vi.fn(),
     session: {
       sessionId: 'conta-prefeitura',
       prototipo: true,
@@ -45,6 +47,10 @@ vi.mock('@/hooks/use-sessao', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/contexts/times-api', () => ({
+  useTimesApi: () => ({ listarMeusTimes: vi.fn() }),
 }));
 
 describe('TelaMinhaArea da Prefeitura', () => {

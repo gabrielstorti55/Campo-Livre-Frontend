@@ -93,6 +93,16 @@ export function LayoutPrefeitura({ children }: { children: ReactNode }) {
       to: '/prefeitura/campos',
       icon: MapPinned,
     },
+    {
+      label: 'Cadastrar campo',
+      to: '/prefeitura/campos/novo',
+      icon: MapPinned,
+    },
+    {
+      label: 'Organizadores',
+      to: '/prefeitura/organizadores',
+      icon: Users,
+    },
   ];
 
   return (

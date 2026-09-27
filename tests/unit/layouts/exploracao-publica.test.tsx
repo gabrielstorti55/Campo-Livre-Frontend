@@ -50,8 +50,12 @@ describe('LayoutExploracao', () => {
     expect(
       within(menu).getByRole('link', { name: 'Meus Campeonatos' }),
     ).toHaveAttribute('href', '/organizador/campeonatos');
-    expect(within(menu).getAllByRole('link', { name: 'Início' })).toHaveLength(1);
-    expect(within(menu).getByRole('heading', { name: 'Explorar' })).toBeVisible();
+    expect(within(menu).getAllByRole('link', { name: 'Início' })).toHaveLength(
+      1,
+    );
+    expect(
+      within(menu).getByRole('heading', { name: 'Explorar' }),
+    ).toBeVisible();
     expect(switchContext).not.toHaveBeenCalled();
   });
 });

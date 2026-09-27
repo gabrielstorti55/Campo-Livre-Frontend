@@ -10,7 +10,7 @@ export function ControleModoPrototipo({
   modo: ModoAplicacao;
   children: ReactNode;
 }) {
-  if (modo === 'prototipo') return children;
+  if (modo !== 'integrado') return children;
 
   return (
     <PaginaEstado

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { BarraBusca } from '@/components/layout/barra-busca';
+import { AvisoDadosDemonstrativos } from '@/components/layout/aviso-dados-demonstrativos';
 import { DestaquePagina } from '@/components/layout/destaque-pagina';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { Iniciais } from '@/components/layout/iniciais';
@@ -29,6 +30,8 @@ export function TelaAtletas({ prototipo = false }: { prototipo?: boolean }) {
         title="Atletas"
         description="Conheça atletas do futebol local por meio de perfis, vínculos e estatísticas esportivas publicadas."
       />
+
+      {prototipo ? <AvisoDadosDemonstrativos className="mb-7" /> : null}
 
       {!prototipo ? (
         <EstadoRecurso

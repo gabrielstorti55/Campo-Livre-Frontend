@@ -13,7 +13,7 @@ import type {
   ItemAgendaPartida,
 } from '@/types/api/partidas';
 
-const { api, sessao } = vi.hoisted(() => ({
+const { api, camposApi, sessao } = vi.hoisted(() => ({
   api: {
     listarAgenda: vi.fn(),
     consultarAdministracao: vi.fn(),
@@ -21,6 +21,9 @@ const { api, sessao } = vi.hoisted(() => ({
     adiarPartida: vi.fn(),
     cancelarPartida: vi.fn(),
     registrarWo: vi.fn(),
+  },
+  camposApi: {
+    listarCampos: vi.fn(),
   },
   sessao: {
     sessionId: 'sessao-1',
@@ -32,6 +35,10 @@ const { api, sessao } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/contexts/partidas-api', () => ({ usePartidasApi: () => api }));
+vi.mock('@/contexts/campos-api', () => ({ useCamposApi: () => camposApi }));
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
 vi.mock('@/hooks/use-sessao', () => ({
   useSessao: () => ({
     hydrated: true,
@@ -101,6 +108,21 @@ beforeEach(() => {
     totalPaginas: 1,
   });
   api.consultarAdministracao.mockResolvedValue(detalhe);
+  camposApi.listarCampos.mockResolvedValue({
+    itens: [
+      {
+        id: 'campo-uuid',
+        nome: 'Campo Municipal',
+        endereco: 'Avenida do Estádio, 100',
+        municipio: { id: 'municipio-1', nome: 'Franca', uf: 'SP' },
+        statusOperacional: 'ATIVO',
+      },
+    ],
+    pagina: 1,
+    tamanho: 100,
+    totalItens: 1,
+    totalPaginas: 1,
+  });
 });
 
 afterEach(() => {
@@ -144,17 +166,17 @@ describe('administração de partidas pela API', () => {
         name: 'Agendar partida partida-uuid',
       }),
     );
-    fireEvent.change(screen.getByLabelText('Nova data'), {
+    fireEvent.change(screen.getByLabelText('Data'), {
       target: { value: '2026-09-01' },
     });
-    fireEvent.change(screen.getByLabelText('Novo horário'), {
+    fireEvent.change(screen.getByLabelText('Horário'), {
       target: { value: '18:00' },
     });
-    fireEvent.change(screen.getByLabelText('Campo (UUID)'), {
+    fireEvent.change(screen.getByLabelText('Campo'), {
       target: { value: 'campo-uuid' },
     });
     const autorizacao = screen.getByRole('checkbox', {
-      name: 'Confirmo que o campo e o horário foram autorizados externamente',
+      name: /Campo e horário confirmados/,
     });
     const confirmar = screen.getByRole('button', {
       name: 'Confirmar agendamento',
@@ -198,18 +220,18 @@ describe('administração de partidas pela API', () => {
         name: 'Agendar partida partida-uuid',
       }),
     );
-    fireEvent.change(screen.getByLabelText('Nova data'), {
+    fireEvent.change(screen.getByLabelText('Data'), {
       target: { value: '2026-09-01' },
     });
-    fireEvent.change(screen.getByLabelText('Novo horário'), {
+    fireEvent.change(screen.getByLabelText('Horário'), {
       target: { value: '18:00' },
     });
-    fireEvent.change(screen.getByLabelText('Campo (UUID)'), {
+    fireEvent.change(screen.getByLabelText('Campo'), {
       target: { value: 'campo-uuid' },
     });
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: 'Confirmo que o campo e o horário foram autorizados externamente',
+        name: /Campo e horário confirmados/,
       }),
     );
     fireEvent.click(
@@ -267,18 +289,18 @@ describe('administração de partidas pela API', () => {
         name: 'Agendar partida partida-uuid',
       }),
     );
-    fireEvent.change(screen.getByLabelText('Nova data'), {
+    fireEvent.change(screen.getByLabelText('Data'), {
       target: { value: '2026-09-01' },
     });
-    fireEvent.change(screen.getByLabelText('Novo horário'), {
+    fireEvent.change(screen.getByLabelText('Horário'), {
       target: { value: '18:00' },
     });
-    fireEvent.change(screen.getByLabelText('Campo (UUID)'), {
+    fireEvent.change(screen.getByLabelText('Campo'), {
       target: { value: 'campo-uuid' },
     });
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: 'Confirmo que o campo e o horário foram autorizados externamente',
+        name: /Campo e horário confirmados/,
       }),
     );
     fireEvent.click(
@@ -328,7 +350,7 @@ describe('administração de partidas pela API', () => {
     });
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: 'Confirmo que o campo e o horário foram autorizados externamente',
+        name: /Campo e horário confirmados/,
       }),
     );
     fireEvent.click(confirmar);
@@ -563,7 +585,7 @@ describe('administração de partidas pela API', () => {
         name: 'Agendar partida partida-uuid',
       }),
     );
-    expect(screen.getByLabelText('Nova data')).toBeVisible();
+    expect(screen.getByLabelText('Data')).toBeVisible();
 
     let resolverNovaAgenda: ((value: unknown) => void) | undefined;
     api.listarAgenda.mockImplementationOnce(
@@ -635,18 +657,18 @@ describe('administração de partidas pela API', () => {
         name: 'Agendar partida partida-uuid',
       }),
     );
-    fireEvent.change(screen.getByLabelText('Nova data'), {
+    fireEvent.change(screen.getByLabelText('Data'), {
       target: { value: '2026-09-01' },
     });
-    fireEvent.change(screen.getByLabelText('Novo horário'), {
+    fireEvent.change(screen.getByLabelText('Horário'), {
       target: { value: '18:00' },
     });
-    fireEvent.change(screen.getByLabelText('Campo (UUID)'), {
+    fireEvent.change(screen.getByLabelText('Campo'), {
       target: { value: 'campo-uuid' },
     });
     fireEvent.click(
       screen.getByRole('checkbox', {
-        name: 'Confirmo que o campo e o horário foram autorizados externamente',
+        name: /Campo e horário confirmados/,
       }),
     );
     fireEvent.click(

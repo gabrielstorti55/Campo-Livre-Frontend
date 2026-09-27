@@ -2,10 +2,29 @@ import { describe, expect, it } from 'vitest';
 
 import { criarApisAplicacao } from '@/layouts/provedores-aplicacao';
 import { AutenticacaoHttp } from '@/services/autenticacao/autenticacao-http';
+import { AutenticacaoPrototipo } from '@/services/autenticacao/autenticacao-prototipo';
 import { CamposHttp } from '@/services/campos/campos-http';
+import { CamposPrototipo } from '@/services/campos/campos-prototipo';
+import { CampeonatosPrototipo } from '@/services/campeonatos/campeonatos-prototipo';
 import { TimesHttp } from '@/services/times/times-http';
+import { TimesPrototipo } from '@/services/times/times-prototipo';
 
 describe('criarApisAplicacao', () => {
+  it('mantém a revisão local populada com adapters demonstrativos no modo híbrido', () => {
+    const apis = criarApisAplicacao('hibrido');
+
+    expect(apis.autenticacao).toBeInstanceOf(AutenticacaoPrototipo);
+    expect(apis.times).toBeInstanceOf(TimesPrototipo);
+    expect(apis.campos).toBeInstanceOf(CamposPrototipo);
+    expect(apis.campeonatos).toBeInstanceOf(CampeonatosPrototipo);
+    expect(apis.campeonatos.listarConvitesRecebidosComoCapitao).toEqual(
+      expect.any(Function),
+    );
+    expect(apis.partidas.registrarSumulaPrototipo).toEqual(
+      expect.any(Function),
+    );
+  });
+
   it('seleciona somente adapters HTTP no modo integrado', () => {
     const apis = criarApisAplicacao('integrado');
 

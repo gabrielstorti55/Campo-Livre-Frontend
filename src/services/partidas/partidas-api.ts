@@ -7,6 +7,7 @@ import type {
   ClassificacaoCampeonato,
   DetalheAdministrativoPartida,
   DetalhePublicoPartida,
+  EscalacaoPartida,
   FiltrosAgendaPartidas,
   PaginaAgendaPartidas,
   PaginaArtilharia,
@@ -15,6 +16,8 @@ import type {
   RegistroWo,
   ResultadoPrototipoRegistrado,
   SumulaCompletaPrototipo,
+  SumulaDefinitivaInput,
+  SumulaDefinitivaPublicada,
   WoRegistrado,
 } from '@/types/api/partidas';
 
@@ -64,7 +67,18 @@ export interface PartidasApi {
     input: RegistroWo,
     idempotencyKey: string,
   ): Promise<WoRegistrado>;
-  /** Súmula local completa; indisponível no adaptador HTTP até publicação do contrato. */
+  consultarEscalacao?(
+    partidaId: string,
+    timeCampeonatoId: string,
+    accessToken: string,
+  ): Promise<EscalacaoPartida>;
+  publicarSumula?(
+    partidaId: string,
+    accessToken: string,
+    input: SumulaDefinitivaInput,
+    idempotencyKey: string,
+  ): Promise<SumulaDefinitivaPublicada>;
+  /** Persistência local da demonstração; o integrado usa publicarSumula. */
   registrarSumulaPrototipo?(
     partidaId: string,
     accessToken: string,

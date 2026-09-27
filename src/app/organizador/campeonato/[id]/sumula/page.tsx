@@ -1,4 +1,5 @@
-import { TelaSumula } from '@/screens/organizador/sumula';
+import { obterModoAplicacao } from '@/config/modo-aplicacao';
+import { EntradaSumulaSemPartida } from '@/screens/organizador/entrada-sumula-sem-partida';
 import { TelaSumulaChaveamento } from '@/screens/organizador/sumula-chaveamento';
 
 export default async function Page({
@@ -12,6 +13,6 @@ export default async function Page({
   return busca.partida ? (
     <TelaSumulaChaveamento campeonatoId={id} partidaId={busca.partida} />
   ) : (
-    <TelaSumula campeonatoId={id} />
+    <EntradaSumulaSemPartida modo={obterModoAplicacao()} campeonatoId={id} />
   );
 }

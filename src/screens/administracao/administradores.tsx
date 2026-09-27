@@ -156,13 +156,15 @@ export function TelaAdministradores() {
                 Desbloquear
               </Button>
             ) : null}
-            <Button
-              tone="danger"
-              aria-label={`Revogar administração de ${admin.nome}`}
-              onClick={() => setAcao({ tipo: 'revogar', usuario: admin })}
-            >
-              Revogar
-            </Button>
+            {admin.usuarioId !== session?.account.id ? (
+              <Button
+                tone="danger"
+                aria-label={`Revogar administração de ${admin.nome}`}
+                onClick={() => setAcao({ tipo: 'revogar', usuario: admin })}
+              >
+                Revogar
+              </Button>
+            ) : null}
           </Cartao>
         ))}
       </div>

@@ -96,6 +96,22 @@ function Probe() {
       <span data-testid="organizador">
         {auth.session?.capabilities.includes('organizador') ? 'sim' : 'nao'}
       </span>
+      <span data-testid="atleta">
+        {auth.session?.capabilities.includes('atleta') ? 'sim' : 'nao'}
+      </span>
+      <span data-testid="times">
+        {auth.session?.links.teamIds.join(',') ?? ''}
+      </span>
+      <button
+        type="button"
+        onClick={() =>
+          auth.reconciliarVinculosTimes([
+            { timeId: 'time-real-1', funcao: 'CAPITAO' },
+          ])
+        }
+      >
+        reconciliar times
+      </button>
       <button
         onClick={() => {
           void auth.enableOrganizer().then(() => setResultado('ativado'));
@@ -132,6 +148,26 @@ describe('ProvedorSessao', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+  });
+
+  it('reconcilia vínculos reais de time e habilita o contexto de atleta no integrado', async () => {
+    render(
+      <ProvedorSessao api={createApi()} modo="integrado">
+        <Probe />
+      </ProvedorSessao>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('autenticado'),
+    );
+    expect(screen.getByTestId('atleta')).toHaveTextContent('nao');
+
+    act(() =>
+      screen.getByRole('button', { name: 'reconciliar times' }).click(),
+    );
+
+    expect(screen.getByTestId('atleta')).toHaveTextContent('sim');
+    expect(screen.getByTestId('times')).toHaveTextContent('time-real-1');
   });
 
   it('preserva o contexto escolhido ao recarregar a conta e ao remontar o provedor', async () => {

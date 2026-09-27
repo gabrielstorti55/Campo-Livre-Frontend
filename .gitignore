@@ -9,7 +9,7 @@ lerna-debug.log*
 
 node_modules
 /.next/
-/.next-e2e-*/
+/.next-*/
 next-env.d.ts
 *.tsbuildinfo
 dist

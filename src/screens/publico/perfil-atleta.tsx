@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import { DestaquePagina } from '@/components/layout/destaque-pagina';
+import { AvisoDadosDemonstrativos } from '@/components/layout/aviso-dados-demonstrativos';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { Button } from '@/components/ui/button';
 import { atletasPublicosMock } from '@/mocks/publico/dados-publicos';
@@ -52,6 +53,8 @@ export function TelaPerfilAtleta({
           `Atleta de ${atleta.municipio}/${atleta.uf} com histórico esportivo publicado no CampoLivre.`
         }
       />
+
+      <AvisoDadosDemonstrativos className="mb-6" />
 
       <div className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
         <aside className="space-y-5">

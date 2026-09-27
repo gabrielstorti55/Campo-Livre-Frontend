@@ -15,7 +15,7 @@ export function ControleModoPrefeitura({
 }) {
   const pathname = usePathname();
   if (
-    modo === 'prototipo' ||
+    modo !== 'integrado' ||
     pathname === '/prefeitura/painel' ||
     pathname === '/prefeitura/campos/novo' ||
     /^\/prefeitura\/campos\/[^/]+$/.test(pathname) ||

@@ -26,9 +26,17 @@ describe('ControleModoOrganizador', () => {
       </ControleModoOrganizador>,
     );
     expect(screen.getByText('Partidas integradas')).toBeVisible();
+
+    pathname = '/organizador/campeonato/camp-1/sumula';
+    rerender(
+      <ControleModoOrganizador modo="integrado">
+        <p>Súmula integrada</p>
+      </ControleModoOrganizador>,
+    );
+    expect(screen.getByText('Súmula integrada')).toBeVisible();
   });
 
-  it.each(['reservas', 'sumula'])(
+  it.each(['reservas'])(
     'mantém %s bloqueada no modo integrado por ainda usar estado local',
     (segmento) => {
       pathname = `/organizador/campeonato/camp-1/${segmento}`;

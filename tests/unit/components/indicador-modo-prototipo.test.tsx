@@ -21,4 +21,15 @@ describe('IndicadorModoPrototipo', () => {
     );
     expect(screen.getByRole('status')).toHaveClass('pointer-events-none');
   });
+
+  it('explica que a experiência de revisão funciona sem a API', () => {
+    render(<IndicadorModoPrototipo modo="hibrido" />);
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Experiência de revisão',
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Dados demonstrativos permitem revisar todas as telas',
+    );
+  });
 });

@@ -17,8 +17,11 @@ export function ConteudoMeusTimes() {
   useEffect(() => {
     if (!session) return;
     let ativo = true;
-    setPagina(null);
-    setFalhou(false);
+    void Promise.resolve().then(() => {
+      if (!ativo) return;
+      setPagina(null);
+      setFalhou(false);
+    });
     executarAutenticado((accessToken) =>
       api.listarMeusTimes(accessToken, 1, 100),
     )

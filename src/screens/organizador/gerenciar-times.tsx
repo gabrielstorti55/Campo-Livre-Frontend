@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { useSessao } from '@/hooks/use-sessao';
 import { useCampeonatosApi } from '@/contexts/campeonatos-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { useTimesApi } from '@/contexts/times-api';
 import type { TimeResumido } from '@/types/api/times';
 import type {
@@ -42,6 +43,7 @@ export function TelaGerenciarTimes({
   incorporada?: boolean;
 }) {
   const { hydrated, session, executarAutenticado } = useSessao();
+  const modo = useModoAplicacao();
   const campeonatosApi = useCampeonatosApi();
   const timesApi = useTimesApi();
   const [campeonato, setCampeonato] =
@@ -548,9 +550,13 @@ export function TelaGerenciarTimes({
         ) : null}
         {participantes.map((time) => {
           const elenco = elencos[time.timeId];
-          const inscricaoPrototipo = session?.prototipo
-            ? obterAtletasDoTimeNoCampeonatoPrototipo(campeonatoId, time.timeId)
-            : null;
+          const inscricaoPrototipo =
+            session?.prototipo || modo === 'hibrido'
+              ? obterAtletasDoTimeNoCampeonatoPrototipo(
+                  campeonatoId,
+                  time.timeId,
+                )
+              : null;
           return (
             <section
               key={time.timeId}

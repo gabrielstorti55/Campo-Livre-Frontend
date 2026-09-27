@@ -1021,7 +1021,8 @@ export class CampeonatosPrototipo implements CampeonatosApi {
       if (acao === 'ACEITAR') {
         const campeonato = this.obter(campeonatoId);
         const timeId = Number(convite.time.id);
-        if (!campeonato.timeIds.includes(timeId)) campeonato.timeIds.push(timeId);
+        if (!campeonato.timeIds.includes(timeId))
+          campeonato.timeIds.push(timeId);
       }
       return { conviteId, status: convite.status, encerradoEm };
     }

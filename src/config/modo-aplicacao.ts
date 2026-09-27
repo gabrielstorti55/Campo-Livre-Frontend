@@ -1,4 +1,4 @@
-export type ModoAplicacao = 'integrado' | 'prototipo';
+export type ModoAplicacao = 'hibrido' | 'integrado' | 'prototipo';
 
 type AmbienteModoAplicacao = {
   nodeEnv: string | undefined;
@@ -9,8 +9,12 @@ export function resolverModoAplicacao({
   nodeEnv,
   modoSolicitado,
 }: AmbienteModoAplicacao): ModoAplicacao {
+  if (modoSolicitado === 'hibrido') return 'hibrido';
   if (nodeEnv === 'production') return 'integrado';
-  return modoSolicitado === 'prototipo' ? 'prototipo' : 'integrado';
+  if (modoSolicitado === 'prototipo') return 'prototipo';
+  if (modoSolicitado === 'integrado') return 'integrado';
+  if (modoSolicitado !== undefined) return 'integrado';
+  return 'hibrido';
 }
 
 export function obterModoAplicacao(): ModoAplicacao {

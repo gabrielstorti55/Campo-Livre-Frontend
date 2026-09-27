@@ -7,7 +7,7 @@ import type {
   ItemAgendaPartida,
 } from '@/types/api/partidas';
 
-const { api, executarAutenticado, sessao } = vi.hoisted(() => ({
+const { api, camposApi, executarAutenticado, sessao } = vi.hoisted(() => ({
   api: {
     listarAgenda: vi.fn(),
     consultarAdministracao: vi.fn(),
@@ -15,6 +15,9 @@ const { api, executarAutenticado, sessao } = vi.hoisted(() => ({
     adiarPartida: vi.fn(),
     cancelarPartida: vi.fn(),
     registrarWo: vi.fn(),
+  },
+  camposApi: {
+    listarCampos: vi.fn(),
   },
   sessao: {
     sessionId: 'sessao-1',
@@ -26,6 +29,10 @@ const { api, executarAutenticado, sessao } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/contexts/partidas-api', () => ({ usePartidasApi: () => api }));
+vi.mock('@/contexts/campos-api', () => ({ useCamposApi: () => camposApi }));
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
 vi.mock('@/hooks/use-sessao', () => ({
   useSessao: () => ({
     hydrated: true,
@@ -92,6 +99,13 @@ beforeEach(() => {
     totalPaginas: 1,
   });
   api.consultarAdministracao.mockResolvedValue(detalhe);
+  camposApi.listarCampos.mockResolvedValue({
+    itens: [],
+    pagina: 1,
+    tamanho: 100,
+    totalItens: 0,
+    totalPaginas: 0,
+  });
   api.registrarWo.mockResolvedValue({
     partidaId: item.partidaId,
     estadoPartida: 'ENCERRADA_WO',

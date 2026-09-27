@@ -80,9 +80,7 @@ test('participantes e estrutura usam projeções recuperáveis do campeonato', a
   await expect(
     page.getByRole('heading', { name: 'Times · Copa Verão 2026' }),
   ).toBeVisible();
-  await expect(
-    page.getByText('Vila Nova FC', { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText('Vila Nova FC', { exact: true })).toBeVisible();
   await expect(page.getByText('Leões FC', { exact: true })).toBeVisible();
 
   await autenticarEm(
@@ -91,9 +89,7 @@ test('participantes e estrutura usam projeções recuperáveis do campeonato', a
     '/organizador/campeonato/4/chaveamento',
   );
   await expect(page.getByText('2 Times confirmados')).toBeVisible();
-  await expect(
-    page.getByText('Vila Nova FC', { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText('Vila Nova FC', { exact: true })).toBeVisible();
   await expect(page.getByText('Leões FC', { exact: true })).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Salvar estrutura de fases' }),

@@ -14,6 +14,11 @@ export type VinculoTimeCriado = {
   role: 'CAPITAO';
 };
 
+export type VinculoTimeSessao = {
+  timeId: string;
+  funcao: 'ATLETA' | 'CAPITAO';
+};
+
 export type SessaoPessoal = {
   sessionId: string;
   prototipo: boolean;
@@ -51,6 +56,7 @@ export type ValorContextoSessao = {
     request: (accessToken: string) => Promise<T>,
   ) => Promise<T>;
   recarregarMinhaConta: () => Promise<MinhaConta>;
+  reconciliarVinculosTimes: (vinculos: VinculoTimeSessao[]) => void;
   linkTeam: (teamId: string) => void;
   createTeam: (input: Omit<VinculoTimeCriado, 'id' | 'role'>) => string;
   enableOrganizer: () => Promise<void>;

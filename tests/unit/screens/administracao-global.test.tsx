@@ -100,6 +100,16 @@ describe('Administração Global integrada', () => {
     expect(await screen.findByText('Administrador Atual')).toBeVisible();
     expect(screen.getByText('Gestora Bloqueada')).toBeVisible();
     expect(screen.getByText('Bloqueada')).toBeVisible();
+    expect(
+      screen.queryByRole('button', {
+        name: 'Revogar administração de Administrador Atual',
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Revogar administração de Gestora Bloqueada',
+      }),
+    ).toBeVisible();
 
     fireEvent.change(screen.getByLabelText('Nome do administrador'), {
       target: { value: 'Maria' },

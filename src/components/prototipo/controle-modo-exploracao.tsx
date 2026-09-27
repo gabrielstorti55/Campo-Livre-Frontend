@@ -19,6 +19,7 @@ function rotaIntegrada(pathname: string): boolean {
     pathname === '/partidas' ||
     /^\/partidas\/[^/]+$/.test(pathname) ||
     /^\/convites-time\/[^/]+$/.test(pathname) ||
+    /^\/convites-prefeitura\/[^/]+$/.test(pathname) ||
     pathname === '/times' ||
     pathname === '/campos'
   )
@@ -37,7 +38,7 @@ export function ControleModoExploracao({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  if (modo === 'prototipo' || rotaIntegrada(pathname)) return children;
+  if (modo !== 'integrado' || rotaIntegrada(pathname)) return children;
 
   return (
     <PaginaEstado

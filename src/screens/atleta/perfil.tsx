@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutenticacaoApi } from '@/contexts/autenticacao-api';
 import { useMunicipiosApi } from '@/contexts/municipios-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { useSessao } from '@/hooks/use-sessao';
 import { obterAtletaPublicoDaContaPrototipo } from '@/mocks/atleta/perfis-contas';
 import type { MinhaConta, PosicaoPrincipal } from '@/types/api/autenticacao';
@@ -318,10 +319,12 @@ function EditorPerfil({
 
 export function TelaPerfilAtletaAutenticado() {
   const { session } = useSessao();
+  const modo = useModoAplicacao();
   if (!session) return <p role="status">Carregando perfil...</p>;
-  const atletaPublico = session.prototipo
-    ? obterAtletaPublicoDaContaPrototipo(session.minhaConta.id)
-    : undefined;
+  const atletaPublico =
+    session.prototipo || modo === 'hibrido'
+      ? obterAtletaPublicoDaContaPrototipo(session.minhaConta.id)
+      : undefined;
   return (
     <EditorPerfil
       key={session.minhaConta.id}

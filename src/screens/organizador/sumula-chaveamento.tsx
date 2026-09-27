@@ -11,8 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { usePartidasApi } from '@/contexts/partidas-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { useSessao } from '@/hooks/use-sessao';
 import { obterAtletasDoTimeNoCampeonatoPrototipo } from '@/mocks/organizador/inscricoes-atletas-campeonato';
+import { TelaSumulaIntegrada } from '@/screens/organizador/sumula-integrada';
 import type {
   DetalheAdministrativoPartida,
   SumulaCompletaPrototipo,
@@ -81,14 +83,16 @@ export function TelaSumulaChaveamento({
   partidaId: string;
 }) {
   const partidasApi = usePartidasApi();
+  const modo = useModoAplicacao();
   const { hydrated, session, executarAutenticado } = useSessao();
+  const usarFluxoPrototipo = session?.prototipo || modo === 'hibrido';
   const [detalhe, setDetalhe] = useState<DetalheAdministrativoPartida | null>(
     null,
   );
   const [erro, setErro] = useState('');
 
   useEffect(() => {
-    if (!hydrated || !session?.prototipo || !partidaId) return;
+    if (!hydrated || !usarFluxoPrototipo || !partidaId) return;
     let ativo = true;
     void executarAutenticado((token) =>
       partidasApi.consultarAdministracao(partidaId, token),
@@ -104,11 +108,16 @@ export function TelaSumulaChaveamento({
     hydrated,
     partidaId,
     partidasApi,
-    session?.prototipo,
+    usarFluxoPrototipo,
   ]);
 
   if (!hydrated) return <p role="status">Carregando súmula...</p>;
-  if (!session?.prototipo || !partidasApi.registrarSumulaPrototipo) {
+  if (!usarFluxoPrototipo) {
+    return (
+      <TelaSumulaIntegrada campeonatoId={campeonatoId} partidaId={partidaId} />
+    );
+  }
+  if (!partidasApi.registrarSumulaPrototipo) {
     return (
       <Card className="p-6">
         <h1 className="font-display text-2xl font-semibold">

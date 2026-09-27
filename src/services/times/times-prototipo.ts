@@ -502,23 +502,23 @@ export class TimesPrototipo implements TimesApi {
               },
             ]
           : contaId === 'mock-person-athlete-1'
-          ? [
-              {
-                membroId: 'membro-diego',
-                funcao: 'ATLETA' as const,
-                entrouEm: '2025-01-20T12:00:00.000Z',
-                time: {
-                  id: '1',
-                  nome: 'Vila Nova FC',
-                  sigla: 'VNF',
-                  escudoUrl: this.escudos.get('1') ?? null,
-                  status: this.timesDesativados.has('1')
-                    ? ('DESATIVADO' as const)
-                    : ('ATIVO' as const),
+            ? [
+                {
+                  membroId: 'membro-diego',
+                  funcao: 'ATLETA' as const,
+                  entrouEm: '2025-01-20T12:00:00.000Z',
+                  time: {
+                    id: '1',
+                    nome: 'Vila Nova FC',
+                    sigla: 'VNF',
+                    escudoUrl: this.escudos.get('1') ?? null,
+                    status: this.timesDesativados.has('1')
+                      ? ('DESATIVADO' as const)
+                      : ('ATIVO' as const),
+                  },
                 },
-              },
-            ]
-          : [];
+              ]
+            : [];
     const criados = Array.from(this.timesCriados.values())
       .filter((item) => item.contaId === contaId)
       .map(({ time, criadoEm }) => ({

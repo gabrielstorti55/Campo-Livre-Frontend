@@ -4,9 +4,11 @@ import { MapPin, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
+import { AvisoDadosDemonstrativos } from '@/components/layout/aviso-dados-demonstrativos';
 import { EstadoRecurso } from '@/components/layout/estado-recurso';
 import { Button } from '@/components/ui/button';
 import { useSessao } from '@/hooks/use-sessao';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { campeonatosPublicosMock } from '@/mocks/publico/dados-publicos';
 
 const estadoLabel = {
@@ -18,6 +20,8 @@ const estadoLabel = {
 
 export function TelaCampeonatosAtleta() {
   const { session } = useSessao();
+  const modo = useModoAplicacao();
+  const usarDadosDemonstrativos = session?.prototipo || modo === 'hibrido';
   const campeonatos = campeonatosPublicosMock.filter(
     (campeonato) => campeonato.publicado && campeonato.timeIds.includes(1),
   );
@@ -29,7 +33,11 @@ export function TelaCampeonatosAtleta() {
         subtitle="Competições vinculadas ao Vila Nova FC"
       />
 
-      {!session?.prototipo ? (
+      {usarDadosDemonstrativos ? (
+        <AvisoDadosDemonstrativos className="mb-6" />
+      ) : null}
+
+      {!usarDadosDemonstrativos ? (
         <EstadoRecurso
           kind="empty"
           title="Vínculos esportivos ainda indisponíveis"

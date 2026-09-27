@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCamposApi } from '@/contexts/campos-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { usePartidasApi } from '@/contexts/partidas-api';
 import { useSessao } from '@/hooks/use-sessao';
 import { carregarPartidasAdministrativas } from '@/services/partidas/carregar-partidas-administrativas';
@@ -32,6 +33,22 @@ type CategoriaCancelamento =
   'DECISAO_ADMINISTRATIVA' | 'DESISTENCIA' | 'FORCA_MAIOR';
 
 const doisDigitos = (valor: number) => String(valor).padStart(2, '0');
+
+export function podePreencherSumula({
+  prototipo,
+  partidaId,
+  estado,
+  operacoesPermitidas,
+}: {
+  prototipo: boolean;
+  partidaId: string;
+  estado: string;
+  operacoesPermitidas: string[];
+}) {
+  if (estado !== 'AGENDADA') return false;
+  if (operacoesPermitidas.includes('PUBLICAR_SUMULA')) return true;
+  return prototipo && partidaId.includes('-mata-mata-');
+}
 
 function obterDataHoraLocal(dataIso: string | null) {
   if (!dataIso) return { data: '', hora: '' };
@@ -50,6 +67,7 @@ export function TelaGerenciarPartidas({
   incorporada?: boolean;
 }) {
   const partidasApi = usePartidasApi();
+  const modo = useModoAplicacao();
   const searchParams = useSearchParams();
   const camposApi = useCamposApi();
   const { hydrated, session, executarAutenticado } = useSessao();
@@ -423,9 +441,14 @@ export function TelaGerenciarPartidas({
                         Registrar WO
                       </Button>
                     ) : null}
-                    {session?.prototipo &&
-                    partida.partidaId.includes('-mata-mata-') &&
-                    detalhe.estado === 'AGENDADA' ? (
+                    {podePreencherSumula({
+                      prototipo: Boolean(
+                        session?.prototipo || modo === 'hibrido',
+                      ),
+                      partidaId: partida.partidaId,
+                      estado: detalhe.estado,
+                      operacoesPermitidas: detalhe.operacoesPermitidas,
+                    }) ? (
                       <Button size="sm" variant="campo" asChild>
                         <Link
                           href={`/organizador/campeonato/${campeonatoId}/sumula?partida=${encodeURIComponent(partida.partidaId)}`}

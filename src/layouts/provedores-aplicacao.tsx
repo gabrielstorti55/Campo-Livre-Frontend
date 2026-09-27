@@ -11,6 +11,7 @@ import { ProvedorGestaoCamposApi } from '@/contexts/gestao-campos-api';
 import { ProvedorCampeonatosApi } from '@/contexts/campeonatos-api';
 import { ProvedorGestaoPrefeiturasApi } from '@/contexts/gestao-prefeituras-api';
 import { ProvedorMunicipiosApi } from '@/contexts/municipios-api';
+import { ProvedorModoAplicacao } from '@/contexts/modo-aplicacao';
 import { ProvedorPartidasApi } from '@/contexts/partidas-api';
 import { ProvedorPrefeiturasApi } from '@/contexts/prefeituras-api';
 import { ProvedorTimesApi } from '@/contexts/times-api';
@@ -60,16 +61,17 @@ type ApisAplicacao = {
 };
 
 export function criarApisAplicacao(modo: ModoAplicacao): ApisAplicacao {
-  if (modo === 'prototipo') {
+  if (modo !== 'integrado') {
     const autenticacao = new AutenticacaoPrototipo();
     const partidasChaveamento = new PartidasChaveamentoPrototipo();
+    const campos = new CamposPrototipo();
     return {
       autenticacao,
       times: new TimesPrototipo((accessToken) =>
         autenticacao.obterContaAtivaId(accessToken),
       ),
-      campos: new CamposPrototipo(),
-      gestaoCampos: null,
+      campos,
+      gestaoCampos: campos,
       administracaoGlobal: null,
       consentimentos: null,
       municipios: new MunicipiosPrototipo(),
@@ -91,8 +93,12 @@ export function criarApisAplicacao(modo: ModoAplicacao): ApisAplicacao {
   const cliente = new ClienteApi(obterUrlApi());
   const prefeituras = new PrefeiturasHttp(cliente);
   const campos = new CamposHttp(cliente);
+  const autenticacao = new AutenticacaoHttp(cliente);
+  const campeonatosHttp = new CampeonatosHttp(cliente);
+  const partidasHttp = new PartidasHttp(cliente);
+
   return {
-    autenticacao: new AutenticacaoHttp(cliente),
+    autenticacao,
     times: new TimesHttp(cliente),
     campos,
     gestaoCampos: campos,
@@ -101,8 +107,8 @@ export function criarApisAplicacao(modo: ModoAplicacao): ApisAplicacao {
     municipios: new MunicipiosHttp(cliente),
     prefeituras,
     gestaoPrefeituras: prefeituras,
-    campeonatos: new CampeonatosHttp(cliente),
-    partidas: new PartidasHttp(cliente),
+    campeonatos: campeonatosHttp,
+    partidas: partidasHttp,
   };
 }
 
@@ -116,30 +122,35 @@ export function ProvedoresAplicacao({
   const apis = useMemo(() => criarApisAplicacao(modo), [modo]);
 
   return (
-    <ProvedorAutenticacaoApi api={apis.autenticacao}>
-      <ProvedorAdministracaoGlobalApi api={apis.administracaoGlobal}>
-        <ProvedorConsentimentosApi api={apis.consentimentos}>
-          <ProvedorTimesApi api={apis.times}>
-            <ProvedorMunicipiosApi api={apis.municipios}>
-              <ProvedorPrefeiturasApi api={apis.prefeituras}>
-                <ProvedorGestaoPrefeiturasApi api={apis.gestaoPrefeituras}>
-                  <ProvedorCampeonatosApi api={apis.campeonatos}>
-                    <ProvedorPartidasApi api={apis.partidas}>
-                      <ProvedorCamposApi api={apis.campos}>
-                        <ProvedorGestaoCamposApi api={apis.gestaoCampos}>
-                          <ProvedorSessao api={apis.autenticacao} modo={modo}>
-                            {children}
-                          </ProvedorSessao>
-                        </ProvedorGestaoCamposApi>
-                      </ProvedorCamposApi>
-                    </ProvedorPartidasApi>
-                  </ProvedorCampeonatosApi>
-                </ProvedorGestaoPrefeiturasApi>
-              </ProvedorPrefeiturasApi>
-            </ProvedorMunicipiosApi>
-          </ProvedorTimesApi>
-        </ProvedorConsentimentosApi>
-      </ProvedorAdministracaoGlobalApi>
-    </ProvedorAutenticacaoApi>
+    <ProvedorModoAplicacao modo={modo}>
+      <ProvedorAutenticacaoApi api={apis.autenticacao}>
+        <ProvedorAdministracaoGlobalApi api={apis.administracaoGlobal}>
+          <ProvedorConsentimentosApi api={apis.consentimentos}>
+            <ProvedorTimesApi api={apis.times}>
+              <ProvedorMunicipiosApi api={apis.municipios}>
+                <ProvedorPrefeiturasApi api={apis.prefeituras}>
+                  <ProvedorGestaoPrefeiturasApi api={apis.gestaoPrefeituras}>
+                    <ProvedorCampeonatosApi api={apis.campeonatos}>
+                      <ProvedorPartidasApi api={apis.partidas}>
+                        <ProvedorCamposApi api={apis.campos}>
+                          <ProvedorGestaoCamposApi api={apis.gestaoCampos}>
+                            <ProvedorSessao
+                              api={apis.autenticacao}
+                              modo={modo === 'hibrido' ? 'prototipo' : modo}
+                            >
+                              {children}
+                            </ProvedorSessao>
+                          </ProvedorGestaoCamposApi>
+                        </ProvedorCamposApi>
+                      </ProvedorPartidasApi>
+                    </ProvedorCampeonatosApi>
+                  </ProvedorGestaoPrefeiturasApi>
+                </ProvedorPrefeiturasApi>
+              </ProvedorMunicipiosApi>
+            </ProvedorTimesApi>
+          </ProvedorConsentimentosApi>
+        </ProvedorAdministracaoGlobalApi>
+      </ProvedorAutenticacaoApi>
+    </ProvedorModoAplicacao>
   );
 }

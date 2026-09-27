@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { useCampeonatosApi } from '@/contexts/campeonatos-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { useSessao } from '@/hooks/use-sessao';
 import { TelaChaveamento } from '@/screens/organizador/chaveamento';
 import { TelaGerenciarPartidas } from '@/screens/organizador/gerenciar-partidas';
@@ -68,6 +69,7 @@ export function TelaVisaoGeralCampeonato({
   campeonatoId: string;
   secaoAtiva?: SecaoCampeonato;
 }) {
+  const modo = useModoAplicacao();
   const { hydrated, session, executarAutenticado } = useSessao();
   const api = useCampeonatosApi();
   const [campeonato, setCampeonato] =
@@ -550,7 +552,7 @@ export function TelaVisaoGeralCampeonato({
           >
             Regulamento
           </h2>
-          {!session?.prototipo ? (
+          {!(session?.prototipo || modo === 'hibrido') ? (
             <Card className="mt-4 border-warning p-5">
               <h3 className="font-display text-lg font-semibold">
                 Edição temporariamente indisponível
@@ -572,11 +574,15 @@ export function TelaVisaoGeralCampeonato({
               className="mt-2"
               value={regulamento}
               onChange={(event) => setRegulamento(event.target.value)}
-              disabled={!session?.prototipo || !podeConfigurarEstrutura}
+              disabled={
+                !(session?.prototipo || modo === 'hibrido') ||
+                !podeConfigurarEstrutura
+              }
               placeholder="Ex.: formato dos jogos, duração e regras disciplinares"
             />
           </label>
-          {session?.prototipo && podeConfigurarEstrutura ? (
+          {(session?.prototipo || modo === 'hibrido') &&
+          podeConfigurarEstrutura ? (
             <Button
               className="mt-5"
               variant="campo"

@@ -28,6 +28,17 @@ describe('ControleModoExploracao', () => {
     expect(screen.getByText('Detalhe público')).toBeVisible();
   });
 
+  it('libera a resposta ao convite de Prefeitura já suportada pela API', () => {
+    pathname = '/convites-prefeitura/token-seguro';
+    render(
+      <ControleModoExploracao modo="integrado">
+        <p>Convite municipal integrado</p>
+      </ControleModoExploracao>,
+    );
+
+    expect(screen.getByText('Convite municipal integrado')).toBeVisible();
+  });
+
   it('libera os catálogos migrados e mantém subrota sem contrato bloqueada', () => {
     pathname = '/campeonatos';
     const { rerender } = render(

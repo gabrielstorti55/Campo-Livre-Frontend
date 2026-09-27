@@ -7,6 +7,7 @@ import { CabecalhoPagina } from '@/components/layout/cabecalho-pagina';
 import { Secao } from '@/components/layout/secao';
 import { Button } from '@/components/ui/button';
 import { useCampeonatosApi } from '@/contexts/campeonatos-api';
+import { useModoAplicacao } from '@/contexts/modo-aplicacao';
 import { useTimesApi } from '@/contexts/times-api';
 import { useSessao } from '@/hooks/use-sessao';
 import { ConteudoMeusTimes } from '@/screens/atleta/meus-times';
@@ -160,7 +161,8 @@ function ConvitesCampeonatoPrototipo() {
         if (ativo) setConvites(pagina.itens);
       },
       () => {
-        if (ativo) setErro('Não foi possível carregar os convites de campeonatos.');
+        if (ativo)
+          setErro('Não foi possível carregar os convites de campeonatos.');
       },
     );
     return () => {
@@ -180,17 +182,18 @@ function ConvitesCampeonatoPrototipo() {
       const resposta = await executarAutenticado((accessToken) =>
         api.responderConviteCampeonato!(convite.conviteId, acao, accessToken),
       );
-      setConvites((atuais) =>
-        atuais?.map((item) =>
-          item.conviteId === convite.conviteId
-            ? {
-                ...item,
-                status: resposta.status,
-                encerradoEm: resposta.encerradoEm,
-                acoesPermitidas: [],
-              }
-            : item,
-        ) ?? [],
+      setConvites(
+        (atuais) =>
+          atuais?.map((item) =>
+            item.conviteId === convite.conviteId
+              ? {
+                  ...item,
+                  status: resposta.status,
+                  encerradoEm: resposta.encerradoEm,
+                  acoesPermitidas: [],
+                }
+              : item,
+          ) ?? [],
       );
       setFeedback(
         acao === 'ACEITAR'
@@ -252,7 +255,9 @@ function ConvitesCampeonatoPrototipo() {
             </div>
           ) : (
             <p className="mt-2 text-sm font-semibold text-green-dark">
-              {convite.status === 'ACEITO' ? 'Participação aceita' : 'Convite recusado'}
+              {convite.status === 'ACEITO'
+                ? 'Participação aceita'
+                : 'Convite recusado'}
             </p>
           )}
         </article>
@@ -263,6 +268,7 @@ function ConvitesCampeonatoPrototipo() {
 
 export function TelaBuscarTimes() {
   const api = useTimesApi();
+  const modo = useModoAplicacao();
   const { session, executarAutenticado } = useSessao();
   const [nome, setNome] = useState('');
   const [busca, setBusca] = useState<{
@@ -312,7 +318,9 @@ export function TelaBuscarTimes() {
         <ConteudoConvitesTime carregar={carregar} />
       </Secao>
 
-      {session?.prototipo ? <ConvitesCampeonatoPrototipo /> : null}
+      {session?.prototipo || modo === 'hibrido' ? (
+        <ConvitesCampeonatoPrototipo />
+      ) : null}
 
       <Secao title="Encontrar times" className="mt-10">
         <form

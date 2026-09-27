@@ -16,7 +16,7 @@ function rotaOrganizadorIntegrada(pathname: string): boolean {
     return true;
   }
 
-  return /^\/organizador\/campeonato\/[^/]+(?:\/(?:times|partidas|chaveamento))?$/.test(
+  return /^\/organizador\/campeonato\/[^/]+(?:\/(?:times|partidas|chaveamento|sumula))?$/.test(
     pathname,
   );
 }
@@ -29,7 +29,7 @@ export function ControleModoOrganizador({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  if (modo === 'prototipo' || rotaOrganizadorIntegrada(pathname))
+  if (modo !== 'integrado' || rotaOrganizadorIntegrada(pathname))
     return children;
 
   return (

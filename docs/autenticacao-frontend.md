@@ -148,21 +148,21 @@ A pasta inteira ainda contém contradições históricas. Para esta fatia, preva
 
 ## Estado atual observado no frontend
 
-| Rota web                     | Estado frontend                                                               |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| `/login`                     | login por e-mail e senha, mensagem neutra e retorno interno seguro            |
-| `/cadastro`                  | cadastro adulto com seleção pelo catálogo interno de municípios               |
-| `/confirmar-email`           | consome token uma vez e o remove da URL                                       |
-| `/recuperar-senha`           | solicitação com resposta pública neutra                                       |
-| `/redefinir-senha`           | redefine por token e exige novo login                                         |
-| `/minha-area`                | destino privado neutro para conta sem vínculos                                |
-| `/minha-conta`               | projeção privada e acesso às ações de segurança                               |
-| `/minha-conta/seguranca`     | alteração autenticada de senha e encerramento da sessão local                 |
-| `/minha-conta/alterar-email` | solicita o novo endereço sem substituir imediatamente o atual                 |
-| `/confirmar-alteracao-email` | confirma a troca por token removido da URL                                    |
-| `/reativar-conta`            | reativa no prazo, com credenciais e confirmação, sem criar sessão automática  |
-| `/solicitar-reativacao`      | solicita link com resposta neutra, sem revelar elegibilidade                  |
-| `/confirmar-reativacao`      | confirma por token de uso único, removido imediatamente da URL                |
+| Rota web                     | Estado frontend                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `/login`                     | login por e-mail e senha, mensagem neutra e retorno interno seguro           |
+| `/cadastro`                  | cadastro adulto com seleção pelo catálogo interno de municípios              |
+| `/confirmar-email`           | consome token uma vez e o remove da URL                                      |
+| `/recuperar-senha`           | solicitação com resposta pública neutra                                      |
+| `/redefinir-senha`           | redefine por token e exige novo login                                        |
+| `/minha-area`                | destino privado neutro para conta sem vínculos                               |
+| `/minha-conta`               | projeção privada e acesso às ações de segurança                              |
+| `/minha-conta/seguranca`     | alteração autenticada de senha e encerramento da sessão local                |
+| `/minha-conta/alterar-email` | solicita o novo endereço sem substituir imediatamente o atual                |
+| `/confirmar-alteracao-email` | confirma a troca por token removido da URL                                   |
+| `/reativar-conta`            | reativa no prazo, com credenciais e confirmação, sem criar sessão automática |
+| `/solicitar-reativacao`      | solicita link com resposta neutra, sem revelar elegibilidade                 |
+| `/confirmar-reativacao`      | confirma por token de uso único, removido imediatamente da URL               |
 
 A identidade de protótipo existe somente em memória e é perdida em uma recarga completa. Access token, refresh token e credenciais de sessão não são persistidos em `localStorage` ou `sessionStorage`. Produção seleciona obrigatoriamente o adapter HTTP; o protótipo é apenas infraestrutura de demonstração e E2E, não evidência de autenticação, autorização ou persistência real.
 

@@ -90,6 +90,47 @@ describe('PartidasHttp', () => {
     });
   });
 
+  it('consulta as escalações e publica a Súmula definitiva com idempotência', async () => {
+    const request = vi.fn().mockResolvedValue({});
+    const api = new PartidasHttp({ request });
+    const input = {
+      confirmacaoDefinitiva: true as const,
+      placar: {
+        regulamentar: { mandante: 1, visitante: 0 },
+        prorrogacao: null,
+        penaltis: null,
+      },
+      arbitragem: {
+        arbitro: 'Carlos Silva',
+        assistente1: null,
+        assistente2: null,
+        quartoArbitro: null,
+      },
+      relatorio: null,
+      defesasNormais: [],
+      eventos: [],
+    };
+
+    await api.consultarEscalacao('partida 1', 'time campeonato 1', 'token');
+    await api.publicarSumula('partida 1', 'token', input, 'sumula-1');
+
+    expect(request.mock.calls).toEqual([
+      [
+        '/partidas/partida%201/escalacoes/time%20campeonato%201',
+        { accessToken: 'token' },
+      ],
+      [
+        '/partidas/partida%201/sumulas',
+        {
+          method: 'POST',
+          accessToken: 'token',
+          headers: { 'Idempotency-Key': 'sumula-1' },
+          body: input,
+        },
+      ],
+    ]);
+  });
+
   it('lista e administra agendamentos com versão concorrente e cancelamento', async () => {
     const request = vi.fn().mockResolvedValue({});
     const api = new PartidasHttp({ request });

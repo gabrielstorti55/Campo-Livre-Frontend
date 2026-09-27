@@ -25,8 +25,27 @@ describe('LayoutPrefeitura', () => {
     const menu = screen.queryByRole('button', { name: /menu/i });
     if (menu) fireEvent.click(menu);
 
-    expect(screen.getAllByText('Campos').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Organizadores').length).toBeGreaterThan(0);
+    const cadastrarCampo = screen.getAllByRole('link', {
+      name: 'Cadastrar campo',
+    });
+    expect(cadastrarCampo.length).toBeGreaterThan(0);
+    expect(cadastrarCampo[0]).toHaveAttribute(
+      'href',
+      '/prefeitura/campos/novo',
+    );
+    const organizadores = screen.getAllByRole('link', {
+      name: 'Organizadores',
+    });
+    expect(organizadores.length).toBeGreaterThan(0);
+    expect(organizadores[0]).toHaveAttribute(
+      'href',
+      '/prefeitura/organizadores',
+    );
+    expect(
+      screen
+        .getAllByRole('link', { name: 'Campos' })
+        .some((link) => link.getAttribute('href') === '/prefeitura/campos'),
+    ).toBe(true);
     expect(screen.queryByText('Calendário')).toBeNull();
     expect(screen.queryByText('Aprovações')).toBeNull();
   });

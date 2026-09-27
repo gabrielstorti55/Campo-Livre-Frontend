@@ -17,6 +17,85 @@ export type WoRegistrado = {
   registradoEm: string;
 };
 
+export type PosicaoEscalacaoCanonica =
+  'GOLEIRO' | 'DEFENSOR' | 'MEIO_CAMPISTA' | 'ATACANTE';
+
+export type EscalacaoPartida = {
+  partidaId: string;
+  timeCampeonatoId: string;
+  visibilidade: 'PRIVADA' | 'PUBLICA';
+  bloqueada: boolean;
+  atletas: Array<{
+    atletaCampeonatoId: string;
+    nomeUsuario: string;
+    nomeExibicao: string;
+    situacao: 'TITULAR' | 'RESERVA';
+    posicaoUsada: PosicaoEscalacaoCanonica;
+    numeroCamisa: number | null;
+    ordem: number | null;
+  }>;
+  versao: number;
+  atualizadaEm: string;
+};
+
+export type PeriodoEventoSumula =
+  | 'PRIMEIRO_TEMPO'
+  | 'SEGUNDO_TEMPO'
+  | 'PRIMEIRO_TEMPO_PRORROGACAO'
+  | 'SEGUNDO_TEMPO_PRORROGACAO'
+  | 'DISPUTA_PENALTIS';
+
+export type TipoEventoSumula =
+  | 'GOL'
+  | 'GOL_CONTRA'
+  | 'CARTAO_AMARELO'
+  | 'CARTAO_VERMELHO'
+  | 'SUBSTITUICAO'
+  | 'DEFESA_PENALTI'
+  | 'PENALTI_DISPUTA_CONVERTIDO';
+
+export type EventoSumulaInput = {
+  tipo: TipoEventoSumula;
+  periodo: PeriodoEventoSumula;
+  minutoRegulamentar: number | null;
+  acrescimo: number | null;
+  ordemCobrancaPenalti: number | null;
+  timeCampeonatoId: string;
+  atletaPrincipalId: string;
+  atletaEntradaId: string | null;
+  goleiroVazadoId: string | null;
+};
+
+export type SumulaDefinitivaInput = {
+  confirmacaoDefinitiva: true;
+  placar: {
+    regulamentar: { mandante: number; visitante: number };
+    prorrogacao: { mandante: number; visitante: number } | null;
+    penaltis: { mandante: number; visitante: number } | null;
+  };
+  arbitragem: {
+    arbitro: string;
+    assistente1: string | null;
+    assistente2: string | null;
+    quartoArbitro: string | null;
+  };
+  relatorio: string | null;
+  defesasNormais: Array<{
+    atletaCampeonatoId: string;
+    quantidade: number;
+  }>;
+  eventos: EventoSumulaInput[];
+};
+
+export type SumulaDefinitivaPublicada = {
+  sumulaId: string;
+  partidaId: string;
+  estadoPartida: 'ENCERRADA_SUMULA';
+  placar: SumulaDefinitivaInput['placar'];
+  publicadaEm: string;
+  pdf: { status: 'PENDENTE' | 'GERADO' | 'FALHOU' };
+};
+
 export type ItemArtilharia = {
   posicao: number;
   jogador: {

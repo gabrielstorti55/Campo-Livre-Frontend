@@ -27,6 +27,7 @@ import type {
   StatusSessao,
   ValorContextoSessao,
   VinculoTimeCriado,
+  VinculoTimeSessao,
 } from '@/types/sessao';
 
 const emptyLinks: SessaoPessoal['links'] = {
@@ -414,6 +415,45 @@ export function ProvedorSessao({
     }
   }
 
+  const reconciliarVinculosTimes = useCallback(
+    (vinculos: VinculoTimeSessao[]) => {
+      setSession((current) => {
+        if (!current) return current;
+        const teamIds = Array.from(
+          new Set(vinculos.map((vinculo) => vinculo.timeId)),
+        );
+        const captainTeamIds = Array.from(
+          new Set(
+            vinculos
+              .filter((vinculo) => vinculo.funcao === 'CAPITAO')
+              .map((vinculo) => vinculo.timeId),
+          ),
+        );
+        const podeAtuarComoAtleta =
+          teamIds.length > 0 &&
+          current.links.institutionalOrganizationIds.length === 0;
+        const capabilities: ContextoPessoal[] = current.capabilities.filter(
+          (capability) => capability !== 'atleta',
+        );
+        if (podeAtuarComoAtleta) capabilities.unshift('atleta');
+        const activeContext =
+          current.activeContext === 'atleta' && !podeAtuarComoAtleta
+            ? null
+            : current.activeContext;
+        if (activeContext !== current.activeContext) {
+          persistirContexto(current.account.id, activeContext);
+        }
+        return {
+          ...current,
+          capabilities,
+          activeContext,
+          links: { ...current.links, teamIds, captainTeamIds },
+        };
+      });
+    },
+    [],
+  );
+
   function switchContext(context: ContextoPessoal) {
     setSession((current) => {
       if (!current || !current.capabilities.includes(context)) return current;
@@ -521,6 +561,7 @@ export function ProvedorSessao({
         signOut,
         executarAutenticado,
         recarregarMinhaConta,
+        reconciliarVinculosTimes,
         linkTeam,
         createTeam,
         enableOrganizer,
